@@ -279,7 +279,7 @@ apps/api/
 #### Zweck der Backend-Struktur
 
 - `main.py`  
-  Einstiegspunkt der FastAPI-Anwendung.
+  Einstiegspunkt der FastAPI-Anwendung. `main.py` ist der Einstiegspunkt der FastAPI-Anwendung und erstellt die lokal startbare API samt OpenAPI- und Swagger-Dokumentation.
 
 - `api/`  
   Alles, was HTTP-spezifisch ist:
@@ -305,6 +305,19 @@ apps/api/
 
 - `tests/`  
   Unit-, Integrations- und Vertragstests.
+
+#### Aktueller Stand
+
+Aktuell ist das Backend so vorbereitet, dass die FastAPI-Anwendung lokal startbar ist.
+
+Der aktuelle Stand umfasst:
+
+- zentrale Konfiguration über `app/core/config.py`
+- FastAPI-App in `app/main.py`
+- lokale Startbarkeit per Uvicorn
+- Swagger UI und OpenAPI-Dokumentation über `/docs`
+
+Fachliche Endpunkte wie `GET /health` und `POST /predict` werden schrittweise ergänzt.
 
 ---
 
@@ -413,31 +426,22 @@ code --install-extension EditorConfig.EditorConfig
 
 ## Wichtiger Hinweis zu FastAPI und TypeScript
 
-### FastAPI
+FastAPI wird nicht separat per Homebrew installiert, sondern als Projekt-Dependency im Backend über die `pyproject.toml`.
 
-FastAPI wird **nicht** separat per Homebrew installiert, sondern als **Projekt-Dependency im Backend**.
+Für die lokale Einrichtung des Backends:
 
-Beispiel:
+- in `apps/api/` wechseln
+- virtuelle Umgebung anlegen
+- virtuelle Umgebung aktivieren
+- Dependencies über das Projekt installieren
 
-```bash
-cd apps/api
-python3.12 -m venv .venv
-source .venv/bin/activate
-pip install "fastapi[standard]"
-```
-
-### TypeScript
-
-TypeScript wird ebenfalls **nicht** per Homebrew installiert, sondern als **Projekt-Dependency im Frontend**.
-
-Beispiel:
+Die Installation erfolgt mit:
 
 ```bash
-cd apps/web
-pnpm add -D typescript
+pip install -e ".[dev]"
 ```
 
-> In vielen React-/Vite-Setups ist TypeScript bereits enthalten, wenn das Projekt direkt mit einem TypeScript-Template erstellt wurde.
+TypeScript wird ebenfalls nicht per Homebrew installiert, sondern als Projekt-Dependency im Frontend.
 
 ---
 
@@ -445,12 +449,30 @@ pnpm add -D typescript
 
 ### Backend
 
+Für das Backend:
+
+- In das Verzeichnis `apps/api` wechseln
+- Virtuelle Umgebung anlegen
+- Virtuelle Umgebung aktivieren
+- Dependencies installieren
+- `.env.example` nach `.env` kopieren
+- API lokal starten
+
+Verwendete Befehle:
+
 ```bash
 cd apps/api
 python3.12 -m venv .venv
 source .venv/bin/activate
-pip install "fastapi[standard]"
+pip install -e ".[dev]"
+cp .env.example .env
+uvicorn app.main:app --reload
 ```
+
+Danach ist die API lokal erreichbar unter:
+
+- http://127.0.0.1:8000
+- Swagger UI unter http://127.0.0.1:8000/docs
 
 ### Frontend
 
