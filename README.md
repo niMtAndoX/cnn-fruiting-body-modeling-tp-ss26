@@ -455,7 +455,6 @@ Für das Backend:
 - Virtuelle Umgebung anlegen
 - Virtuelle Umgebung aktivieren
 - Dependencies installieren
-- `.env.example` nach `.env` kopieren
 - API lokal starten
 
 Verwendete Befehle:
@@ -465,7 +464,6 @@ cd apps/api
 python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
-cp .env.example .env
 uvicorn app.main:app --reload
 ```
 
