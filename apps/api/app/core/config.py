@@ -51,6 +51,15 @@ class Settings(BaseSettings):
 
 	# Versionsbezeichnung des aktuell verwendeten Modells
 	model_version: str = "dev-fake-v1"
+ 
+	# Pfad zum Shell-Skript, das die Inferenz startet
+	inference_script_path: str = str(API_ROOT_DIR.parents[1] / "scripts" / "inference.sh")
+
+	# Maximales Zeitlimit für den Aufruf des Inferenz-Skripts in Sekunden
+	inference_timeout_seconds: int = 30
+
+	# Optionales Verzeichnis für temporär abgelegte Bilddateien
+	inference_temp_dir: str | None = None
 
 	# Konfiguration für das Laden der Settings aus der Umgebung
 	model_config = SettingsConfigDict(
@@ -106,6 +115,29 @@ class Settings(BaseSettings):
 			raise ValueError("max_upload_size_mb must be greater than 0")
 		return value
 
+	@field_validator("inference_timeout_seconds")
+	@classmethod
+	def validate_inference_timeout_seconds(cls, value: int) -> int:
+		"""
+		Validiert das Zeitlimit für den Inferenz-Aufruf in Sekunden.
+
+		Die Methode stellt sicher, dass nur positive Werte erlaubt sind.
+
+		Args:
+			cls: Klassenreferenz der Settings-Klasse.
+			value: Das konfigurierte Zeitlimit für den Inferenz-Aufruf in Sekunden.
+
+		Returns:
+			Das validierte Zeitlimit in Sekunden.
+
+		Raises:
+			ValueError: Falls der Wert kleiner oder gleich 0 ist.
+		"""
+		if value <= 0:
+			raise ValueError("inference_timeout_seconds must be greater than 0")
+		return value
+
+
 	@field_validator("cors_allow_origins", mode="before")
 	@classmethod
 	def parse_cors_allow_origins(cls, value: str | list[str]) -> list[str]:
@@ -113,12 +145,12 @@ class Settings(BaseSettings):
 		Parst die erlaubten CORS-Origins in eine Liste.
 
 		Die Methode akzeptiert entweder bereits eine Liste von Strings
-		oder einen kommaseparierten String aus der .env-Datei.
+		oder einen einzelnen String-Wert aus der Konfiguration.
 
 		Args:
 			cls: Klassenreferenz der Settings-Klasse.
 			value: Die CORS-Origins entweder als Liste von Strings
-				oder als kommaseparierter String.
+				oder als einzelner String.
 
 		Returns:
 			Eine Liste erlaubter CORS-Origins.
@@ -139,12 +171,12 @@ class Settings(BaseSettings):
 		Parst die erlaubten Upload-Content-Types in eine Liste.
 
 		Die Methode akzeptiert entweder bereits eine Liste von Strings
-		oder einen kommaseparierten String aus der .env-Datei.
+		oder einen einzelnen String-Wert aus der Konfiguration.
 
 		Args:
 			cls: Klassenreferenz der Settings-Klasse.
 			value: Die erlaubten Content-Types entweder als Liste von Strings
-				oder als kommaseparierter String.
+				oder als einzelner String.
 
 		Returns:
 			Eine Liste erlaubter Upload-Content-Types.
