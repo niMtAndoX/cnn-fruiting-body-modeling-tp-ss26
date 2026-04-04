@@ -184,6 +184,6 @@ def get_settings() -> Settings:
 	weiteren Aufrufen dieselbe Instanz zurück.
 
 	Returns:
-	    Eine Instanz der Settings-Klasse mit den geladenen Konfigurationswerten.
+		Eine Instanz der Settings-Klasse mit den geladenen Konfigurationswerten.
 	"""
 	return Settings()

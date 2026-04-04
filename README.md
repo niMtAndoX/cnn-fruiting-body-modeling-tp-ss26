@@ -455,6 +455,7 @@ Für das Backend:
 - Virtuelle Umgebung anlegen
 - Virtuelle Umgebung aktivieren
 - Dependencies installieren
+
 - API lokal starten
 
 Verwendete Befehle:
