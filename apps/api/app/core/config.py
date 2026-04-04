@@ -60,6 +60,9 @@ class Settings(BaseSettings):
 
 	# Optionales Verzeichnis für temporär abgelegte Bilddateien
 	inference_temp_dir: str | None = None
+ 
+	# Pfad zu einem Testbild für den vorläufigen /predict-Endpunkt ohne Upload
+	prediction_test_image_path: str
 
 	# Konfiguration für das Laden der Settings aus der Umgebung
 	model_config = SettingsConfigDict(
