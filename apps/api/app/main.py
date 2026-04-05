@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from app.api.error_handlers import register_exception_handlers
 from app.api.router import api_router
 from app.core.config import get_settings
 
@@ -13,6 +14,8 @@ def create_app() -> FastAPI:
         docs_url="/docs",
         openapi_url="/openapi.json",
     )
+    
+    register_exception_handlers(app)
 
     app.include_router(api_router, prefix=settings.api_prefix)
     # Middleware registrieren
