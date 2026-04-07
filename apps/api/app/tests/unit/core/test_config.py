@@ -4,9 +4,19 @@ from pydantic import ValidationError
 from app.core import config as config_module
 from app.core.config import Settings, get_settings
 
+TEST_IMAGE_PATH = "/tmp/testimage.jpg"
+
+
+def make_settings(**overrides) -> Settings:
+    return Settings(
+        _env_file=None,
+        prediction_test_image_path=TEST_IMAGE_PATH,
+        **overrides,
+    )
+
 
 def test_settings_defaults() -> None:
-    settings = Settings(_env_file=None)
+    settings = make_settings()
 
     assert settings.app_name == "waldpilz-api"
     assert settings.app_env == "dev"
@@ -31,21 +41,20 @@ def test_settings_defaults() -> None:
 
 def test_validate_api_prefix_rejects_missing_leading_slash() -> None:
     with pytest.raises(ValidationError) as exc_info:
-        Settings(_env_file=None, api_prefix="api/v1")
+        make_settings(api_prefix="api/v1")
 
     assert "api_prefix must start with '/'" in str(exc_info.value)
 
 
 def test_validate_max_upload_size_mb_rejects_zero() -> None:
     with pytest.raises(ValidationError) as exc_info:
-        Settings(_env_file=None, max_upload_size_mb=0)
+        make_settings(max_upload_size_mb=0)
 
     assert "max_upload_size_mb must be greater than 0" in str(exc_info.value)
 
 
 def test_parse_list_fields_from_comma_separated_strings() -> None:
-    settings = Settings(
-        _env_file=None,
+    settings = make_settings(
         cors_allow_origins="http://localhost:3000, http://127.0.0.1:3000",
         allowed_upload_content_types="image/jpeg, image/png",
     )
@@ -58,7 +67,7 @@ def test_parse_list_fields_from_comma_separated_strings() -> None:
 
 
 def test_max_upload_size_bytes() -> None:
-    settings = Settings(_env_file=None, max_upload_size_mb=10)
+    settings = make_settings(max_upload_size_mb=10)
 
     assert settings.max_upload_size_bytes == 10 * 1024 * 1024
 
