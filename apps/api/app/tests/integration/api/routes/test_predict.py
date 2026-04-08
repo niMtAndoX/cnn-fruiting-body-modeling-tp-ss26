@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi.testclient import TestClient
 
 from app.core.dependencies import get_prediction_service
@@ -57,7 +59,12 @@ def test_predict_returns_prediction_response() -> None:
         )
 
         assert response.status_code == 200
-        assert response.json() == {
+
+        body = response.json()
+        request_id = body.pop("request_id")
+        UUID(request_id)
+
+        assert body == {
             "model_version": "test-model-v1",
             "detections": [
                 {
@@ -88,7 +95,12 @@ def test_predict_returns_empty_detections_when_nothing_is_found() -> None:
         )
 
         assert response.status_code == 200
-        assert response.json() == {
+
+        body = response.json()
+        request_id = body.pop("request_id")
+        UUID(request_id)
+
+        assert body == {
             "model_version": "test-model-v1",
             "detections": [],
             "inference_time_ms": 123,

@@ -23,6 +23,7 @@ class DetectionResponse(BaseModel):
 class PredictionResponse(BaseModel):
     """Antwortschema für eine Vorhersage."""
 
+    request_id: str
     model_version: str
     detections: list[DetectionResponse]
     inference_time_ms: int

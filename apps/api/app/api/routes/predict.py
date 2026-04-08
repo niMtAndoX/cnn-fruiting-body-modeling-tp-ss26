@@ -1,6 +1,7 @@
 """HTTP-Endpunkt zum Auslösen einer Vorhersage."""
 
 from typing import Annotated
+from uuid import uuid4
 
 from fastapi import APIRouter, Depends, File, UploadFile
 
@@ -25,8 +26,12 @@ ALLOWED_TYPES = ["image/png", "image/jpeg"]
 MAX_SIZE = 20 * 1024 * 1024
 
 
-def to_prediction_response(result: PredictionResult) -> PredictionResponse:
+def to_prediction_response(
+    result: PredictionResult,
+    request_id: str,
+) -> PredictionResponse:
     return PredictionResponse(
+        request_id=request_id,
         model_version=result.model_version,
         detections=[
             DetectionResponse(
@@ -83,4 +88,5 @@ async def predict(
             "Die Bilderkennung konnte nicht erfolgreich ausgeführt werden."
         ) from exc
 
-    return to_prediction_response(result)
+    request_id = str(uuid4())
+    return to_prediction_response(result, request_id=request_id)
