@@ -11,6 +11,15 @@ _DETECTION_LINE_RE = re.compile(
     r"^(?P<label>[^:]+?)\s*:\s*(?P<confidence>\d+(?:[.,]\d+)?)\s*%$"
 )
 
+_COMPACT_DETECTION_LINE_RE = re.compile(
+    r"^(?P<label>.+?)\s+"
+    r"c=(?P<confidence>\d+(?:[.,]\d+)?)%\s+"
+    r"x=(?P<x>-?\d+(?:[.,]\d+)?)\s+"
+    r"y=(?P<y>-?\d+(?:[.,]\d+)?)\s+"
+    r"w=(?P<width>-?\d+(?:[.,]\d+)?)\s+"
+    r"h=(?P<height>-?\d+(?:[.,]\d+)?)\s*$"
+)
+
 _BBOX_FIELD_MAPPING = {
     "left_x": "x",
     "top_y": "y",
@@ -28,11 +37,14 @@ def parse_darknet_output(stdout: str) -> ParsedPredictionOutput:
     Parst die rohe stdout-Ausgabe des Darknet-Skripts in ein technisches,
     weiterverarbeitbares Ergebnis.
 
-    Regeln im aktuellen Schritt:
+    Unterstützte Formate:
     - Leere Ausgabe -> leeres Ergebnis
     - Bekannte "kein Treffer"-Hinweise -> leeres Ergebnis
-    - Detection-Zeilen wie "<label>: 98%" werden erkannt
-    - Bounding-Box-Zeilen werden optional direkt danach gelesen
+    - Detection-Zeilen wie "<label>: 98%" mit optionalen folgenden BBox-Zeilen
+    - Kompaktes Darknet-Format wie:
+      "fungus  c=95.148888%    x=140   y=25    w=297   h=281"
+
+    Fehlerfälle:
     - Unlesbare Detection-/BBox-Blöcke führen zu DarknetOutputParseError
     """
     normalized_output = _normalize_output(stdout)
@@ -53,6 +65,17 @@ def parse_darknet_output(stdout: str) -> ParsedPredictionOutput:
         if _is_ignorable_line(line):
             index += 1
             continue
+
+        compact_detection = _parse_compact_detection_line(line)
+        if compact_detection is not None:
+            detections.append(compact_detection)
+            index += 1
+            continue
+
+        if _looks_like_broken_compact_detection_line(line):
+            raise DarknetOutputParseError(
+                f"Unlesbare kompakte Detection-Zeile: {line!r}"
+            )
 
         detection_match = _DETECTION_LINE_RE.match(line)
         if detection_match:
@@ -96,6 +119,15 @@ def _is_ignorable_line(line: str) -> bool:
     }
 
 
+def _looks_like_broken_compact_detection_line(line: str) -> bool:
+    normalized = line.strip().lower()
+
+    has_confidence = "c=" in normalized
+    has_bbox_part = any(part in normalized for part in ("x=", "y=", "w=", "h="))
+
+    return has_confidence and has_bbox_part
+
+
 def _looks_like_broken_detection_block(lines: list[str], index: int) -> bool:
     line = lines[index]
 
@@ -112,6 +144,28 @@ def _looks_like_broken_detection_block(lines: list[str], index: int) -> bool:
 def _is_bbox_line(line: str) -> bool:
     normalized = line.strip().lower()
     return any(normalized.startswith(f"{field}:") for field in _BBOX_FIELD_MAPPING)
+
+
+def _parse_compact_detection_line(line: str) -> ParsedDetection | None:
+    match = _COMPACT_DETECTION_LINE_RE.match(line)
+    if match is None:
+        return None
+
+    label = match.group("label").strip()
+    confidence = _parse_confidence(match.group("confidence"))
+
+    bounding_box = ParsedBoundingBox(
+        x=_parse_float(match.group("x"), context="x"),
+        y=_parse_float(match.group("y"), context="y"),
+        width=_parse_float(match.group("width"), context="width"),
+        height=_parse_float(match.group("height"), context="height"),
+    )
+
+    return ParsedDetection(
+        label=label,
+        confidence=confidence,
+        bounding_box=bounding_box,
+    )
 
 
 def _parse_detection_block(
