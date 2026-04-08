@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 
 from app.core.dependencies import get_prediction_service
 from app.domain.prediction.entities import BoundingBox, Detection, PredictionResult
+from app.infrastructure.darknet.parser import DarknetOutputParseError
 from app.infrastructure.darknet.runner import InferenceScriptExecutionError
 from app.main import app
 
@@ -38,6 +39,11 @@ class EmptyPredictionService:
 class FailingPredictionService:
     def predict(self, prediction_input):
         raise InferenceScriptExecutionError("script failed")
+
+
+class ParseFailingPredictionService:
+    def predict(self, prediction_input):
+        raise DarknetOutputParseError("unreadable darknet output")
 
 
 def test_predict_returns_prediction_response() -> None:
@@ -118,7 +124,28 @@ def test_predict_returns_500_when_prediction_execution_fails() -> None:
         assert response.status_code == 500
         assert response.json() == {
             "error": "internal_error",
-            "message": "Prediction execution failed.",
+            "message": "Die Bilderkennung konnte nicht erfolgreich ausgeführt werden.",
+        }
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_predict_returns_500_when_darknet_output_cannot_be_parsed() -> None:
+    app.dependency_overrides[get_prediction_service] = (
+        lambda: ParseFailingPredictionService()
+    )
+
+    try:
+        client = TestClient(app)
+        response = client.post(
+            "/api/v1/predict",
+            files={"file": ("test.jpg", b"fake-image-bytes", "image/jpeg")},
+        )
+
+        assert response.status_code == 500
+        assert response.json() == {
+            "error": "internal_error",
+            "message": "Die Bilderkennung konnte nicht erfolgreich ausgeführt werden.",
         }
     finally:
         app.dependency_overrides.clear()

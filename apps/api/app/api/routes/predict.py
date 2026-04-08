@@ -10,19 +10,22 @@ from app.api.schemas.prediction import (
     PredictionResponse,
 )
 from app.core.dependencies import get_prediction_service
-from app.domain.prediction.entities import PredictionInput
+from app.domain.prediction.entities import PredictionInput, PredictionResult
 from app.domain.prediction.exceptions import (
     PredictionBadRequestError,
     PredictionExecutionError,
 )
 from app.domain.prediction.service import PredictionService
+from app.infrastructure.darknet.parser import DarknetOutputParseError
 from app.infrastructure.darknet.runner import InferenceRunnerError
 
 router = APIRouter(tags=["prediction"])
 
 ALLOWED_TYPES = ["image/png", "image/jpeg"]
+MAX_SIZE = 20 * 1024 * 1024
 
-def to_prediction_response(result) -> PredictionResponse:
+
+def to_prediction_response(result: PredictionResult) -> PredictionResponse:
     return PredictionResponse(
         model_version=result.model_version,
         detections=[
@@ -45,6 +48,7 @@ def to_prediction_response(result) -> PredictionResponse:
         inference_time_ms=result.inference_time_ms,
     )
 
+
 @router.post("/predict", response_model=PredictionResponse)
 async def predict(
     service: Annotated[PredictionService, Depends(get_prediction_service)],
@@ -53,15 +57,12 @@ async def predict(
         File(description="Upload eines Bildes (JPG, PNG) <br>Maximale Größe: 20 MB"),
     ],
 ) -> PredictionResponse:
-    MAX_SIZE = 20 * 1024 * 1024
-
     if file.content_type not in ALLOWED_TYPES:
         raise PredictionBadRequestError(f"Ungültiger Dateityp: {file.content_type}")
 
     image_bytes = await file.read()
-    size = len(image_bytes)
 
-    if size > MAX_SIZE:
+    if len(image_bytes) > MAX_SIZE:
         raise PredictionBadRequestError("Die Datei ist zu groß (Max: 20 MB)")
 
     if not image_bytes:
@@ -75,9 +76,11 @@ async def predict(
 
     try:
         result = service.predict(prediction_input)
-    except InferenceRunnerError as exc:
-        raise PredictionExecutionError("Prediction execution failed.") from exc
-    except Exception as exc:
-        raise PredictionExecutionError("Prediction failed unexpectedly.") from exc
+    except PredictionBadRequestError:
+        raise
+    except (InferenceRunnerError, DarknetOutputParseError) as exc:
+        raise PredictionExecutionError(
+            "Die Bilderkennung konnte nicht erfolgreich ausgeführt werden."
+        ) from exc
 
     return to_prediction_response(result)
