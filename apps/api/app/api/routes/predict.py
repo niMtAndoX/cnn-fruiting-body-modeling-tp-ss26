@@ -1,12 +1,14 @@
 """HTTP-Endpunkt zum Auslösen einer Vorhersage."""
 
-from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, UploadFile, File
+from fastapi import APIRouter, Depends, File, UploadFile
 
-from app.api.schemas.prediction import PredictionSuccessResponse
-from app.core.config import Settings, get_settings
+from app.api.schemas.prediction import (
+    BoundingBoxResponse,
+    DetectionResponse,
+    PredictionResponse,
+)
 from app.core.dependencies import get_prediction_service
 from app.domain.prediction.entities import PredictionInput
 from app.domain.prediction.exceptions import (
@@ -20,16 +22,38 @@ router = APIRouter(tags=["prediction"])
 
 ALLOWED_TYPES = ["image/png", "image/jpeg"]
 
-@router.post("/predict", response_model=PredictionSuccessResponse)
+def to_prediction_response(result) -> PredictionResponse:
+    return PredictionResponse(
+        model_version=result.model_version,
+        detections=[
+            DetectionResponse(
+                label=detection.label,
+                score=detection.score,
+                bbox=(
+                    BoundingBoxResponse(
+                        x=detection.bbox.x,
+                        y=detection.bbox.y,
+                        width=detection.bbox.width,
+                        height=detection.bbox.height,
+                    )
+                    if detection.bbox is not None
+                    else None
+                ),
+            )
+            for detection in result.detections
+        ],
+        inference_time_ms=result.inference_time_ms,
+    )
+
+@router.post("/predict", response_model=PredictionResponse)
 async def predict(
-    service: Annotated[PredictionService, Depends(get_prediction_service)], file: UploadFile = File(None, description="Upload eines Bildes (JPG, PNG, WEBP) <br>Maximale Größe: 20 MB")
-) -> PredictionSuccessResponse:
-    settings: Settings = get_settings()
-
-    MAX_SIZE = 20*1024*1024
-
-    if file is None:
-        raise PredictionBadRequestError("Keine Datei gesendet")
+    service: Annotated[PredictionService, Depends(get_prediction_service)],
+    file: Annotated[
+        UploadFile,
+        File(description="Upload eines Bildes (JPG, PNG) <br>Maximale Größe: 20 MB"),
+    ],
+) -> PredictionResponse:
+    MAX_SIZE = 20 * 1024 * 1024
 
     if file.content_type not in ALLOWED_TYPES:
         raise PredictionBadRequestError(f"Ungültiger Dateityp: {file.content_type}")
@@ -44,8 +68,8 @@ async def predict(
         raise PredictionBadRequestError("Leere Datei gesendet")
 
     prediction_input = PredictionInput(
-        filename=file.filename,
-        content_type=file.content_type,
+        filename=file.filename or "upload.jpg",
+        content_type=file.content_type or "image/jpeg",
         image_bytes=image_bytes,
     )
 
@@ -56,9 +80,4 @@ async def predict(
     except Exception as exc:
         raise PredictionExecutionError("Prediction failed unexpectedly.") from exc
 
-    return PredictionSuccessResponse(
-        status="success",
-        message="Prediction executed successfully",
-        model_version=result.model_version,
-        inference_time_ms=result.inference_time_ms,
-    )
+    return to_prediction_response(result)
