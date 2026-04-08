@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile, File
 
 from app.api.schemas.prediction import PredictionSuccessResponse
 from app.core.config import Settings, get_settings
@@ -18,35 +18,34 @@ from app.infrastructure.darknet.runner import InferenceRunnerError
 
 router = APIRouter(tags=["prediction"])
 
+ALLOWED_TYPES = ["image/png", "image/jpeg"]
 
 @router.post("/predict", response_model=PredictionSuccessResponse)
-def predict(
-    service: Annotated[PredictionService, Depends(get_prediction_service)],
+async def predict(
+    service: Annotated[PredictionService, Depends(get_prediction_service)], file: UploadFile = File(None, description="Upload eines Bildes (JPG, PNG, WEBP) <br>Maximale Größe: 20 MB")
 ) -> PredictionSuccessResponse:
     settings: Settings = get_settings()
 
-    image_path = Path(settings.prediction_test_image_path)
+    MAX_SIZE = 20*1024*1024
 
-    if not image_path.exists():
-        raise PredictionBadRequestError(
-            f"Configured test image was not found: {image_path}"
-        )
+    if file is None:
+        raise PredictionBadRequestError("Keine Datei gesendet")
 
-    if not image_path.is_file():
-        raise PredictionBadRequestError(
-            f"Configured test image is not a file: {image_path}"
-        )
+    if file.content_type not in ALLOWED_TYPES:
+        raise PredictionBadRequestError(f"Ungültiger Dateityp: {file.content_type}")
 
-    try:
-        image_bytes = image_path.read_bytes()
-    except OSError as exc:
-        raise PredictionBadRequestError(
-            f"Configured test image could not be read: {image_path}"
-        ) from exc
+    image_bytes = await file.read()
+    size = len(image_bytes)
+
+    if size > MAX_SIZE:
+        raise PredictionBadRequestError("Die Datei ist zu groß (Max: 20 MB)")
+
+    if not image_bytes:
+        raise PredictionBadRequestError("Leere Datei gesendet")
 
     prediction_input = PredictionInput(
-        filename=image_path.name,
-        content_type="image/jpeg",
+        filename=file.filename,
+        content_type=file.content_type,
         image_bytes=image_bytes,
     )
 

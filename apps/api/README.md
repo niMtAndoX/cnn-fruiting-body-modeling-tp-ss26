@@ -1,0 +1,1 @@
+Unterstützte Upload Formate der Bilder: JPEG, PNG
