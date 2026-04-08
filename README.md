@@ -78,70 +78,37 @@ flowchart LR
 
 ---
 
-## API-Grundidee
+## API-Überblick
 
-Die wichtigsten Endpunkte sind:
+Die API stellt zwei Hauptendpunkte bereit:
 
-### `GET /health`
+- **`GET /api/v1/health`** – Healthcheck zur Statusprüfung
+- **`POST /api/v1/predict`** – Bilderkennung für Fruchtkörper auf Resthölzern
 
-Prüft, ob der Service läuft.
-
-Beispielantwort:
-
-```json
-{
-  "status": "ok"
-}
-```
-
-### `POST /predict`
-
-Nimmt ein Bild entgegen und führt die Erkennung aus.
-
-Geplanter Request-Typ:
-
-- `multipart/form-data`
-
-Beispielhafte Antwort:
+**Beispiel-Response bei Erkennungen:**
 
 ```json
 {
-  "request_id": "2e8d3c4a-7b1f-4d96-a2d4-53d7fdc6d1a3",
-  "model_version": "darknet-cnn-v1.0.0",
-  "image": {
-    "filename": "probe.jpg",
-    "content_type": "image/jpeg"
-  },
+  "request_id": "db65485c-73f5-478b-b86c-ccef70c62a5f",
+  "model_version": "darknet-cnn-v1",
   "detections": [
     {
-      "label": "pilz_fruchtkoerper",
-      "score": 0.94,
-      "bbox": {
-        "x": 120,
-        "y": 84,
-        "width": 210,
-        "height": 160
-      }
+      "label": "fungus",
+      "score": 0.95148888,
+      "bbox": { "x": 140, "y": 25, "width": 297, "height": 281 }
     }
   ],
-  "inference_time_ms": 438
+  "inference_time_ms": 787
 }
 ```
 
-Wenn nichts erkannt wird, bleibt die Struktur gleich:
+Bei fehlenden Erkennungen ist `detections` ein leeres Array.
 
-```json
-{
-  "request_id": "2e8d3c4a-7b1f-4d96-a2d4-53d7fdc6d1a3",
-  "model_version": "darknet-cnn-v1.0.0",
-  "image": {
-    "filename": "probe.jpg",
-    "content_type": "image/jpeg"
-  },
-  "detections": [],
-  "inference_time_ms": 438
-}
-```
+> **📖 Vollständige API-Dokumentation:** Siehe [`apps/api/README.md`](apps/api/README.md) für:
+> - Detaillierte Endpunkt-Beschreibungen mit allen Request/Response-Feldern
+> - curl- und Python-Verwendungsbeispiele
+> - Fehlerbehandlung und Status-Codes
+> - Backend-Setup, Konfiguration und Tests
 
 ---
 
@@ -449,16 +416,7 @@ TypeScript wird ebenfalls nicht per Homebrew installiert, sondern als Projekt-De
 
 ### Backend
 
-Für das Backend:
-
-- In das Verzeichnis `apps/api` wechseln
-- Virtuelle Umgebung anlegen
-- Virtuelle Umgebung aktivieren
-- Dependencies installieren
-
-- API lokal starten
-
-Verwendete Befehle:
+**Schnellstart:**
 
 ```bash
 cd apps/api
@@ -468,10 +426,16 @@ pip install -e ".[dev]"
 uvicorn app.main:app --reload
 ```
 
-Danach ist die API lokal erreichbar unter:
+Die API läuft dann unter:
+- http://127.0.0.1:8000/api/v1/
+- Swagger UI: http://127.0.0.1:8000/docs
 
-- http://127.0.0.1:8000
-- Swagger UI unter http://127.0.0.1:8000/docs
+> **📖 Ausführliche Backend-Dokumentation:** Siehe [`apps/api/README.md`](apps/api/README.md) für:
+> - Voraussetzungen und detailliertes Setup
+> - Backend-Struktur und wichtigste Bereiche
+> - Konfiguration (.env, Settings)
+> - API-Dokumentation und Verwendungsbeispiele
+> - Tests ausführen
 
 ### Frontend
 

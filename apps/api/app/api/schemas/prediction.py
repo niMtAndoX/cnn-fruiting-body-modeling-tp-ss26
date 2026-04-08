@@ -1,12 +1,29 @@
-"""API-Schemas für den Vorhersage-Endpunkt."""
+"""API-Schemas für Vorhersage-Ergebnisse."""
 
 from pydantic import BaseModel
 
 
-class PredictionSuccessResponse(BaseModel):
-    """Einfache Erfolgsantwort für den ersten /predict-Endpunkt."""
+class BoundingBoxResponse(BaseModel):
+    """Begrenzungsrahmen einer erkannten Struktur im Bild."""
 
-    status: str
-    message: str
+    x: int
+    y: int
+    width: int
+    height: int
+
+
+class DetectionResponse(BaseModel):
+    """Ein einzelnes Erkennungsergebnis."""
+
+    label: str
+    score: float
+    bbox: BoundingBoxResponse | None = None
+
+
+class PredictionResponse(BaseModel):
+    """Antwortschema für eine Vorhersage."""
+
+    request_id: str
     model_version: str
+    detections: list[DetectionResponse]
     inference_time_ms: int
