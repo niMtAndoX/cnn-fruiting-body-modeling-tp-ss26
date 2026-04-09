@@ -2,15 +2,18 @@
 
 ## Kurzbeschreibung
 
-Dieses Projekt stellt ein bereits trainiertes Bilderkennungsmodell für Pilz- bzw. Fruchtkörperwachstum auf Resthölzern im Forst über eine Webanwendung bereit.
+Dieses Projekt stellt ein bereits trainiertes Bilderkennungsmodell für Pilz- bzw. Fruchtkörperwachstum auf Resthölzern im Forst über eine HTTP-API bereit.
 
-Ziel ist es, Bilder bequem über eine Benutzeroberfläche oder per HTTP-API hochladen zu können, die Erkennung auszuführen und die Ergebnisse strukturiert zurückzubekommen. Die Anwendung dient damit als nutzbarer Wrapper um das bestehende Modell und macht die Bilderkennung für Entwicklung, Tests und spätere Nutzung im Betrieb zugänglich.
+Ziel ist es, Bilder über die API hochladen zu können, die Erkennung auszuführen und die Ergebnisse strukturiert zurückzubekommen. Die Anwendung dient damit als nutzbarer Wrapper um das bestehende Modell und macht die Bilderkennung für Entwicklung, Tests und spätere Nutzung im Betrieb zugänglich.
 
-Die Webanwendung besteht aus:
+Der aktuell unterstützte Release-Umfang besteht aus:
 
-- einem **React-Frontend** für Upload und Ergebnisanzeige
+- einem **FastAPI-/docs-Frontend** für manuelle Nutzung im Browser
 - einem **FastAPI-Backend** als HTTP-Schnittstelle
 - einer gekapselten **Darknet-Modellintegration** für die eigentliche Inferenz
+
+`apps/web/` ist bewusst nur ein Scaffold für eine spätere Iteration und nicht
+Teil des ersten Releases.
 
 ---
 
@@ -33,14 +36,15 @@ Die Anwendung soll:
 
 Die Architektur ist bewusst einfach und robust gehalten:
 
-- **Frontend:** React
+- **Browser-Oberfläche:** FastAPI `/docs`
 - **Backend:** FastAPI
 - **Modellintegration:** Darknet wird serverseitig gekapselt aufgerufen
 - **Deployment-Ansatz:** Containerisierte Anwendungen mit Docker
 
 Wichtig ist die klare Trennung der Verantwortlichkeiten:
 
-- Das **Frontend** kümmert sich um Upload, Status und Ergebnisdarstellung.
+- Die **FastAPI-Dokumentation** dient aktuell als einfache Browser-Oberfläche
+  für Healthcheck und Prediction-Requests.
 - Das **Backend** kümmert sich um HTTP, Validierung, Fehlerbehandlung und die strukturierte API-Antwort.
 - Die **Darknet-Integration** ist im Backend getrennt gekapselt, damit Prozessaufruf, Dateihandling und Parsing nicht in den API-Endpunkten landen.
 
@@ -62,7 +66,7 @@ Das ist für dieses Projekt sinnvoll, weil:
 
 ```mermaid
 flowchart LR
-    U[Benutzer im Browser] --> W[React Web App]
+    U[Benutzer im Browser] --> W[FastAPI Docs UI]
     W -->|POST /predict| A[FastAPI API]
     W -->|GET /health| A
 
@@ -155,6 +159,10 @@ folgende Dateien erwartet:
 - `Bilderkennung-Pilzwachstum_best.weights`
 
 Optional koennen unter `models/darknet/Beispielbilder/` lokale Testbilder liegen.
+
+Diese Modell-Dateien muessen vom Nutzer bzw. Betreiber selbst bereitgestellt
+werden. Sie werden nicht als vollstaendiger Bestandteil des Repositories oder
+des Release-Prozesses mitgeliefert.
 
 `scripts/inference.sh` verwendet dieses Verzeichnis standardmaessig als
 `MODEL_DIR`. Der Darknet-Build wird bevorzugt unter `vendor/darknet/build`
@@ -301,10 +309,11 @@ Der aktuelle Stand umfasst:
 
 - zentrale Konfiguration über `app/core/config.py`
 - FastAPI-App in `app/main.py`
-- lokale Startbarkeit per Uvicorn
+- lokale Startbarkeit über einen settings-gesteuerten Startpunkt
 - Swagger UI und OpenAPI-Dokumentation über `/docs`
+- implementierte Endpunkte `GET /api/v1/health` und `POST /api/v1/predict`
 
-Fachliche Endpunkte wie `GET /health` und `POST /predict` werden schrittweise ergänzt.
+Die erste Release-Version ist damit als API-first Anwendung nutzbar.
 
 ---
 
@@ -332,12 +341,9 @@ Dadurch bleibt die Anwendung wartbar, auch wenn die Modellanbindung technisch ko
 
 Für das Projekt werden folgende Kerntechnologien genutzt:
 
-- **React** für das Frontend
-- **TypeScript** für typsicheren Frontend-Code
-- **FastAPI** für das Backend
+- **FastAPI** für das Backend und die aktuelle Browser-Oberfläche über `/docs`
 - **Python 3.12** für die Backend-Laufzeit
 - **Docker** für reproduzierbare lokale und spätere produktive Ausführung
-- **pnpm** als Paketmanager für das Frontend
 - **Git** für die Versionsverwaltung
 
 ---
@@ -350,7 +356,16 @@ Für macOS per Homebrew:
 
 ```bash
 brew install --cask docker-desktop
-brew install git python@3.12 node@22 pnpm jq
+brew install git python@3.12 jq
+```
+
+Für Windows mit `winget`:
+
+```powershell
+winget install --id Docker.DockerDesktop
+winget install --id Git.Git
+winget install --id Python.Python.3.12
+winget install --id jqlang.jq
 ```
 
 ### Bedeutung der Tools
@@ -358,8 +373,6 @@ brew install git python@3.12 node@22 pnpm jq
 - `docker-desktop` – lokale Container-Umgebung
 - `git` – Versionsverwaltung
 - `python@3.12` – Python-Version für das Backend
-- `node@22` – Node.js für das Frontend
-- `pnpm` – Paketmanager für das Frontend / Monorepo
 - `jq` – JSON-Auswertung im Terminal
 
 ### Optional
@@ -369,6 +382,8 @@ brew install watchman
 ```
 
 `watchman` kann bei Datei-Watching-Workflows nützlich sein, ist aber nicht zwingend erforderlich.
+
+Unter Windows ist `watchman` für den aktuellen API-first Release nicht erforderlich.
 
 ---
 
@@ -381,8 +396,6 @@ Die folgenden Extensions werden für die Entwicklung empfohlen:
 - `ms-python.python` – Python-Support
 - `ms-python.vscode-pylance` – Typprüfung, Autocomplete, Navigation
 - `charliermarsh.ruff` – Python-Linting und Formatting
-- `dbaeumer.vscode-eslint` – Linting für React / TypeScript
-- `esbenp.prettier-vscode` – Formatierung für TypeScript, JSON, Markdown usw.
 - `ms-azuretools.vscode-containers` – Docker / Container-Unterstützung
 - `eamodio.gitlens` – Git-Historie und Code-Insights
 - `humao.rest-client` – API-Requests direkt aus VS Code testen
@@ -398,8 +411,6 @@ Die folgenden Extensions werden für die Entwicklung empfohlen:
 code --install-extension ms-python.python
 code --install-extension ms-python.vscode-pylance
 code --install-extension charliermarsh.ruff
-code --install-extension dbaeumer.vscode-eslint
-code --install-extension esbenp.prettier-vscode
 code --install-extension ms-azuretools.vscode-containers
 code --install-extension eamodio.gitlens
 code --install-extension humao.rest-client
@@ -411,7 +422,7 @@ code --install-extension EditorConfig.EditorConfig
 
 ---
 
-## Wichtiger Hinweis zu FastAPI und TypeScript
+## Wichtiger Hinweis zur Backend-Installation
 
 FastAPI wird nicht separat per Homebrew installiert, sondern als Projekt-Dependency im Backend über die `pyproject.toml`.
 
@@ -428,8 +439,6 @@ Die Installation erfolgt mit:
 pip install -e ".[dev]"
 ```
 
-TypeScript wird ebenfalls nicht per Homebrew installiert, sondern als Projekt-Dependency im Frontend.
-
 ---
 
 ## Erste Schritte im Projekt
@@ -438,12 +447,26 @@ TypeScript wird ebenfalls nicht per Homebrew installiert, sondern als Projekt-De
 
 **Schnellstart:**
 
+macOS / Linux:
+
 ```bash
 cd apps/api
 python3.12 -m venv .venv
 source .venv/bin/activate
+cp .env.example .env
 pip install -e ".[dev]"
-uvicorn app.main:app --reload
+python -m app.run
+```
+
+Windows PowerShell:
+
+```powershell
+cd apps/api
+py -3.12 -m venv .venv
+.venv\Scripts\Activate.ps1
+Copy-Item .env.example .env
+pip install -e ".[dev]"
+python -m app.run
 ```
 
 Die API läuft dann unter:
@@ -456,13 +479,7 @@ Die API läuft dann unter:
 > - Konfiguration (.env, Settings)
 > - API-Dokumentation und Verwendungsbeispiele
 > - Tests ausführen
-
-### Frontend
-
-```bash
-cd apps/web
-pnpm install
-```
+> - Deployment- und Release-Hinweise
 
 ### Docker
 
@@ -483,6 +500,10 @@ Container starten:
 docker run --rm -p 8000:8000 waldpilz-api
 ```
 
+Das Image verwendet dabei standardmaessig die im Dockerfile gesetzten
+Umgebungsvariablen. Abweichende Werte koennen bei Bedarf mit
+`docker run -e KEY=value ...` gesetzt werden.
+
 Das Port-Mapping `8000:8000` bedeutet:
 
 - Port `8000` auf deinem Rechner zeigt auf Port `8000` im Container.
@@ -499,13 +520,16 @@ Beispiel:
 curl http://127.0.0.1:8000/api/v1/health
 ```
 
+Eine vollständige Release-Checkliste und Deploy-Anleitung liegt in
+[`docs/release-guide.md`](docs/release-guide.md).
+
 ---
 
 ## Entwicklungsprinzipien
 
 Für das Projekt gelten folgende Grundsätze:
 
-- klare Trennung von Frontend, API und Modellintegration
+- klare Trennung von API und Modellintegration
 - keine Fachlogik direkt in HTTP-Endpunkten
 - stabile und konsistente API-Antworten
 - nachvollziehbare Ordnerstruktur
@@ -519,12 +543,9 @@ Für das Projekt gelten folgende Grundsätze:
 Bitte im Projekt einheitlich verwenden:
 
 - **Python 3.12**
-- **Node 22**
-- **pnpm** als Node-Paketmanager
 
 Wichtig ist vor allem, dass im Team nicht mehrere Varianten parallel genutzt werden, z. B.:
 
-- `npm` und `pnpm` gemischt
 - unterschiedliche Python-Versionen
 - unterschiedliche lokale Konventionen bei Formatierung und Linting
 - individuelle Projektstrukturen außerhalb der gemeinsamen Repo-Architektur
@@ -533,7 +554,7 @@ Wichtig ist vor allem, dass im Team nicht mehrere Varianten parallel genutzt wer
 
 ## Zusammenfassung
 
-Dieses Projekt macht ein bestehendes Modell zur Erkennung von Pilz- bzw. Fruchtkörperwachstum auf Resthölzern über eine moderne Webanwendung nutzbar.
+Dieses Projekt macht ein bestehendes Modell zur Erkennung von Pilz- bzw. Fruchtkörperwachstum auf Resthölzern über eine dokumentierte HTTP-API nutzbar.
 
 Die Architektur ist bewusst so aufgebaut, dass sie:
 
@@ -547,6 +568,6 @@ bleibt.
 
 Im Zentrum stehen dabei:
 
-- ein React-Frontend für die Nutzung
+- die FastAPI-Dokumentation als aktuelle Browser-Oberfläche
 - ein FastAPI-Backend als sauberer API-Wrapper
 - eine klar gekapselte Darknet-Integration für die eigentliche Vorhersage
