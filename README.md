@@ -80,6 +80,75 @@ Für erforderliche Modell-Dateien und deren Ablage:
 
 ---
 
+## Entwicklungsumgebung einrichten
+
+### 1. Benötigte Software installieren
+
+Für macOS per Homebrew:
+
+```bash
+brew install --cask docker-desktop
+brew install git python@3.12 node@22 pnpm jq
+```
+
+Für Windows mit `winget`:
+
+```powershell
+winget install --id Docker.DockerDesktop
+winget install --id Git.Git
+winget install --id Python.Python.3.12
+winget install --id OpenJS.NodeJS
+winget install --id pnpm.pnpm
+winget install --id jqlang.jq
+```
+
+### Bedeutung der Tools
+
+- `docker-desktop` – lokale Container-Umgebung
+- `git` – Versionsverwaltung
+- `python@3.12` – Python-Version für das Backend
+- `node@22` – Node.js für das Frontend
+- `pnpm` – Paketmanager für das Frontend / Monorepo
+- `jq` – JSON-Auswertung im Terminal
+
+---
+
+## Empfohlene VS Code Extensions
+
+Die folgenden Extensions werden für die Entwicklung empfohlen:
+
+### Pflicht
+
+- `ms-python.python` – Python-Support
+- `ms-python.vscode-pylance` – Typprüfung, Autocomplete, Navigation
+- `charliermarsh.ruff` – Python-Linting und Formatting
+- `dbaeumer.vscode-eslint` – Linting für React / TypeScript
+- `esbenp.prettier-vscode` – Formatierung für TypeScript, JSON, Markdown usw.
+- `ms-azuretools.vscode-containers` – Docker / Container-Unterstützung
+- `eamodio.gitlens` – Git-Historie und Code-Insights
+- `humao.rest-client` – API-Requests direkt aus VS Code testen
+- `redhat.vscode-yaml` – YAML-Unterstützung für Docker Compose und CI-Dateien
+
+
+### Extensions installieren
+
+```bash
+code --install-extension ms-python.python
+code --install-extension ms-python.vscode-pylance
+code --install-extension charliermarsh.ruff
+code --install-extension dbaeumer.vscode-eslint
+code --install-extension esbenp.prettier-vscode
+code --install-extension ms-azuretools.vscode-containers
+code --install-extension eamodio.gitlens
+code --install-extension humao.rest-client
+code --install-extension redhat.vscode-yaml
+code --install-extension EditorConfig.EditorConfig
+```
+
+> Hinweis: Falls der `code`-Befehl noch nicht verfügbar ist, muss er in VS Code einmal aktiviert werden.
+
+---
+
 ## Aktueller Release-Umfang
 
 Der aktuelle Release ist als nutzbare API mit dokumentierter Browser-Oberfläche
