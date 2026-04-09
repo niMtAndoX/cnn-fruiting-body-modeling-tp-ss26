@@ -2,6 +2,10 @@
 
 Die FastAPI-basierte Backend-API für die Waldpilz-Erkennung auf Resthölzern.
 
+Die erste Release-Version wird bewusst als API-first Backend ausgeliefert. Die
+unterstützte Browser-Oberfläche ist deshalb aktuell die FastAPI-Dokumentation
+unter `/docs`.
+
 ## Voraussetzungen
 
 Bevor das Backend gestartet werden kann, werden folgende Tools benötigt:
@@ -19,13 +23,36 @@ Optional für Entwicklung:
 
 ## Backend lokal starten
 
+Vor dem ersten Start die Konfiguration anlegen:
+
+macOS / Linux:
+
+```bash
+cp .env.example .env
+```
+
+Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
 ### 1. Virtuelle Umgebung erstellen und aktivieren
 
 Im Verzeichnis `apps/api/` ausführen:
 
+macOS / Linux:
+
 ```bash
 python3.12 -m venv .venv
 source .venv/bin/activate
+```
+
+Windows PowerShell:
+
+```powershell
+py -3.12 -m venv .venv
+.venv\Scripts\Activate.ps1
 ```
 
 ### 2. Dependencies installieren
@@ -38,8 +65,10 @@ Dadurch werden alle nötigen Pakete installiert, inkl. FastAPI, Uvicorn, Pydanti
 
 ### 3. Backend starten
 
+macOS / Linux und Windows PowerShell:
+
 ```bash
-uvicorn app.main:app --reload
+python -m app.run
 ```
 
 Die API ist anschließend unter folgenden Adressen erreichbar:
@@ -58,6 +87,10 @@ Die API ist anschließend unter folgenden Adressen erreichbar:
 Das API-Image wird aus dem Repository-Root gebaut, weil der Dockerfile neben
 `apps/api/` auch `scripts/` und `models/` in das Image kopiert.
 
+Wichtig: Die benoetigten Modell-Dateien unter `models/darknet/` muessen vor dem
+Build selbst bereitgestellt werden. Sie werden nicht automatisch aus dem
+Repository oder aus einem externen Registry-Download erzeugt.
+
 ### 1. Docker-Image bauen
 
 Im Repository-Root ausführen:
@@ -71,6 +104,10 @@ docker build -f apps/api/Dockerfile -t waldpilz-api .
 ```bash
 docker run --rm -p 8000:8000 waldpilz-api
 ```
+
+Das Image bringt bereits sinnvolle Standardwerte aus dem Dockerfile mit. Falls
+du davon abweichen willst, kannst du einzelne Variablen zur Laufzeit mit
+`docker run -e KEY=value ...` überschreiben.
 
 Die Portfreigabe `-p 8000:8000` bedeutet:
 
@@ -243,9 +280,8 @@ Jedes Objekt im `detections`-Array hat folgende Struktur:
 
 ```json
 {
-  "error": "BadRequest",
-  "message": "Ungültiger Dateityp: image/gif",
-  "details": null
+  "error": "bad_request",
+  "message": "Ungültiger Dateityp: image/gif"
 }
 ```
 
@@ -259,9 +295,8 @@ Mögliche Fehlerursachen:
 
 ```json
 {
-  "error": "InternalServerError",
-  "message": "Die Bilderkennung konnte nicht erfolgreich ausgeführt werden.",
-  "details": null
+  "error": "internal_error",
+  "message": "Die Bilderkennung konnte nicht erfolgreich ausgeführt werden."
 }
 ```
 
@@ -390,6 +425,8 @@ pytest -m integration
 
 Die Konfiguration erfolgt über die Datei `.env` im Verzeichnis `apps/api/`.
 
+Eine versionierbare Vorlage liegt unter `apps/api/.env.example`.
+
 Wichtige Einstellungen:
 
 ```env
@@ -408,9 +445,13 @@ MAX_UPLOAD_SIZE_MB=20
 ALLOWED_UPLOAD_CONTENT_TYPES=image/jpeg,image/png
 
 # Modell
-PREDICTION_BACKEND=fake
-MODEL_VERSION=dev-fake-v1
+MODEL_VERSION=darknet-cnn-v1
 INFERENCE_TIMEOUT_SECONDS=30
 ```
 
 Die vollständige Liste der Konfigurationsoptionen findet sich in `app/core/config.py`.
+
+## Deployment und Release
+
+Eine zusammenhängende Anleitung für lokale Freigabe, Docker-Deployment und
+Release-Checks findest du in [`docs/release-guide.md`](../../docs/release-guide.md).

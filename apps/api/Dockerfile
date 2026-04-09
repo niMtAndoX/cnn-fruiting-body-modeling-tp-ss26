@@ -8,7 +8,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     API_HOST=0.0.0.0 \
     API_PORT=8000 \
     API_PREFIX=/api/v1 \
-    PREDICTION_BACKEND=darknet \
+    LOG_LEVEL=INFO \
+    CORS_ALLOW_ORIGINS= \
+    MAX_UPLOAD_SIZE_MB=20 \
+    ALLOWED_UPLOAD_CONTENT_TYPES=image/jpeg,image/png \
     MODEL_VERSION=darknet-cnn-v1 \
     INFERENCE_SCRIPT_PATH=/opt/waldpilz/scripts/inference.sh \
     MODEL_DIR=/opt/waldpilz/models/darknet \
@@ -49,4 +52,4 @@ WORKDIR /opt/waldpilz/apps/api
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "app.run"]

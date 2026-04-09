@@ -1,6 +1,7 @@
+import json
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -45,16 +46,13 @@ class Settings(BaseSettings):
 	]
 
 	# Maximale Upload-Größe in Megabyte
-	max_upload_size_mb: int = 10
+	max_upload_size_mb: int = 20
 
 	# Erlaubte MIME-Types für Uploads
 	allowed_upload_content_types: list[str] = ["image/jpeg", "image/png"]
 
-	# Aktiver Prediction-Provider: fake oder darknet
-	prediction_backend: Literal["fake", "darknet"] = "fake"
-
 	# Versionsbezeichnung des aktuell verwendeten Modells
-	model_version: str = "dev-fake-v1"
+	model_version: str = "darknet-cnn-v1"
  
 	# Pfad zum Shell-Skript, das die Inferenz startet
 	inference_script_path: str = default_inference_script_path()
@@ -65,9 +63,6 @@ class Settings(BaseSettings):
 	# Optionales Verzeichnis für temporär abgelegte Bilddateien
 	inference_temp_dir: str | None = None
  
-	# Pfad zu einem Testbild für den vorläufigen /predict-Endpunkt ohne Upload
-	#prediction_test_image_path: str
-
 	# Konfiguration für das Laden der Settings aus der Umgebung
 	model_config = SettingsConfigDict(
 		env_file=ENV_FILE,
@@ -75,6 +70,35 @@ class Settings(BaseSettings):
 		case_sensitive=False,
 		extra="ignore",
 	)
+
+	@field_validator("debug", mode="before")
+	@classmethod
+	def parse_debug(cls, value: Any) -> bool:
+		"""
+		Parst verschiedene Debug-Notation in einen booleschen Wert.
+
+		Unterstützt klassische Bool-Strings wie "true"/"false" sowie
+		betriebsnahe Bezeichner wie "release" oder "production".
+		"""
+		if isinstance(value, bool):
+			return value
+
+		if isinstance(value, int):
+			return bool(value)
+
+		if isinstance(value, str):
+			normalized = value.strip().lower()
+			truthy_values = {"1", "true", "yes", "on", "debug", "development", "dev"}
+			falsy_values = {"0", "false", "no", "off", "release", "prod", "production"}
+
+			if normalized in truthy_values:
+				return True
+			if normalized in falsy_values:
+				return False
+
+		raise ValueError(
+			"debug must be a boolean-like value such as true/false or debug/release"
+		)
 
 	@field_validator("api_prefix")
 	@classmethod
@@ -168,7 +192,7 @@ class Settings(BaseSettings):
 		if isinstance(value, list):
 			return value
 		if isinstance(value, str):
-			return [item.strip() for item in value.split(",") if item.strip()]
+			return cls._parse_list_setting(value)
 		raise ValueError("cors_allow_origins must be a comma-separated string or a list")
 
 	@field_validator("allowed_upload_content_types", mode="before")
@@ -194,8 +218,24 @@ class Settings(BaseSettings):
 		if isinstance(value, list):
 			return value
 		if isinstance(value, str):
-			return [item.strip() for item in value.split(",") if item.strip()]
+			return cls._parse_list_setting(value)
 		raise ValueError("allowed_upload_content_types must be a comma-separated string or a list")
+
+	@staticmethod
+	def _parse_list_setting(value: str) -> list[str]:
+		normalized_value = value.strip()
+		if not normalized_value:
+			return []
+
+		if normalized_value.startswith("["):
+			parsed_value = json.loads(normalized_value)
+			if not isinstance(parsed_value, list) or not all(
+				isinstance(item, str) for item in parsed_value
+			):
+				raise ValueError("list setting must be a JSON array of strings")
+			return parsed_value
+
+		return [item.strip() for item in normalized_value.split(",") if item.strip()]
 
 	@property
 	def max_upload_size_bytes(self) -> int:

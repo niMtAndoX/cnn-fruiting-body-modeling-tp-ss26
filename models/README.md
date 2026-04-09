@@ -2,6 +2,10 @@
 
 Die projektlokalen Darknet-Artefakte liegen standardmaessig unter `models/darknet/`.
 
+Diese Dateien muessen vom Nutzer bzw. Betreiber selbst bereitgestellt werden.
+Sie sind Teil der lokalen Laufzeitumgebung und werden nicht als vollstaendig
+versionierte Release-Artefakte aus dem Repository mitgeliefert.
+
 Fuer die Inferenz werden dort diese Dateien erwartet:
 
 - `Bilderkennung-Pilzwachstum.cfg`

@@ -10,7 +10,8 @@ from app.api.schemas.prediction import (
     DetectionResponse,
     PredictionResponse,
 )
-from app.core.dependencies import get_prediction_service
+from app.core.config import Settings
+from app.core.dependencies import get_prediction_service, get_settings_dependency
 from app.domain.prediction.entities import PredictionInput, PredictionResult
 from app.domain.prediction.exceptions import (
     PredictionBadRequestError,
@@ -21,9 +22,6 @@ from app.infrastructure.darknet.parser import DarknetOutputParseError
 from app.infrastructure.darknet.runner import InferenceRunnerError
 
 router = APIRouter(tags=["prediction"])
-
-ALLOWED_TYPES = ["image/png", "image/jpeg"]
-MAX_SIZE = 20 * 1024 * 1024
 
 
 def to_prediction_response(
@@ -56,19 +54,28 @@ def to_prediction_response(
 
 @router.post("/predict", response_model=PredictionResponse)
 async def predict(
+    settings: Annotated[Settings, Depends(get_settings_dependency)],
     service: Annotated[PredictionService, Depends(get_prediction_service)],
     file: Annotated[
         UploadFile,
-        File(description="Upload eines Bildes (JPG, PNG) <br>Maximale Größe: 20 MB"),
+        File(
+            description=(
+                "Upload eines Bildes (JPG, PNG). "
+                "Erlaubte Dateitypen und Maximalgröße werden über die API-Konfiguration gesteuert."
+            )
+        ),
     ],
 ) -> PredictionResponse:
-    if file.content_type not in ALLOWED_TYPES:
-        raise PredictionBadRequestError(f"Ungültiger Dateityp: {file.content_type}")
+    content_type = file.content_type or ""
+    if content_type not in settings.allowed_upload_content_types:
+        raise PredictionBadRequestError(f"Ungültiger Dateityp: {content_type}")
 
     image_bytes = await file.read()
 
-    if len(image_bytes) > MAX_SIZE:
-        raise PredictionBadRequestError("Die Datei ist zu groß (Max: 20 MB)")
+    if len(image_bytes) > settings.max_upload_size_bytes:
+        raise PredictionBadRequestError(
+            f"Die Datei ist zu groß (Max: {settings.max_upload_size_mb} MB)"
+        )
 
     if not image_bytes:
         raise PredictionBadRequestError("Leere Datei gesendet")

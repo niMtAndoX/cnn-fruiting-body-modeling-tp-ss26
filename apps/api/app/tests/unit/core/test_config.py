@@ -4,15 +4,28 @@ from pydantic import ValidationError
 from app.core import config as config_module
 from app.core.config import Settings, get_settings
 
-TEST_IMAGE_PATH = "/tmp/testimage.jpg"
-
 
 def make_settings(**overrides) -> Settings:
-    return Settings(
-        _env_file=None,
-        prediction_test_image_path=TEST_IMAGE_PATH,
-        **overrides,
-    )
+    defaults = {
+        "app_name": "waldpilz-api",
+        "app_env": "dev",
+        "debug": True,
+        "api_host": "127.0.0.1",
+        "api_port": 8000,
+        "api_prefix": "/api/v1",
+        "log_level": "INFO",
+        "cors_allow_origins": [
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+        ],
+        "max_upload_size_mb": 20,
+        "allowed_upload_content_types": ["image/jpeg", "image/png"],
+        "model_version": "darknet-cnn-v1",
+        "inference_timeout_seconds": 30,
+        "inference_temp_dir": None,
+    }
+    defaults.update(overrides)
+    return Settings(_env_file=None, **defaults)
 
 
 def test_settings_defaults() -> None:
@@ -34,9 +47,8 @@ def test_settings_defaults() -> None:
     ]
     assert settings.allowed_upload_content_types == ["image/jpeg", "image/png"]
 
-    assert settings.max_upload_size_mb == 10
-    assert settings.prediction_backend == "fake"
-    assert settings.model_version == "dev-fake-v1"
+    assert settings.max_upload_size_mb == 20
+    assert settings.model_version == "darknet-cnn-v1"
 
 
 def test_validate_api_prefix_rejects_missing_leading_slash() -> None:
@@ -66,10 +78,29 @@ def test_parse_list_fields_from_comma_separated_strings() -> None:
     assert settings.allowed_upload_content_types == ["image/jpeg", "image/png"]
 
 
-def test_max_upload_size_bytes() -> None:
-    settings = make_settings(max_upload_size_mb=10)
+def test_parse_debug_accepts_release_as_false() -> None:
+    settings = make_settings(debug="release")
 
-    assert settings.max_upload_size_bytes == 10 * 1024 * 1024
+    assert settings.debug is False
+
+
+def test_parse_list_fields_from_json_strings() -> None:
+    settings = make_settings(
+        cors_allow_origins='["http://localhost:3000", "http://127.0.0.1:3000"]',
+        allowed_upload_content_types='["image/jpeg", "image/png"]',
+    )
+
+    assert settings.cors_allow_origins == [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+    assert settings.allowed_upload_content_types == ["image/jpeg", "image/png"]
+
+
+def test_max_upload_size_bytes() -> None:
+    settings = make_settings(max_upload_size_mb=20)
+
+    assert settings.max_upload_size_bytes == 20 * 1024 * 1024
 
 
 def test_get_settings_is_cached(monkeypatch: pytest.MonkeyPatch) -> None:
