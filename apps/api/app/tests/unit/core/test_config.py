@@ -97,6 +97,16 @@ def test_parse_list_fields_from_json_strings() -> None:
     assert settings.allowed_upload_content_types == ["image/jpeg", "image/png"]
 
 
+def test_parse_empty_list_fields_from_empty_strings() -> None:
+    settings = make_settings(
+        cors_allow_origins="",
+        allowed_upload_content_types="",
+    )
+
+    assert settings.cors_allow_origins == []
+    assert settings.allowed_upload_content_types == []
+
+
 def test_max_upload_size_bytes() -> None:
     settings = make_settings(max_upload_size_mb=20)
 

@@ -1,10 +1,10 @@
 import json
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 API_ROOT_DIR = Path(__file__).resolve().parents[2]
 ENV_FILE = API_ROOT_DIR / ".env"
@@ -40,7 +40,7 @@ class Settings(BaseSettings):
 	log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
 
 	# Liste erlaubter Frontend-Origins für CORS
-	cors_allow_origins: list[str] = [
+	cors_allow_origins: Annotated[list[str], NoDecode] = [
 		"http://localhost:3000",
 		"http://127.0.0.1:3000",
 	]
@@ -49,7 +49,10 @@ class Settings(BaseSettings):
 	max_upload_size_mb: int = 20
 
 	# Erlaubte MIME-Types für Uploads
-	allowed_upload_content_types: list[str] = ["image/jpeg", "image/png"]
+	allowed_upload_content_types: Annotated[list[str], NoDecode] = [
+		"image/jpeg",
+		"image/png",
+	]
 
 	# Versionsbezeichnung des aktuell verwendeten Modells
 	model_version: str = "darknet-cnn-v1"
