@@ -2,9 +2,8 @@
 
 Die FastAPI-basierte Backend-API für die Waldpilz-Erkennung auf Resthölzern.
 
-Die erste Release-Version wird bewusst als API-first Backend ausgeliefert. Die
-unterstützte Browser-Oberfläche ist deshalb aktuell die FastAPI-Dokumentation
-unter `/docs`.
+Die aktuelle Browser-Oberfläche für die erste Release-Version ist die
+FastAPI-Dokumentation unter `/docs`.
 
 ## Voraussetzungen
 
@@ -88,8 +87,8 @@ Das API-Image wird aus dem Repository-Root gebaut, weil der Dockerfile neben
 `apps/api/` auch `scripts/` und `models/` in das Image kopiert.
 
 Wichtig: Die benoetigten Modell-Dateien unter `models/darknet/` muessen vor dem
-Build selbst bereitgestellt werden. Sie werden nicht automatisch aus dem
-Repository oder aus einem externen Registry-Download erzeugt.
+Build selbst bereitgestellt werden. Details dazu stehen in
+[`models/README.md`](../../models/README.md).
 
 ### 1. Docker-Image bauen
 
@@ -451,7 +450,7 @@ INFERENCE_TIMEOUT_SECONDS=30
 
 Die vollständige Liste der Konfigurationsoptionen findet sich in `app/core/config.py`.
 
-## Deployment und Release
+## Weiterführende Dokumentation
 
-Eine zusammenhängende Anleitung für lokale Freigabe, Docker-Deployment und
-Release-Checks findest du in [`docs/release-guide.md`](../../docs/release-guide.md).
+- Release- und Deployment-Abläufe: [`docs/release-guide.md`](../../docs/release-guide.md)
+- Modellartefakte und Ablage: [`models/README.md`](../../models/README.md)
