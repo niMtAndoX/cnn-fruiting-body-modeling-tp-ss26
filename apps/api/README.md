@@ -53,6 +53,59 @@ Die API ist anschließend unter folgenden Adressen erreichbar:
 
 ---
 
+## Backend mit Docker starten
+
+Das API-Image wird aus dem Repository-Root gebaut, weil der Dockerfile neben
+`apps/api/` auch `scripts/` und `models/` in das Image kopiert.
+
+### 1. Docker-Image bauen
+
+Im Repository-Root ausführen:
+
+```bash
+docker build -f apps/api/Dockerfile -t waldpilz-api .
+```
+
+### 2. Container starten
+
+```bash
+docker run --rm -p 8000:8000 waldpilz-api
+```
+
+Die Portfreigabe `-p 8000:8000` bedeutet:
+
+- Der Port `8000` auf deinem Rechner wird auf Port `8000` im Container gemappt.
+- Die API ist dadurch lokal unter `http://127.0.0.1:8000` erreichbar.
+
+Falls Port `8000` auf deinem Rechner bereits belegt ist, kannst du z. B. auch
+`-p 8080:8000` verwenden. Dann bleibt der Container intern auf Port `8000`,
+ist lokal aber unter `http://127.0.0.1:8080` erreichbar.
+
+### 3. Container testen
+
+Nach dem Start sind die wichtigsten URLs:
+
+- **Healthcheck:** http://127.0.0.1:8000/api/v1/health
+- **Swagger UI:** http://127.0.0.1:8000/docs
+- **ReDoc:** http://127.0.0.1:8000/redoc
+- **OpenAPI-Spec:** http://127.0.0.1:8000/openapi.json
+
+Beispiel fuer den Healthcheck im Terminal:
+
+```bash
+curl http://127.0.0.1:8000/api/v1/health
+```
+
+Wenn alles laeuft, sollte die Antwort so aussehen:
+
+```json
+{
+  "status": "ok"
+}
+```
+
+---
+
 ## Wichtigste Backend-Bereiche
 
 Die Projektstruktur im Backend ist so organisiert:

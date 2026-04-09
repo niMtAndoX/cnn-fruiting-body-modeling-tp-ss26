@@ -5,11 +5,15 @@ from typing import Literal
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# Root-Verzeichnis des API-Projekts, z. B. apps/api/
 API_ROOT_DIR = Path(__file__).resolve().parents[2]
-
-# Pfad zur lokalen .env-Datei des Backends
 ENV_FILE = API_ROOT_DIR / ".env"
+
+
+def default_inference_script_path() -> str:
+    try:
+        return str(API_ROOT_DIR.parents[1] / "scripts" / "inference.sh")
+    except IndexError:
+        return str(API_ROOT_DIR / "scripts" / "inference.sh")
 
 
 class Settings(BaseSettings):
@@ -53,7 +57,7 @@ class Settings(BaseSettings):
 	model_version: str = "dev-fake-v1"
  
 	# Pfad zum Shell-Skript, das die Inferenz startet
-	inference_script_path: str = str(API_ROOT_DIR.parents[1] / "scripts" / "inference.sh")
+	inference_script_path: str = default_inference_script_path()
 
 	# Maximales Zeitlimit für den Aufruf des Inferenz-Skripts in Sekunden
 	inference_timeout_seconds: int = 30

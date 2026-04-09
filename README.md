@@ -466,12 +466,37 @@ pnpm install
 
 ### Docker
 
-Sobald das Docker-Setup im Repository vorhanden ist, kann die Anwendung lokal containerisiert gestartet werden.
+Das Backend kann lokal als Container gebaut und gestartet werden. Der Build
+verwendet den Dockerfile unter `apps/api/Dockerfile` und wird aus dem
+Repository-Root ausgefuehrt, damit `apps/api/`, `scripts/` und `models/`
+gemeinsam in den Build-Kontext fallen.
 
-Typischerweise z. B. über:
+Image bauen:
 
 ```bash
-docker compose up --build
+docker build -f apps/api/Dockerfile -t waldpilz-api .
+```
+
+Container starten:
+
+```bash
+docker run --rm -p 8000:8000 waldpilz-api
+```
+
+Das Port-Mapping `8000:8000` bedeutet:
+
+- Port `8000` auf deinem Rechner zeigt auf Port `8000` im Container.
+- Die API ist dadurch lokal unter `http://127.0.0.1:8000` erreichbar.
+
+Nach dem Start kannst du den Container direkt testen:
+
+- Healthcheck: http://127.0.0.1:8000/api/v1/health
+- Swagger UI: http://127.0.0.1:8000/docs
+
+Beispiel:
+
+```bash
+curl http://127.0.0.1:8000/api/v1/health
 ```
 
 ---
