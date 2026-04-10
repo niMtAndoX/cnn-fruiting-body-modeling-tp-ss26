@@ -40,3 +40,33 @@ Thumbs.db
 
 # Grosse lokale Modellartefakte und Testbilder
 models/darknet/
+
+# --- Frontend: apps/web ---
+
+# Dependencies
+apps/web/node_modules/
+
+# Build output
+apps/web/dist/
+
+# Vite cache
+apps/web/.vite/
+
+# Test / coverage
+apps/web/coverage/
+
+# TypeScript
+apps/web/*.tsbuildinfo
+
+# Environment files
+apps/web/.env
+apps/web/.env.local
+apps/web/.env.development.local
+apps/web/.env.test.local
+apps/web/.env.production.local
+
+# Logs
+apps/web/npm-debug.log*
+apps/web/yarn-debug.log*
+apps/web/yarn-error.log*
+apps/web/pnpm-debug.log*
