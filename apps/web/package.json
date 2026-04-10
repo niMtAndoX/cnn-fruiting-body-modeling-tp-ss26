@@ -7,15 +7,14 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "predev": "pnpm check",
     "dev": "vite",
-    "dev:checked": "pnpm check && vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "eslint src vite.config.ts eslint.config.mjs",
+    "lint:fix": "eslint src vite.config.ts eslint.config.mjs --fix",
     "test": "vitest run src/test",
     "test:watch": "vitest src/test",
-    "test:ui": "vitest --ui src/test",
     "check": "pnpm lint && pnpm test"
   },
   "dependencies": {
