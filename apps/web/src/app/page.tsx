@@ -1,4 +1,6 @@
-import { useState, useRef, useCallback } from "react"
+"use client"
+
+import { useState, useRef, useCallback} from "react"
 import { Header } from "@/components/waldpilz/header"
 import { UploadArea } from "@/components/waldpilz/upload-area"
 import { AnalysisPanel } from "@/components/waldpilz/analysis-panel"
@@ -23,7 +25,7 @@ export interface AnalysisResult {
 
 const MUSHROOM_COLORS = ["#3B82F6", "#EF4444", "#1F2937", "#22C55E", "#EAB308"]
 
-export default function HomePage() {
+export default function WaldpilzApp() {
   const [currentImage, setCurrentImage] = useState<string | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [currentLogs, setCurrentLogs] = useState<LogEntry[]>([])
@@ -84,7 +86,7 @@ export default function HomePage() {
     setCurrentLogs([])
     setBoundingBoxes([])
 
-    // Platzhalter für Analyseprozess
+    // Simulate analysis process
     await new Promise((resolve) => setTimeout(resolve, 500))
     addLog("Analyse gestartet...", "search")
 
@@ -94,7 +96,7 @@ export default function HomePage() {
     await new Promise((resolve) => setTimeout(resolve, 800))
     addLog("Pilzerkennung aktiv...", "search")
 
-    // Zufällige Anzahl von Pilzen generieren
+    // Generate random bounding boxes
     const numBoxes = Math.floor(Math.random() * 3) + 1
     const newBoxes = Array.from({ length: numBoxes }, () => ({
       x: Math.random() * 60 + 10,
@@ -110,7 +112,7 @@ export default function HomePage() {
     await new Promise((resolve) => setTimeout(resolve, 400))
     addLog("Analyse abgeschlossen!", "check")
 
-    // History aktualisieren
+    // Create history entry
     const historyEntry: AnalysisResult = {
       id: crypto.randomUUID(),
       imageUrl: currentImage,
