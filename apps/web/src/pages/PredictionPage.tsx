@@ -21,7 +21,7 @@ export interface AnalysisResult {
   mushroomColor: string
 }
 
-const MUSHROOM_COLORS = ["#3B82F6", "#EF4444", "#1F2937", "#22C55E", "#EAB308"]
+const MUSHROOM_COLORS = ["#016401", "#074710", "#2B1A17", "#4A2C2A", "#654422"]
 
 export default function HomePage() {
   const [currentImage, setCurrentImage] = useState<string | null>(null)
@@ -156,7 +156,7 @@ export default function HomePage() {
       <div>Prediction Page</div>
       
       <main className="container mx-auto px-4 py-6 max-w-4xl">
-        <div className="bg-card rounded-lg border-4 border-border relative">
+        <div className="bg-card/90 rounded-lg border-4 border-border relative">
           {/* Close button removed - now in AnalysisPanel */}
 
           <div className="p-6 space-y-6">
