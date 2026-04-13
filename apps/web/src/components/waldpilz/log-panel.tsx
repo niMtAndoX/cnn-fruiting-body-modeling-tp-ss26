@@ -1,7 +1,7 @@
 "use client"
 
 import { Camera, Search, Check } from "lucide-react"
-import { LogEntry } from "@/app/page"
+import { LogEntry } from "@/pages/PredictionPage"
 import { Spinner } from "@/components/ui/spinner"
 
 interface LogPanelProps {

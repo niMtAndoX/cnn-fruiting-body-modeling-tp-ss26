@@ -10,7 +10,7 @@ export function Header() {
   return (
     <header className="bg-card border-b-2 border-border">
       <div className="container mx-auto px-4 py-2 flex items-center justify-between">
-        {/* Home icon */}
+        {/* Homebutton */}
         <button
           onClick={() => navigate('/')}
           className="p-2 text-foreground hover:text-foreground/70 transition-colors"
@@ -19,7 +19,7 @@ export function Header() {
           <Home className="size-6" />
         </button>
 
-        {/* Logo and title */}
+        {/* Logo */}
         <div className="flex flex-col items-center">
           <img
             src={waldpilzLogo}

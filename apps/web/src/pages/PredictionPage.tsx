@@ -153,21 +153,18 @@ export default function HomePage() {
       style={{ backgroundImage: `url(${backgroundWald})` }}
     >
       <Header />
-      <div>Prediction Page</div>
+      <div className="opacity-0">Prediction Page</div>
       
       <main className="container mx-auto px-4 py-6 max-w-4xl">
         <div className="bg-card/90 rounded-lg border-4 border-border relative">
-          {/* Close button removed - now in AnalysisPanel */}
 
           <div className="p-6 space-y-6">
-            {/* Upload Area */}
             <UploadArea
               onFileDrop={handleFileDrop}
               onFileSelect={handleFileSelect}
               fileInputRef={fileInputRef}
             />
 
-            {/* Analysis Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <AnalysisPanel
                 imageUrl={currentImage}
@@ -180,7 +177,6 @@ export default function HomePage() {
               />
             </div>
 
-            {/* History Section */}
             <HistorySection
               history={history}
               selectedIndex={selectedHistoryIndex}

@@ -23,18 +23,18 @@ function MushroomPlaceholder() {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Mushroom cap */}
+      {/* Pilz */}
       <ellipse cx="50" cy="35" rx="35" ry="25" className="fill-foreground/20" />
-      {/* Cap spots */}
+      {/* Pilz Kopf */}
       <circle cx="40" cy="30" r="4" className="fill-foreground/10" />
       <circle cx="55" cy="25" r="3" className="fill-foreground/10" />
       <circle cx="60" cy="38" r="5" className="fill-foreground/10" />
-      {/* Mushroom stem */}
+      {/* Pilz Stiel */}
       <path
         d="M35 50 Q35 80 40 85 L60 85 Q65 80 65 50 Z"
         className="fill-foreground/15"
       />
-      {/* Ground */}
+      {/* Boden */}
       <ellipse cx="50" cy="88" rx="30" ry="5" className="fill-foreground/10" />
     </svg>
   )

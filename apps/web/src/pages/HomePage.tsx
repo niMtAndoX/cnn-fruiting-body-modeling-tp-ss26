@@ -13,7 +13,6 @@ export default function HomePage() {
     >
       {/* Header */}
       <header className="border-b-4 border-border bg-card">
-        <div>Startseite</div>
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
@@ -31,6 +30,7 @@ export default function HomePage() {
       {/* Kopfzeile */}
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-4xl text-center">
+          <div className="opacity-0">Startseite</div>
           <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tighter text-balance">
             Spezialisierte <span className="text-yellow-300">KI-Erkennung</span>
           </h1>
