@@ -1,5 +1,7 @@
 "use client"
 
+import { X } from "lucide-react"
+
 interface BoundingBox {
   x: number
   y: number
@@ -10,6 +12,7 @@ interface BoundingBox {
 interface AnalysisPanelProps {
   imageUrl: string | null
   boundingBoxes: BoundingBox[]
+  onClose?: () => void
 }
 
 function MushroomPlaceholder() {
@@ -37,7 +40,7 @@ function MushroomPlaceholder() {
   )
 }
 
-export function AnalysisPanel({ imageUrl, boundingBoxes }: AnalysisPanelProps) {
+export function AnalysisPanel({ imageUrl, boundingBoxes, onClose }: AnalysisPanelProps) {
   return (
     <div className="relative aspect-square border-2 border-border rounded-lg overflow-hidden bg-muted/30">
       {imageUrl ? (
@@ -47,6 +50,16 @@ export function AnalysisPanel({ imageUrl, boundingBoxes }: AnalysisPanelProps) {
             alt="Hochgeladenes Bild"
             className="w-full h-full object-cover"
           />
+          {/* Close button */}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="absolute top-3 right-3 p-1 text-foreground hover:text-foreground/70 transition-colors z-10 bg-background/80 rounded-full"
+              aria-label="Bild entfernen"
+            >
+              <X className="size-6" />
+            </button>
+          )}
           {/* Bounding boxes overlay */}
           <svg
             className="absolute inset-0 w-full h-full pointer-events-none"
