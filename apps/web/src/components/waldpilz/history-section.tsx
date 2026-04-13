@@ -14,7 +14,7 @@ interface HistorySectionProps {
   hasImage: boolean
 }
 
-const PLACEHOLDER_COLORS = ["#3B82F6", "#EF4444", "#1F2937", "#22C55E", "#EAB308"]
+const PLACEHOLDER_COLORS = ["#016401", "#074710", "#2B1A17", "#4A2C2A", "#654422"]
 
 function MushroomIcon({ color }: { color: string }) {
   return (
