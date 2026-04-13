@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
-import { AnalysisResult } from "@/app/page"
+import { AnalysisResult } from "@/pages/PredictionPage"
 import { cn } from "@/lib/utils"
 
 interface HistorySectionProps {
