@@ -4,7 +4,7 @@ import { UploadArea } from "@/components/waldpilz/upload-area"
 import { AnalysisPanel } from "@/components/waldpilz/analysis-panel"
 import { LogPanel } from "@/components/waldpilz/log-panel"
 import { HistorySection } from "@/components/waldpilz/history-section"
-import { X } from "lucide-react"
+import backgroundWald from "@/components/background_wald.jpg"
 
 export interface LogEntry {
   id: string
@@ -148,19 +148,16 @@ export default function HomePage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-background">
+    <div
+      className="min-h-screen bg-background bg-cover bg-center"
+      style={{ backgroundImage: `url(${backgroundWald})` }}
+    >
       <Header />
+      <div>Prediction Page</div>
       
       <main className="container mx-auto px-4 py-6 max-w-4xl">
         <div className="bg-card rounded-lg border-4 border-border relative">
-          {/* Close button */}
-          <button
-            onClick={handleClose}
-            className="absolute top-3 right-3 p-1 text-foreground hover:text-foreground/70 transition-colors z-10"
-            aria-label="Schließen"
-          >
-            <X className="size-6" />
-          </button>
+          {/* Close button removed - now in AnalysisPanel */}
 
           <div className="p-6 space-y-6">
             {/* Upload Area */}
@@ -175,6 +172,7 @@ export default function HomePage() {
               <AnalysisPanel
                 imageUrl={currentImage}
                 boundingBoxes={boundingBoxes}
+                onClose={handleClose}
               />
               <LogPanel
                 logs={currentLogs}

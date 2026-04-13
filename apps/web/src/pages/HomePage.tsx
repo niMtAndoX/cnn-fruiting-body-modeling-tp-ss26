@@ -7,6 +7,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b-4 border-border bg-card">
+        <div>Startseite</div>
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="size-10 rounded-full bg-secondary flex items-center justify-center">
