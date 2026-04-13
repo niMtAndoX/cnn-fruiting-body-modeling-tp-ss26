@@ -21,7 +21,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* Kopfzeile */}
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-4xl text-center">
           <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tighter text-balance">
@@ -40,7 +40,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Project Introduction (Ostfalia & Waldpilz.eu) */}
+      {/* Projekt Einführung */}
       <section className="py-16 px-4 bg-secondary/30 border-y-4 border-border">
         <div className="container mx-auto max-w-4xl">
           <div className="flex flex-col md:flex-row items-center gap-8">
@@ -57,7 +57,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* How it Works */}
+      {/* Tutorial */}
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-5xl">
           <h2 className="text-3xl font-bold text-center mb-16">Der Analyse-Prozess</h2>
@@ -93,7 +93,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* About Section */}
+      {/* Projekt Informationen*/}
       <section className="py-16 px-4 bg-card border-t-4 border-border">
         <div className="container mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-bold mb-8">Projekt Waldpilz</h2>
@@ -108,7 +108,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* Weiterleitung Analyse */}
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="text-3xl font-bold mb-6">Haben Sie einen Fund gemacht?</h2>
@@ -120,7 +120,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
+      {/* Fußzeile */}
       <footer className="py-10 px-4 border-t-4 border-border bg-card">
         <div className="container mx-auto max-w-6xl flex flex-col md:flex-row justify-between items-center gap-6 text-muted-foreground text-sm">
           <div className="flex items-center gap-2">

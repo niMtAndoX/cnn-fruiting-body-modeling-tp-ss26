@@ -52,7 +52,7 @@ export function UploadArea({ onFileDrop, onFileSelect, fileInputRef }: UploadAre
   }, [fileInputRef])
 
   const handleTakePhoto = useCallback(() => {
-    // Create a temporary input for camera capture
+    // Temporärer Kamerainput  
     const input = document.createElement("input")
     input.type = "file"
     input.accept = "image/*"
