@@ -1,24 +1,16 @@
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Upload, Search, CheckCircle, Zap, GraduationCap } from "lucide-react"
-import backgroundWald from "@/components/wald_background.jpg"
+import backgroundWald from "@/components/background_wald.jpg"
 import waldpilzLogo from "@/components/WALDPILZ_Logo (1).png"
 import waldpilzLogoWhite from "@/components/WALDPILZ_Logo_weiß.png"
 
 export default function HomePage() {
   return (
     <div
-      className="min-h-screen bg-background text-foreground bg-cover bg-center bg-fixed relative"
+      className="min-h-screen bg-background text-foreground bg-cover bg-center bg-fixed"
       style={{ backgroundImage: `url(${backgroundWald})` }}
     >
-      {/* Grünliches transparentes Overlay für bessere Lesbarkeit */}
-      <div 
-        className="absolute inset-0 pointer-events-none" 
-        style={{
-          background: "radial-gradient(ellipse 800px 100% at center, rgba(100,150,100,0.35), transparent)"
-        }}
-      />
-      <div className="relative z-10">
       {/* Header */}
       <header className="border-b-4 border-border bg-card">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -39,7 +31,7 @@ export default function HomePage() {
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-4xl text-center">
           <div className="opacity-0">Startseite</div>
-          <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tighter text-balance text-white">
+          <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tighter text-balance">
             Spezialisierte <span className="text-yellow-300">KI-Erkennung</span>
           </h1>
           
@@ -64,7 +56,7 @@ export default function HomePage() {
       </section>
 
       {/* Projekt Einführung */}
-      <section className="py-16 px-4">
+      <section className="py-16 px-4 bg-secondary/30 border-y-4 border-border">
         <div className="container mx-auto max-w-4xl">
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div className="size-20 shrink-0 rounded-2xl bg-primary flex items-center justify-center">
@@ -160,7 +152,6 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
-      </div>
     </div>
   )
 }
