@@ -40,3 +40,4 @@ Thumbs.db
 
 # Grosse lokale Modellartefakte und Testbilder
 models/darknet/
+node_modules
