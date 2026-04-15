@@ -66,6 +66,12 @@ Tests ausführen (Vitest):
 pnpm test
 ```
 
+Tests im Watch-Modus ausführen (automatische Neuladen bei Änderungen):
+
+```bash
+pnpm test:watch
+```
+
 Linting und Tests zusammen ausführen:
 
 ```bash
@@ -75,8 +81,20 @@ pnpm check
 Dev-Server nur nach erfolgreichem Check starten:
 
 ```bash
-pnpm dev:checked
+pnpm dev
 ```
+
+### Test-Abdeckung
+
+Die Anwendung hat eine umfassende Test-Suite:
+
+- **Routing-Tests** (`src/test/app.test.tsx`) – Überprüfung der App-Routen
+- **Seiten-Tests** (`src/test/pages/HomePage.test.tsx`) – UI-Tests der Startseite
+- **Upload-Tests** (`src/test/features/prediction/upload/UploadForm.test.tsx`) – Validierung und Interaktionen des Upload-Formulars
+- **Health-Check-Tests** (`src/test/features/health/HealthCheck.test.tsx`) – API-Health-Status und Zustandsübergänge
+- **UI-Komponenten-Tests** (`src/test/ui/UIComponents.test.tsx`) – Zentrale UI-Bereiche und interaktive Elemente
+
+**Aktuelle Test-Summe: 25+ Tests mit hoher Abdeckung der kritischen User-Flows**
 
 ---
 
@@ -127,8 +145,18 @@ src/
 ├─ styles/
 │  └─ globals.css             # Zusätzliche globale Stile
 └─ test/
-   ├─ app.test.tsx            # Integrationstests für App-Komponente
-   └─ setup.ts                # Vitest-Konfiguration und Setup
+   ├─ app.test.tsx            # Integrationstests für App-Routing
+   ├─ setup.ts                # Vitest-Konfiguration und Setup
+   ├─ pages/
+   │  └─ HomePage.test.tsx    # UI-Tests für Startseite
+   ├─ features/
+   │  ├─ prediction/
+   │  │  └─ upload/
+   │  │     └─ UploadForm.test.tsx  # Upload-Validierung und Dateihandling
+   │  └─ health/
+   │     └─ HealthCheck.test.tsx    # Health-Check API und Zustandstests
+   └─ ui/
+      └─ UIComponents.test.tsx      # Zentrale UI-Komponenten und Bereiche
 ```
 
 ---
@@ -176,9 +204,49 @@ Zusätzliche Stylesheets:
 - **globals.css** – Ergänzende globale Stile
 
 ### `src/test/`
-Test-Dateien:
-- **app.test.tsx** – Integrationstests für die App-Komponente
-- **setup.ts** – Vitest-Setup und Test-Utilities
+Test-Dateien mit strukturierter Organisierung:
+- **app.test.tsx** – Routing-Integrationstests
+- **pages/HomePage.test.tsx** – UI-Tests der Startseite (Titel, Buttons, Inhalte)
+- **features/prediction/upload/UploadForm.test.tsx** – Upload-Funktionalität (Dateivalidierung, Formate)
+- **features/health/HealthCheck.test.tsx** – Health-Check Button und API-Zustände
+- **ui/UIComponents.test.tsx** – Zentrale UI-Bereiche (Header, Footer, Navigation, Status-Meldungen)
+- **setup.ts** – Vitest-Setup und globale Test-Utilities
+
+---
+
+## Test-Struktur im Detail
+
+Die Tests folgen einem klaren Muster und decken folgende Bereiche ab:
+
+### Routing-Tests
+- **app.test.tsx** – Überprüfung aller Routen und deren Inhalte
+  - Startseite wird unter `/` korrekt gerendert
+  - Prediction-Seite wird unter `/prediction` angezeigt
+  - 404-Seite wird bei unbekannten Routen angezeigt
+
+### Seiten-Tests
+- **HomePage.test.tsx** – UI-Elemente der Startseite
+  - Projekttitel und Überschrift
+  - Buttons für Aktionen
+  - Inhalts-Sections und Informationsbereiche
+
+### Feature-Tests
+- **UploadForm.test.tsx** – Upload-Workflow
+  - Dateiauswahl (JPG, PNG)
+  - Validierung ungültiger Formate
+  - Button-Interaktionen
+  
+- **HealthCheck.test.tsx** – Health-Status API
+  - Button-Rendering
+  - Lade-, Erfolgs- und Fehlerzustände
+  - Callbacks bei Status-Änderungen
+
+### UI-Komponenten-Tests
+- **UIComponents.test.tsx** – Zentrale UI-Elemente
+  - Layout-Struktur (Header, Main, Footer)
+  - Interaktive Elemente (Buttons, Links)
+  - Status-Meldungen und Benachrichtigungen
+  - Accessibility und semantisches HTML
 
 ---
 
