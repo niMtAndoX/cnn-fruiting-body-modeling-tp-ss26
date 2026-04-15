@@ -4,7 +4,7 @@ import { UploadArea } from "@/components/waldpilz/upload-area"
 import { AnalysisPanel } from "@/components/waldpilz/analysis-panel"
 import { LogPanel } from "@/components/waldpilz/log-panel"
 import { HistorySection } from "@/components/waldpilz/history-section"
-import backgroundWald from "@/components/background_wald.jpg"
+import backgroundWald from "@/components/wald_background.jpg"
 
 export interface LogEntry {
   id: string
