@@ -92,8 +92,9 @@ async def predict(
         raise
     except (InferenceRunnerError, DarknetOutputParseError) as exc:
         raise PredictionExecutionError(
-            "Die Bilderkennung konnte nicht erfolgreich ausgeführt werden."
-        ) from exc
+        "Die Bilderkennung konnte nicht erfolgreich ausgeführt werden."
+    ) from exc
 
     request_id = str(uuid4())
     return to_prediction_response(result, request_id=request_id)
+

@@ -236,3 +236,19 @@ Die Prediction-Seite wird fachlich erweitert um:
 - **Ergebnisanzeige** – Erkannte Pilzarten und Vertrauenswerte anzeigen
 - **Error-Handling** – Nutzer-freundliche Fehlermeldungen bei API-Fehlern
 - **Loading-States** – Visuelles Feedback während der Verarbeitung
+
+## wichtiger Hinweis
+### CORS-Konfiguration für Frontend
+
+Damit das Frontend (Standard: http://localhost:5173) mit dem Backend kommunizieren kann, muss CORS korrekt gesetzt sein.
+
+Dazu in `apps/api/.env` folgende Variable ergänzen:
+
+CORS_ALLOW_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+
+Falls die `.env` noch nicht existiert:
+
+Copy-Item .env.example .env
+
+Ohne diese Einstellung schlägt die Anfrage vom Frontend mit "Failed to fetch" fehl.
+

@@ -1,10 +1,10 @@
-import { useState, useRef, useCallback } from "react"
-import { Header } from "@/components/waldpilz/header"
-import { UploadArea } from "@/components/waldpilz/upload-area"
-import { AnalysisPanel } from "@/components/waldpilz/analysis-panel"
-import { LogPanel } from "@/components/waldpilz/log-panel"
-import { HistorySection } from "@/components/waldpilz/history-section"
 import backgroundWald from "@/components/background_wald.jpg"
+import { AnalysisPanel } from "@/components/waldpilz/analysis-panel"
+import { Header } from "@/components/waldpilz/header"
+import { HistorySection } from "@/components/waldpilz/history-section"
+import { LogPanel } from "@/components/waldpilz/log-panel"
+import { UploadArea } from "@/components/waldpilz/upload-area"
+import { useCallback, useRef, useState } from "react"
 
 export interface LogEntry {
   id: string
@@ -13,10 +13,17 @@ export interface LogEntry {
   icon: "camera" | "search" | "check"
 }
 
+export interface DetectionResult {
+  label: string
+  score: number
+  bbox: { x: number; y: number; width: number; height: number } | null
+}
+
 export interface AnalysisResult {
   id: string
   imageUrl: string
   boundingBoxes: { x: number; y: number; width: number; height: number }[]
+  detections: DetectionResult[]
   logs: LogEntry[]
   mushroomColor: string
 }
@@ -30,6 +37,9 @@ export default function HomePage() {
   const [history, setHistory] = useState<AnalysisResult[]>([])
   const [selectedHistoryIndex, setSelectedHistoryIndex] = useState<number | null>(null)
   const [boundingBoxes, setBoundingBoxes] = useState<{ x: number; y: number; width: number; height: number }[]>([])
+  const [detections, setDetections] = useState<DetectionResult[]>([])
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -53,9 +63,21 @@ export default function HomePage() {
     const reader = new FileReader()
     reader.onload = (e) => {
       const imageUrl = e.target?.result as string
+
+      const img = new Image()
+      img.onload = () => {
+        setImageDimensions({
+          width: img.naturalWidth,
+          height: img.naturalHeight,
+        })
+      }
+      img.src = imageUrl
+
       setCurrentImage(imageUrl)
+      setSelectedFile(file)
       setCurrentLogs([])
       setBoundingBoxes([])
+      setDetections([])
       setSelectedHistoryIndex(null)
       addLog("Bild erfolgreich hochgeladen", "camera")
     }
@@ -78,57 +100,104 @@ export default function HomePage() {
   }, [handleImageUpload])
 
   const handleAnalyze = useCallback(async () => {
-    if (!currentImage) return
+    if (!currentImage || !selectedFile) return
+
+if (!imageDimensions) {
+  addLog("Bild wird noch geladen...", "search")
+  return
+}
 
     setIsAnalyzing(true)
     setCurrentLogs([])
     setBoundingBoxes([])
+    setDetections([])
 
-    // Platzhalter für Analyseprozess
-    await new Promise((resolve) => setTimeout(resolve, 500))
     addLog("Analyse gestartet...", "search")
 
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    addLog("Bildverarbeitung läuft...", "search")
+        try {
+      console.log("ANALYSE: start", { currentImage, selectedFile, imageDimensions })
 
-    await new Promise((resolve) => setTimeout(resolve, 800))
-    addLog("Pilzerkennung aktiv...", "search")
+      const formData = new FormData()
+      formData.append("file", selectedFile)
 
-    // Zufällige Anzahl von Pilzen generieren
-    const numBoxes = Math.floor(Math.random() * 3) + 1
-    const newBoxes = Array.from({ length: numBoxes }, () => ({
-      x: Math.random() * 60 + 10,
-      y: Math.random() * 60 + 10,
-      width: Math.random() * 20 + 15,
-      height: Math.random() * 20 + 15,
-    }))
-    setBoundingBoxes(newBoxes)
+      const response = await fetch("http://localhost:8000/api/v1/predict", {
+        method: "POST",
+        body: formData,
+      })
 
-    await new Promise((resolve) => setTimeout(resolve, 600))
-    addLog(`${numBoxes} Pilz(e) erkannt`, "check")
+      console.log("ANALYSE: response status", response.status)
 
-    await new Promise((resolve) => setTimeout(resolve, 400))
-    addLog("Analyse abgeschlossen!", "check")
+      if (!response.ok) {
+        throw new Error(`API-Fehler: ${response.status}`)
+      }
 
-    // History aktualisieren
-    const historyEntry: AnalysisResult = {
-      id: crypto.randomUUID(),
-      imageUrl: currentImage,
-      boundingBoxes: newBoxes,
-      logs: [...currentLogs, 
-        { id: crypto.randomUUID(), timestamp: generateTimestamp(), message: `${numBoxes} Pilz(e) erkannt`, icon: "check" as const },
-        { id: crypto.randomUUID(), timestamp: generateTimestamp(), message: "Analyse abgeschlossen!", icon: "check" as const }
-      ],
-      mushroomColor: MUSHROOM_COLORS[history.length % 5],
-    }
+      const result = await response.json()
+      console.log("ANALYSE: result", result)
 
-    setHistory((prev) => {
-      const newHistory = [historyEntry, ...prev]
-      return newHistory.slice(0, 5)
-    })
+      addLog("Bildverarbeitung läuft...", "search")
+      addLog("Pilzerkennung aktiv...", "search")
 
-    setIsAnalyzing(false)
-  }, [currentImage, addLog, currentLogs, history.length])
+      const apiDetections: DetectionResult[] = (result.detections ?? []).map((detection: any) => ({
+        label: detection.label,
+        score: detection.score,
+        bbox: detection.bbox,
+      }))
+
+      console.log("ANALYSE: detections", apiDetections)
+
+      const newBoxes = apiDetections
+        .filter((detection) => detection.bbox !== null)
+        .map((detection) => ({
+          x: (detection.bbox!.x / imageDimensions.width) * 100,
+          y: (detection.bbox!.y / imageDimensions.height) * 100,
+          width: (detection.bbox!.width / imageDimensions.width) * 100,
+          height: (detection.bbox!.height / imageDimensions.height) * 100,
+        }))
+
+      console.log("ANALYSE: boxes", newBoxes)
+
+      setDetections(apiDetections)
+      setBoundingBoxes(newBoxes)
+
+      addLog(`${apiDetections.length} Pilz(e) erkannt`, "check")
+      addLog("Analyse abgeschlossen!", "check")
+
+      const historyEntry: AnalysisResult = {
+        id: crypto.randomUUID(),
+        imageUrl: currentImage,
+        boundingBoxes: newBoxes,
+        detections: apiDetections,
+        logs: [
+          { id: crypto.randomUUID(), timestamp: generateTimestamp(), message: "Analyse gestartet...", icon: "search" },
+          { id: crypto.randomUUID(), timestamp: generateTimestamp(), message: "Bildverarbeitung läuft...", icon: "search" },
+          { id: crypto.randomUUID(), timestamp: generateTimestamp(), message: "Pilzerkennung aktiv...", icon: "search" },
+          { id: crypto.randomUUID(), timestamp: generateTimestamp(), message: `${apiDetections.length} Pilz(e) erkannt`, icon: "check" },
+          { id: crypto.randomUUID(), timestamp: generateTimestamp(), message: "Analyse abgeschlossen!", icon: "check" },
+        ],
+        mushroomColor: MUSHROOM_COLORS[history.length % 5],
+      }
+
+      console.log("ANALYSE: historyEntry", historyEntry)
+
+      setHistory((prev) => {
+        const newHistory = [historyEntry, ...prev]
+        return newHistory.slice(0, 5)
+      })
+
+      setCurrentLogs(historyEntry.logs)
+      console.log("ANALYSE: success")
+    } catch (error) {
+      console.error("ANALYSE FEHLER:", error)
+      if (error instanceof Error) {
+        addLog(`Analyse fehlgeschlagen: ${error.message}`, "check")
+      } else {
+        addLog("Analyse fehlgeschlagen", "check")
+      }
+    } finally {
+      setIsAnalyzing(false)
+    } 
+    
+  }, [currentImage, selectedFile, imageDimensions, addLog, history.length])
 
   const handleHistorySelect = useCallback((index: number) => {
     const result = history[index]
@@ -136,14 +205,18 @@ export default function HomePage() {
       setSelectedHistoryIndex(index)
       setCurrentImage(result.imageUrl)
       setBoundingBoxes(result.boundingBoxes)
+      setDetections(result.detections)
       setCurrentLogs(result.logs)
     }
   }, [history])
 
   const handleClose = useCallback(() => {
     setCurrentImage(null)
+    setSelectedFile(null)
     setCurrentLogs([])
     setBoundingBoxes([])
+    setDetections([])
+    setImageDimensions(null)
     setSelectedHistoryIndex(null)
   }, [])
 
@@ -154,10 +227,9 @@ export default function HomePage() {
     >
       <Header />
       <div className="opacity-0">Prediction Page</div>
-      
+
       <main className="container mx-auto px-4 py-6 max-w-4xl">
         <div className="bg-card/90 rounded-lg border-4 border-border relative">
-
           <div className="p-6 space-y-6">
             <UploadArea
               onFileDrop={handleFileDrop}
@@ -176,6 +248,20 @@ export default function HomePage() {
                 isAnalyzing={isAnalyzing}
               />
             </div>
+
+            {detections.length > 0 && (
+              <div className="bg-card/90 rounded-lg border border-border p-4">
+                <h3 className="text-lg font-semibold mb-2">Erkannte Pilze</h3>
+                <div className="space-y-2">
+                  {detections.map((detection, index) => (
+                    <div key={index} className="flex items-center justify-between rounded border px-3 py-2">
+                      <span className="font-medium">{detection.label}</span>
+                      <span>{(detection.score * 100).toFixed(0)}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <HistorySection
               history={history}
