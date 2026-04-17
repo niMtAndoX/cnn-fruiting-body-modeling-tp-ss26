@@ -30,7 +30,7 @@ export interface AnalysisResult {
 
 const MUSHROOM_COLORS = ["#016401", "#074710", "#2B1A17", "#4A2C2A", "#654422"]
 
-export default function HomePage() {
+export default function PredictionPage() {
   const [currentImage, setCurrentImage] = useState<string | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [currentLogs, setCurrentLogs] = useState<LogEntry[]>([])
@@ -102,10 +102,10 @@ export default function HomePage() {
   const handleAnalyze = useCallback(async () => {
     if (!currentImage || !selectedFile) return
 
-if (!imageDimensions) {
-  addLog("Bild wird noch geladen...", "search")
-  return
-}
+    if (!imageDimensions) {
+      addLog("Bild wird noch geladen...", "search")
+      return
+    }
 
     setIsAnalyzing(true)
     setCurrentLogs([])
@@ -114,25 +114,20 @@ if (!imageDimensions) {
 
     addLog("Analyse gestartet...", "search")
 
-        try {
-      console.log("ANALYSE: start", { currentImage, selectedFile, imageDimensions })
-
+    try {
       const formData = new FormData()
       formData.append("file", selectedFile)
 
-      const response = await fetch("http://localhost:8000/api/v1/predict", {
+      const response = await fetch("http://127.0.0.1:8000/api/v1/predict", {
         method: "POST",
         body: formData,
       })
-
-      console.log("ANALYSE: response status", response.status)
 
       if (!response.ok) {
         throw new Error(`API-Fehler: ${response.status}`)
       }
 
       const result = await response.json()
-      console.log("ANALYSE: result", result)
 
       addLog("Bildverarbeitung läuft...", "search")
       addLog("Pilzerkennung aktiv...", "search")
@@ -143,8 +138,6 @@ if (!imageDimensions) {
         bbox: detection.bbox,
       }))
 
-      console.log("ANALYSE: detections", apiDetections)
-
       const newBoxes = apiDetections
         .filter((detection) => detection.bbox !== null)
         .map((detection) => ({
@@ -153,8 +146,6 @@ if (!imageDimensions) {
           width: (detection.bbox!.width / imageDimensions.width) * 100,
           height: (detection.bbox!.height / imageDimensions.height) * 100,
         }))
-
-      console.log("ANALYSE: boxes", newBoxes)
 
       setDetections(apiDetections)
       setBoundingBoxes(newBoxes)
@@ -177,26 +168,17 @@ if (!imageDimensions) {
         mushroomColor: MUSHROOM_COLORS[history.length % 5],
       }
 
-      console.log("ANALYSE: historyEntry", historyEntry)
-
       setHistory((prev) => {
         const newHistory = [historyEntry, ...prev]
         return newHistory.slice(0, 5)
       })
 
       setCurrentLogs(historyEntry.logs)
-      console.log("ANALYSE: success")
-    } catch (error) {
-      console.error("ANALYSE FEHLER:", error)
-      if (error instanceof Error) {
-        addLog(`Analyse fehlgeschlagen: ${error.message}`, "check")
-      } else {
-        addLog("Analyse fehlgeschlagen", "check")
-      }
+    } catch {
+      addLog("Analyse fehlgeschlagen", "check")
     } finally {
       setIsAnalyzing(false)
-    } 
-    
+    }
   }, [currentImage, selectedFile, imageDimensions, addLog, history.length])
 
   const handleHistorySelect = useCallback((index: number) => {
