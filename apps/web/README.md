@@ -84,6 +84,8 @@ Dev-Server nur nach erfolgreichem Check starten:
 pnpm dev
 ```
 
+<<<<<<< HEAD
+=======
 ### Test-Abdeckung
 
 Die Anwendung hat eine umfassende Test-Suite:
@@ -96,6 +98,7 @@ Die Anwendung hat eine umfassende Test-Suite:
 
 **Aktuelle Test-Summe: 25+ Tests mit hoher Abdeckung der kritischen User-Flows**
 
+>>>>>>> 291ab8f30fa2e49948b9033c74a728571675fbb9
 ---
 
 ## Verfügbare Routen
@@ -145,6 +148,133 @@ src/
 ├─ styles/
 │  └─ globals.css             # Zusätzliche globale Stile
 └─ test/
+<<<<<<< HEAD
+   ├─ app.test.tsx            # Integrationstests für App-Komponente
+   └─ setup.ts                # Vitest-Konfiguration und Setup
+```
+
+---
+
+## Ordnerstruktur im Detail
+
+### `src/app/`
+Enthält die Anwendungs-Root-Komponente und globale Einstellungen:
+- **index.tsx** – App-Komponente, lädt Provider (Theme, Router, etc.)
+- **layout.tsx** – Globales Layout-Wrapper für alle Seiten
+- **router/index.tsx** – Zentrale Routing-Definition mit allen verfügbaren Routen
+- **globals.css** – Globale CSS-Stile (Fonts, Basis-Resets, etc.)
+
+### `src/pages/`
+Seiten-Komponenten, jede repräsentiert eine Route:
+- **HomePage.tsx** – Startseite unter `/`
+- **PredictionPage.tsx** – Prognose-Seite unter `/prediction`
+- **NotFoundPage.tsx** – 404-Seite für unbekannte Routen
+
+### `src/components/`
+Wiederverwendbare Komponenten:
+- **ui/** – Shadcn UI Komponenten (Button, Card, Input, Form, Dialog, etc.)
+- **waldpilz/** – Domain-spezifische Komponenten für Waldpilz-Features
+- **theme-provider.tsx** – Provider für Theme/Dark-Mode-Unterstützung
+
+### `src/features/`
+Feature-basierte Organizierung zusammenhängender Logik:
+- **prediction/** – Alle Komponenten, Hooks und Logik bezüglich Bilderkennung
+
+### `src/hooks/`
+Wiederverwendbare React Custom Hooks:
+- **use-mobile.ts** – Erkennung, ob App auf mobiler Geräte läuft
+- **use-toast.ts** – Toast-Benachrichtigungen anzeigen
+
+### `src/lib/`
+Utility-Funktionen und Helfer:
+- **utils.ts** – Klassennamen-Merger (cn), String-Manipulatoren, etc.
+
+### `src/shared/`
+Geteilter Code, der app-übergreifend verwendet wird:
+- **api/** – API-Client für Kommunikation mit dem Backend (z. B. `/api/v1/predict`)
+
+### `src/styles/`
+Zusätzliche Stylesheets:
+- **globals.css** – Ergänzende globale Stile
+
+### `src/test/`
+Test-Dateien:
+- **app.test.tsx** – Integrationstests für die App-Komponente
+- **setup.ts** – Vitest-Setup und Test-Utilities
+
+---
+
+## Architektur-Ansatz
+
+Die Web-App folgt folgendem Ansatz:
+
+```mermaid
+flowchart TD
+    U[Browser] -->|HTTP| UI["UI-Layer<br/>(React Pages & Components)"]
+    UI -->|Props & Hooks| F["Feature Layer<br/>(Prediction Logic)"]
+    F -->|API Calls| A["API Client<br/>(shared/api/)"]
+    A -->|HTTP POST/GET| B["Backend API<br/>(apps/api)"]
+    B -->|JSON| A
+    A -->|Data| F
+    F -->|Callbacks| UI
+    UI -->|DOM| U
+```
+
+---
+
+## Entwicklungs-Workflow
+
+### 1. Neue Seite hinzufügen
+
+1. Komponente unter `src/pages/NewPage.tsx` erstellen
+2. Route in `src/app/router/index.tsx` definieren
+3. Falls Komponenten geteilt werden → unter `src/components/` ablegen
+
+### 2. Neue Komponente hinzufügen
+
+- **UI-Komponente** → `src/components/ui/ComponentName.tsx`
+- **Domain-Komponente** → `src/components/waldpilz/ComponentName.tsx`
+- **Feature-Logik** → `src/features/featureName/ComponentName.tsx`
+
+### 3. Mit dem Backend kommunizieren
+
+- API-Calls über `src/shared/api/` durchführen
+- Backend unter `http://localhost:5173` erwartet (konfigurierbar via `.env`)
+- Beispiel: `POST /api/v1/predict` für Bilderkennung
+
+### 4. Styles anpassen
+
+- Shadcn-Komponenten: `src/components/ui/...`
+- Global Styles: `src/styles/globals.css`
+- TypeScript unterstützt Tailwind CSS Klassen via `cn()` Utility
+
+---
+
+## Nächste Schritte
+
+Die Prediction-Seite wird fachlich erweitert um:
+- **Bild-Upload** – Datei-Input mit Validierung
+- **Backend-Integration** – Bilder an `/api/v1/predict` senden
+- **Ergebnisanzeige** – Erkannte Pilzarten und Vertrauenswerte anzeigen
+- **Error-Handling** – Nutzer-freundliche Fehlermeldungen bei API-Fehlern
+- **Loading-States** – Visuelles Feedback während der Verarbeitung
+
+## wichtiger Hinweis
+### CORS-Konfiguration für Frontend
+
+Damit das Frontend (Standard: http://localhost:5173) mit dem Backend kommunizieren kann, muss CORS korrekt gesetzt sein.
+
+Dazu in `apps/api/.env` folgende Variable ergänzen:
+
+CORS_ALLOW_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+
+Falls die `.env` noch nicht existiert:
+
+Copy-Item .env.example .env
+
+Ohne diese Einstellung schlägt die Anfrage vom Frontend mit "Failed to fetch" fehl.
+
+=======
    ├─ app.test.tsx            # Integrationstests für App-Routing
    ├─ setup.ts                # Vitest-Konfiguration und Setup
    ├─ pages/
@@ -304,3 +434,4 @@ Die Prediction-Seite wird fachlich erweitert um:
 - **Ergebnisanzeige** – Erkannte Pilzarten und Vertrauenswerte anzeigen
 - **Error-Handling** – Nutzer-freundliche Fehlermeldungen bei API-Fehlern
 - **Loading-States** – Visuelles Feedback während der Verarbeitung
+>>>>>>> 291ab8f30fa2e49948b9033c74a728571675fbb9
