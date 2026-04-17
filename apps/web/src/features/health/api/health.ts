@@ -1,14 +1,9 @@
+import { request } from "@/shared/api/httpClient"
+
 import { HealthResponse } from "../model/health";
-import { ENV } from "@/shared/config/env";
 
 export async function getHealthStatus(): Promise<HealthResponse> {
-    const response = await fetch(ENV.API_URL + "health");
-
-    if (!response.ok) {
-        throw new Error("Netzwerk Antwort war nicht ok.");
-    }
-
-    return response.json();
+    return request<HealthResponse>("health");
 }
 
 export async function getHealthResponseString(): Promise<string> {

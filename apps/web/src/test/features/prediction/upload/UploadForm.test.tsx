@@ -1,10 +1,14 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import React from "react";
 
+interface UploadFormProps {
+  onError?: (message: string) => void;
+  onFileSelect?: (file: File) => void;
+}
+
 // Simple Mock UploadForm Component
-const UploadForm = ({ onFileSelect, onError }) => {
+const UploadForm = ({ onFileSelect, onError }: UploadFormProps) => {
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -4,6 +4,7 @@ import { Upload, Search, CheckCircle, Zap, GraduationCap } from "lucide-react"
 import backgroundWald from "@/components/wald_background.jpg"
 import waldpilzLogo from "@/components/WALDPILZ_Logo (1).png"
 import waldpilzLogoWhite from "@/components/WALDPILZ_Logo_weiß.png"
+import { getAssetSrc } from "@/lib/asset-src"
 
 export default function HomePage() {
   return (
@@ -24,7 +25,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
-              src={waldpilzLogo}
+              src={getAssetSrc(waldpilzLogo)}
               alt="Waldpilz Logo"
               className="h-10 w-auto"
             />
@@ -48,7 +49,7 @@ export default function HomePage() {
           </p>
           <div className="flex items-center justify-center gap-3 -mt-4">
             <img
-              src={waldpilzLogoWhite}
+              src={getAssetSrc(waldpilzLogoWhite)}
               alt="Waldpilz Logo"
               className="h-16 w-auto"
             />
@@ -149,7 +150,7 @@ export default function HomePage() {
           <div className="flex items-center gap-2">
           </div>
           <img
-              src={waldpilzLogo}
+              src={getAssetSrc(waldpilzLogo)}
               alt="Waldpilz Logo"
               className="h-10 w-auto"
             />

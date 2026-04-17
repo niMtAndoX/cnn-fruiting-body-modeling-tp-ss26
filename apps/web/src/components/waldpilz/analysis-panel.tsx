@@ -1,17 +1,12 @@
 "use client"
 
 import { X } from "lucide-react"
-
-interface BoundingBox {
-  x: number
-  y: number
-  width: number
-  height: number
-}
+import { BoundingBoxOverlay } from "@/features/prediction/components/BoundingBoxOverlay"
+import type { PredictionBoundingBox } from "@/features/prediction/model/prediction"
 
 interface AnalysisPanelProps {
   imageUrl: string | null
-  boundingBoxes: BoundingBox[]
+  boundingBoxes: PredictionBoundingBox[]
   onClose?: () => void
 }
 
@@ -55,23 +50,7 @@ export function AnalysisPanel({ imageUrl, boundingBoxes, onClose }: AnalysisPane
               <X className="size-6" />
             </button>
           )}
-
-          <div className="absolute inset-0 pointer-events-none">
-            {boundingBoxes.map((box, index) => (
-              <div
-                key={index}
-                className="absolute border-2 rounded-sm"
-                style={{
-                  left: `${box.x}%`,
-                  top: `${box.y}%`,
-                  width: `${box.width}%`,
-                  height: `${box.height}%`,
-                  backgroundColor: "rgba(147, 51, 234, 0.3)",
-                  borderColor: "rgba(147, 51, 234, 0.8)",
-                }}
-              />
-            ))}
-          </div>
+          <BoundingBoxOverlay boxes={boundingBoxes} />
         </>
       ) : (
         <div className="absolute inset-0 flex items-center justify-center">

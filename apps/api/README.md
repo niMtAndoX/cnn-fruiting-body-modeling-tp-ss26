@@ -2,8 +2,9 @@
 
 Die FastAPI-basierte Backend-API für die Waldpilz-Erkennung auf Resthölzern.
 
-Die aktuelle Browser-Oberfläche für die erste Release-Version ist die
-FastAPI-Dokumentation unter `/docs`.
+Die eigentliche Browser-Oberfläche liegt im React-Frontend unter
+`apps/web/`. Die FastAPI-Dokumentation unter `/docs` ist zusätzlich für
+Entwicklung, Tests und manuelle API-Prüfung verfügbar.
 
 ## Voraussetzungen
 
@@ -79,6 +80,10 @@ Die API ist anschließend unter folgenden Adressen erreichbar:
 
 > **Hinweis:** Die Endpunkte sind unter `/api/v1/...` erreichbar, z. B. `/api/v1/health`.
 
+Wenn parallel das Frontend lokal auf `http://localhost:5173` läuft, muss
+`CORS_ALLOW_ORIGINS` in `apps/api/.env` diese Origin enthalten. Der Default in
+`.env.example` ist dafür bereits passend vorbereitet.
+
 ---
 
 ## Backend mit Docker starten
@@ -139,6 +144,38 @@ Wenn alles laeuft, sollte die Antwort so aussehen:
   "status": "ok"
 }
 ```
+
+---
+
+## Gemeinsames Deployment mit Frontend
+
+Für den regulären Betrieb wird das Backend zusammen mit dem Frontend aus dem
+Repository-Root gestartet:
+
+```bash
+make deploy
+```
+
+Dabei gelten folgende Architektur-Regeln:
+
+- das Backend läuft als eigener Docker-Container
+- das Frontend läuft als eigener Docker-Container mit Nginx
+- das Frontend spricht im Deployment dieselbe Origin an und ruft `/api/v1` auf
+- Nginx leitet diese Requests intern an den API-Container weiter
+
+Wichtige URLs nach dem Start:
+
+- Anwendung: `http://127.0.0.1:8080`
+- Healthcheck: `http://127.0.0.1:8080/api/v1/health`
+- API-Doku: `http://127.0.0.1:8080/docs`
+
+Wichtige Befehle:
+
+- `make deploy` – baut und startet Frontend und Backend gemeinsam
+- `make ps` – zeigt Container-Status und Health
+- `make logs` – zeigt Logs beider Dienste
+- `make health` – prüft den Health-Endpunkt
+- `make down` – stoppt den Stack
 
 ---
 

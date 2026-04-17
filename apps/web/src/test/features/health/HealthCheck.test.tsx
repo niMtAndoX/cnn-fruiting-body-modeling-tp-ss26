@@ -3,8 +3,13 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import React, { useState } from "react";
 
+interface HealthCheckButtonProps {
+  onError?: (error: unknown) => void;
+  onSuccess?: (data: unknown) => void;
+}
+
 // Simple Mock HealthCheckButton Component
-const HealthCheckButton = ({ onSuccess, onError }) => {
+const HealthCheckButton = ({ onSuccess, onError }: HealthCheckButtonProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
 
@@ -68,7 +73,7 @@ describe("HealthCheckButton", () => {
           100
         )
       )
-    );
+    ) as typeof fetch;
 
     render(<HealthCheckButton />);
 
@@ -85,7 +90,7 @@ describe("HealthCheckButton", () => {
 
     global.fetch = vi.fn(() =>
       Promise.resolve(new Response(JSON.stringify({ status: "ok" }), { status: 200 }))
-    );
+    ) as typeof fetch;
 
     render(<HealthCheckButton onSuccess={mockOnSuccess} />);
 
@@ -103,7 +108,7 @@ describe("HealthCheckButton", () => {
     const user = userEvent.setup();
     const mockOnError = vi.fn();
 
-    global.fetch = vi.fn(() => Promise.reject(new Error("Network error")));
+    global.fetch = vi.fn(() => Promise.reject(new Error("Network error"))) as typeof fetch;
 
     render(<HealthCheckButton onError={mockOnError} />);
 
