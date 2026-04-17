@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import backgroundWald from "@/components/background_wald.jpg"
 import { AnalysisPanel } from "@/components/waldpilz/analysis-panel"
 import { Header } from "@/components/waldpilz/header"
@@ -5,6 +6,15 @@ import { HistorySection } from "@/components/waldpilz/history-section"
 import { LogPanel } from "@/components/waldpilz/log-panel"
 import { UploadArea } from "@/components/waldpilz/upload-area"
 import { useCallback, useRef, useState } from "react"
+=======
+import { useState, useRef, useCallback } from "react"
+import { Header } from "@/components/waldpilz/header"
+import { UploadArea } from "@/components/waldpilz/upload-area"
+import { AnalysisPanel } from "@/components/waldpilz/analysis-panel"
+import { LogPanel } from "@/components/waldpilz/log-panel"
+import { HistorySection } from "@/components/waldpilz/history-section"
+import backgroundWald from "@/components/wald_background.jpg"
+>>>>>>> 291ab8f30fa2e49948b9033c74a728571675fbb9
 
 export interface LogEntry {
   id: string

@@ -1,16 +1,24 @@
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Upload, Search, CheckCircle, Zap, GraduationCap } from "lucide-react"
-import backgroundWald from "@/components/background_wald.jpg"
+import backgroundWald from "@/components/wald_background.jpg"
 import waldpilzLogo from "@/components/WALDPILZ_Logo (1).png"
 import waldpilzLogoWhite from "@/components/WALDPILZ_Logo_weiß.png"
 
 export default function HomePage() {
   return (
     <div
-      className="min-h-screen bg-background text-foreground bg-cover bg-center bg-fixed"
+      className="min-h-screen bg-background text-foreground bg-cover bg-center bg-fixed relative"
       style={{ backgroundImage: `url(${backgroundWald})` }}
     >
+      {/* Grünliches transparentes Overlay für bessere Lesbarkeit */}
+      <div 
+        className="absolute inset-0 pointer-events-none" 
+        style={{
+          background: "radial-gradient(ellipse 800px 100% at center, rgba(0, 0, 0, 0.35), transparent)"
+        }}
+      />
+      <div className="relative z-10">
       {/* Header */}
       <header className="border-b-4 border-border bg-card">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -31,7 +39,7 @@ export default function HomePage() {
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-4xl text-center">
           <div className="opacity-0">Startseite</div>
-          <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tighter text-balance">
+          <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tighter text-balance text-white">
             Spezialisierte <span className="text-yellow-300">KI-Erkennung</span>
           </h1>
           
@@ -56,7 +64,7 @@ export default function HomePage() {
       </section>
 
       {/* Projekt Einführung */}
-      <section className="py-16 px-4 bg-secondary/30 border-y-4 border-border">
+      <section className="py-16 px-4">
         <div className="container mx-auto max-w-4xl">
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div className="size-20 shrink-0 rounded-2xl bg-primary flex items-center justify-center">
@@ -109,14 +117,14 @@ export default function HomePage() {
       </section>
 
       {/* Projekt Informationen*/}
-      <section className="py-16 px-4 bg-card border-t-4 border-border">
+      <section className="py-16 px-4 bg-black/50 border-t-2 border-b-2 border-white/20">
         <div className="container mx-auto max-w-3xl text-center">
-          <h2 className="text-3xl font-bold mb-8">Projekt Waldpilz</h2>
-          <div className="prose prose-lg mx-auto text-muted-foreground space-y-6">
+          <h2 className="text-3xl font-bold mb-8 text-yellow-300">Projekt Waldpilz</h2>
+          <div className="prose prose-lg mx-auto text-gray-200 space-y-6">
             <p>
               Waldpilz.eu widmet sich der digitalen Erfassung und dem Schutz unserer heimischen Pilzflora. Dieses studentische Modul nutzt die Kernidee von Waldpilz.eu – <strong>Wissen durch Technologie</strong> – und wendet sie gezielt auf die Erkennung einer einzelnen, markanten Art an.
             </p>
-            <div className="bg-destructive/10 border-l-4 border-destructive p-4 text-sm text-destructive font-medium text-left italic">
+            <div className="bg-destructive/20 border-l-4 border-destructive p-4 text-sm text-gray-200 font-medium text-left italic">
               Wichtiger Hinweis: Dieses Tool dient Demonstrationszwecken im Rahmen eines Hochschulprojekts. Eine KI kann keine mykologische Begutachtung ersetzen. Pilze zu Heil- oder Speisezwecken müssen immer von Experten freigegeben werden.
             </div>
           </div>
@@ -152,6 +160,7 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+      </div>
     </div>
   )
 }

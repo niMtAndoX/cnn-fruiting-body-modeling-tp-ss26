@@ -41,8 +41,14 @@ class Settings(BaseSettings):
 
 	# Liste erlaubter Frontend-Origins für CORS
 	cors_allow_origins: Annotated[list[str], NoDecode] = [
-		"http://localhost:3000",
-		"http://127.0.0.1:3000",
+		"http://localhost:5173",
+		"http://127.0.0.1:5173",
+		"http://localhost:5173/",
+		"http://127.0.0.1:5173/",
+		"http://localhost:5173/*",
+		"http://127.0.0.1:5173/*",
+		"http://localhost:5173/prediction",
+		"http://127.0.0.1:5173/prediction",
 	]
 
 	# Maximale Upload-Größe in Megabyte

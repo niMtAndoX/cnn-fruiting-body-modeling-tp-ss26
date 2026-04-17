@@ -4,6 +4,8 @@ import { Home, Activity } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import waldpilzLogo from "../WALDPILZ_Logo (1).png"
 
+import { getHealthResponseString } from "@/features/health/api/health"
+
 export function Header() {
   const navigate = useNavigate()
 
@@ -30,7 +32,9 @@ export function Header() {
 
         {/* Health Check button */}
         <button
-          onClick={() => alert("Health Check erfolgreich!")}
+          onClick={() => getHealthResponseString().then((status) => {
+            alert(status);
+          })}
           className="p-2 text-foreground hover:text-foreground/70 transition-colors"
           aria-label="Health Check"
         >
