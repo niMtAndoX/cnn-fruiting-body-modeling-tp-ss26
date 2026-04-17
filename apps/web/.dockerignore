@@ -1,0 +1,16 @@
+.DS_Store
+.env
+.env.local
+.env.*.local
+.git
+.gitignore
+.next
+coverage
+dist
+node_modules
+npm-debug.log*
+pnpm-debug.log*
+test-output.txt
+test-results.txt
+test-run.txt
+vitest.config.*

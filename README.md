@@ -5,28 +5,25 @@
 Dieses Projekt stellt ein trainiertes Bilderkennungsmodell für Pilz- bzw.
 Fruchtkörperwachstum auf Resthölzern über eine HTTP-API bereit.
 
-Die erste Release-Version ist bewusst API-first aufgebaut:
+Die aktuelle Release-Version umfasst Backend und Frontend gemeinsam:
 
-- die aktuelle Browser-Oberfläche ist FastAPI `/docs`
-- das Backend kapselt HTTP, Validierung und Fehlerbehandlung
+- das Frontend unter `apps/web/` stellt die Browser-Oberfläche bereit
+- das Backend unter `apps/api/` kapselt HTTP, Validierung und Fehlerbehandlung
 - die Modellinferenz wird serverseitig über Darknet ausgeführt
-
-`apps/web/` bleibt vorerst ein Scaffold für eine spätere Iteration und ist nicht
-Teil des ersten Releases.
+- beide Dienste können gemeinsam per Docker und `make` bereitgestellt werden
 
 ---
 
 ## Architektur
 
-Die Architektur trennt klar zwischen API, Fachlogik und technischer
+Die Architektur trennt klar zwischen Frontend, API, Fachlogik und technischer
 Modellintegration.
 
 ```mermaid
 flowchart LR
-    U[Benutzer im Browser] --> W[FastAPI Docs UI]
-    W -->|POST /predict| A[FastAPI API]
-    W -->|GET /health| A
-
+    U[Benutzer im Browser] --> W[React Frontend]
+    W -->|GET /, /prediction| N[Nginx Webserver]
+    N -->|/api/v1/*| A[FastAPI API]
     A --> V[Validierung]
     V --> S[Prediction Service]
     S --> D[Darknet Adapter]
@@ -34,7 +31,8 @@ flowchart LR
     M --> D
     D --> P[Output Parser]
     P --> A
-    A --> R[JSON Response]
+    A --> N
+    N --> U
 ```
 
 Die API stellt aktuell zwei Hauptendpunkte bereit:
@@ -59,10 +57,10 @@ forest-fungi-platform/
 ```
 
 - `apps/api/` enthält das FastAPI-Backend
-- `apps/web/` ist ein Frontend-Scaffold für eine spätere Iteration
+- `apps/web/` enthält das React-Frontend
 - `docs/` enthält zusätzliche Projekt- und Release-Dokumentation
 - `models/` dokumentiert die benötigten Modellartefakte
-- `ops/` ist für spätere Betriebs- und Deployment-Hilfen reserviert
+- `ops/` enthält Betriebs- und Deployment-Dateien wie Docker Compose
 - `scripts/` enthält projektweite Hilfsskripte wie die Inferenz-Ausführung
 
 ---
@@ -71,6 +69,9 @@ forest-fungi-platform/
 
 Für lokale Backend-Einrichtung, API-Verwendung, Konfiguration und Tests:
 - siehe [`apps/api/README.md`](apps/api/README.md)
+
+Für Frontend-Entwicklung und Frontend-Build:
+- siehe [`apps/web/README.md`](apps/web/README.md)
 
 Für Release- und Deployment-Abläufe:
 - siehe [`docs/release-guide.md`](docs/release-guide.md)
@@ -149,16 +150,27 @@ code --install-extension EditorConfig.EditorConfig
 
 ---
 
-## Aktueller Release-Umfang
+## Gemeinsames Deployment
 
-Der aktuelle Release ist als nutzbare API mit dokumentierter Browser-Oberfläche
-über `/docs` gedacht.
+Die gesamte Anwendung kann aus dem Repository-Root über die `Makefile` deployt werden:
 
-Im Fokus stehen:
+```bash
+make deploy
+```
 
-- ein FastAPI-Backend als stabiler API-Wrapper
-- eine gekapselte Darknet-Integration für die Inferenz
-- reproduzierbare lokale und containerisierte Ausführung
+Danach ist die Anwendung standardmäßig unter `http://localhost:8080` erreichbar.
+
+Wichtige Befehle:
+
+- `make deploy` – baut und startet Frontend und Backend gemeinsam
+- `make ps` – zeigt den Status der Container
+- `make logs` – zeigt die Container-Logs
+- `make health` – prüft den Health-Endpunkt über das Frontend-Gateway
+- `make down` – stoppt den Stack
+- `make clean` – stoppt den Stack und entfernt zugehörige Volumes
+
+Das Frontend spricht im Deployment über denselben Origin mit `/api/v1`, und der
+Frontend-Nginx leitet diese Requests intern an das Backend weiter.
 
 ---
 
@@ -170,5 +182,6 @@ Fruchtkörperwachstum auf Resthölzern über eine dokumentierte HTTP-API nutzbar
 Die weiterführenden Details sind bewusst aufgeteilt:
 
 - [`apps/api/README.md`](apps/api/README.md) für Backend-Entwicklung und API-Nutzung
+- [`apps/web/README.md`](apps/web/README.md) für Frontend-Entwicklung und Frontend-Build
 - [`docs/release-guide.md`](docs/release-guide.md) für Release und Deployment
 - [`models/README.md`](models/README.md) für Modellartefakte

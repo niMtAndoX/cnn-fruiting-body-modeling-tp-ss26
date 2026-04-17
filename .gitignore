@@ -37,6 +37,7 @@ dist/
 # OS files
 .DS_Store
 Thumbs.db
+.vercel/
 
 # Grosse lokale Modellartefakte und Testbilder
 models/darknet/
@@ -70,3 +71,5 @@ apps/web/npm-debug.log*
 apps/web/yarn-debug.log*
 apps/web/yarn-error.log*
 apps/web/pnpm-debug.log*
+
+node_modules

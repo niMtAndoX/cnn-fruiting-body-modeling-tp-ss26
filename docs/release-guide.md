@@ -1,9 +1,13 @@
 # Deployment and Release Guide
 
-This guide focuses on release preparation and deployment only.
+This guide focuses on release preparation and deployment of the complete
+application.
 
 For local backend setup, API usage, configuration, and tests, see
 [`apps/api/README.md`](../apps/api/README.md).
+
+For frontend setup, local development, and frontend build, see
+[`apps/web/README.md`](../apps/web/README.md).
 
 For required model files and their placement, see
 [`models/README.md`](../models/README.md).
@@ -14,6 +18,7 @@ Before building or running a release candidate:
 
 - ensure the required model files are present under `models/darknet/`
 - ensure the backend setup from [`apps/api/README.md`](../apps/api/README.md) is complete
+- ensure the frontend setup from [`apps/web/README.md`](../apps/web/README.md) is complete
 - ensure local validation can run successfully
 
 ## Release validation
@@ -25,35 +30,62 @@ Run the backend checks from `apps/api/`:
 .venv/bin/pytest
 ```
 
+Run the frontend checks from `apps/web/`:
+
+```bash
+pnpm lint
+pnpm exec tsc --noEmit
+pnpm test
+pnpm build
+```
+
 Then validate the release candidate manually:
 
-- open `http://127.0.0.1:8000/docs`
+- open `http://127.0.0.1:8080`
+- open `http://127.0.0.1:8080/docs`
 - call `GET /api/v1/health`
 - upload a sample image to `POST /api/v1/predict`
 
 ## Docker release flow
 
-Build the image from the repository root:
+The recommended release path for the full application is the shared Docker
+deployment via `make` from the repository root:
 
 ```bash
-docker build -f apps/api/Dockerfile -t waldpilz-api .
+make deploy
 ```
 
-Start the container:
+This starts frontend and backend together. The application is then available at:
+
+- `http://127.0.0.1:8080`
+- `http://127.0.0.1:8080/api/v1/health`
+- `http://127.0.0.1:8080/docs`
+
+Useful commands:
 
 ```bash
-docker run --rm -p 8000:8000 waldpilz-api
+make ps
+make logs
+make health
+make down
 ```
 
-The image already contains default runtime values from the Dockerfile.
-If you need environment-specific overrides, pass them explicitly with
-`docker run -e KEY=value ...`.
+The deployment uses:
+
+- a backend container built from `apps/api/Dockerfile`
+- a frontend container built from `apps/web/Dockerfile`
+- Docker Compose under `ops/docker/docker-compose.yaml`
+- a root `Makefile` as the main operator entrypoint
+- same-origin API routing via the frontend Nginx proxy
 
 ## Release checklist
 
 - required model files are present
 - backend validation passes with Ruff and pytest
-- `/docs` loads successfully
-- `GET /api/v1/health` returns `{"status":"ok"}`
+- frontend validation passes with lint, TypeScript, tests and build
+- `make deploy` starts the stack successfully
+- `http://127.0.0.1:8080` loads successfully
+- `http://127.0.0.1:8080/docs` loads successfully
+- `GET /api/v1/health` returns `{"status":"ok"}` through the deployed frontend gateway
 - `POST /api/v1/predict` works with a real test image
-- the Docker image builds successfully if Docker delivery is part of the release
+- frontend and backend communicate successfully inside Docker
