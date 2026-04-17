@@ -15,7 +15,7 @@ export default function HomePage() {
       <div 
         className="absolute inset-0 pointer-events-none" 
         style={{
-          background: "radial-gradient(ellipse 800px 100% at center, rgba(100,150,100,0.35), transparent)"
+          background: "radial-gradient(ellipse 800px 100% at center, rgba(0, 0, 0, 0.35), transparent)"
         }}
       />
       <div className="relative z-10">
@@ -117,14 +117,14 @@ export default function HomePage() {
       </section>
 
       {/* Projekt Informationen*/}
-      <section className="py-16 px-4 bg-card border-t-4 border-border">
+      <section className="py-16 px-4 bg-black/50 border-t-2 border-b-2 border-white/20">
         <div className="container mx-auto max-w-3xl text-center">
-          <h2 className="text-3xl font-bold mb-8">Projekt Waldpilz</h2>
-          <div className="prose prose-lg mx-auto text-muted-foreground space-y-6">
+          <h2 className="text-3xl font-bold mb-8 text-yellow-300">Projekt Waldpilz</h2>
+          <div className="prose prose-lg mx-auto text-gray-200 space-y-6">
             <p>
               Waldpilz.eu widmet sich der digitalen Erfassung und dem Schutz unserer heimischen Pilzflora. Dieses studentische Modul nutzt die Kernidee von Waldpilz.eu – <strong>Wissen durch Technologie</strong> – und wendet sie gezielt auf die Erkennung einer einzelnen, markanten Art an.
             </p>
-            <div className="bg-destructive/10 border-l-4 border-destructive p-4 text-sm text-destructive font-medium text-left italic">
+            <div className="bg-destructive/20 border-l-4 border-destructive p-4 text-sm text-gray-200 font-medium text-left italic">
               Wichtiger Hinweis: Dieses Tool dient Demonstrationszwecken im Rahmen eines Hochschulprojekts. Eine KI kann keine mykologische Begutachtung ersetzen. Pilze zu Heil- oder Speisezwecken müssen immer von Experten freigegeben werden.
             </div>
           </div>

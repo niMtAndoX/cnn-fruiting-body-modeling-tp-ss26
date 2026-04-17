@@ -12,11 +12,11 @@ interface LogPanelProps {
 function LogIcon({ type }: { type: LogEntry["icon"] }) {
   switch (type) {
     case "camera":
-      return <Camera className="size-4 flex-shrink-0" />
+      return <Camera className="size-4 flex-shrink-0 text-yellow-300" />
     case "search":
-      return <Search className="size-4 flex-shrink-0" />
+      return <Search className="size-4 flex-shrink-0 text-yellow-300" />
     case "check":
-      return <Check className="size-4 flex-shrink-0" />
+      return <Check className="size-4 flex-shrink-0 text-yellow-300" />
     default:
       return null
   }
@@ -24,12 +24,12 @@ function LogIcon({ type }: { type: LogEntry["icon"] }) {
 
 export function LogPanel({ logs, isAnalyzing }: LogPanelProps) {
   return (
-    <div className="aspect-square md:aspect-auto md:min-h-[300px] bg-log-bg rounded-lg p-4 overflow-hidden flex flex-col">
-      <h3 className="text-log-text font-semibold mb-3 text-sm">Analyse-Log</h3>
+    <div className="aspect-square md:aspect-auto md:min-h-[300px] bg-[#594134] rounded-lg p-4 overflow-hidden flex flex-col">
+      <h3 className="text-yellow-300 font-semibold mb-3 text-sm">Analyse-Log</h3>
       
       <div className="flex-1 overflow-y-auto space-y-2">
         {logs.length === 0 && !isAnalyzing ? (
-          <p className="text-log-text/70 text-sm italic">
+          <p className="text-yellow-300/70 text-sm italic">
             Warte auf Analyse...
           </p>
         ) : (
@@ -40,14 +40,14 @@ export function LogPanel({ logs, isAnalyzing }: LogPanelProps) {
                 className="flex items-start gap-2 text-log-text text-sm animate-in fade-in slide-in-from-bottom-2 duration-300"
               >
                 <LogIcon type={log.icon} />
-                <span className="text-log-text/70 font-mono text-xs">
+                <span className="text-yellow-300/70 font-mono text-xs">
                   [{log.timestamp}]
                 </span>
-                <span className="flex-1">{log.message}</span>
+                <span className="flex-1 text-yellow-300">{log.message}</span>
               </div>
             ))}
             {isAnalyzing && (
-              <div className="flex items-center gap-2 text-log-text text-sm">
+              <div className="flex items-center gap-2 text-yellow-300 text-sm ">
                 <Spinner className="size-4" />
                 <span>Verarbeitung...</span>
               </div>
