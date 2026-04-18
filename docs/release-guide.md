@@ -41,13 +41,6 @@ This performs the following checks locally before a release:
 - frontend lint with ESLint
 - frontend tests with Vitest
 
-Then validate the release candidate manually after deployment:
-
-- open `http://127.0.0.1:8080`
-- open `http://127.0.0.1:8080/docs`
-- call `GET /api/v1/health`
-- upload a sample image to `POST /api/v1/predict`
-
 ## Docker release flow
 
 The recommended release path for the full application is the shared Docker

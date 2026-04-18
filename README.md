@@ -152,7 +152,11 @@ code --install-extension EditorConfig.EditorConfig
 
 ## Gemeinsames Deployment
 
-Die gesamte Anwendung kann aus dem Repository-Root über die `Makefile` deployt werden:
+Die gesamte Anwendung kann aus dem Repository-Root über die `Makefile` gesteuert werden.
+Vor jedem Deployment muessen die Schritte aus [`models/README.md`](models/README.md)
+vollstaendig beachtet werden.
+
+Fuer das gemeinsame Docker-Deployment:
 
 ```bash
 make deploy
@@ -162,11 +166,15 @@ Danach ist die Anwendung standardmäßig unter `http://localhost:8080` erreichba
 
 Wichtige Befehle:
 
-- `make deploy` – baut und startet Frontend und Backend gemeinsam
+- `make test` – fuehrt lokal alle Backend- und Frontend-Tests sowie Linter aus
+- `make backend` – installiert das Backend lokal und startet den lokalen Backend-Server
+- `make frontend` – installiert und baut das Frontend lokal und startet den lokalen Preview-Server
+- `make dev` – installiert lokal alle Dependencies, baut Frontend und Backend und startet beide lokal
+- `make deploy` – baut Backend und Frontend lokal, prueft beide per Healthcheck und deployed sie danach gemeinsam per Docker
 - `make ps` – zeigt den Status der Container
 - `make logs` – zeigt die Container-Logs
 - `make health` – prüft den Health-Endpunkt über das Frontend-Gateway
-- `make down` – stoppt den Stack
+- `make down` – stoppt den Docker-Stack und entfernt verwaiste Container
 - `make clean` – stoppt den Stack und entfernt zugehörige Volumes
 
 Das Frontend spricht im Deployment über denselben Origin mit `/api/v1`, und der
