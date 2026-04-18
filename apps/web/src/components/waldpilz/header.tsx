@@ -4,6 +4,9 @@ import { Home, Activity } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import waldpilzLogo from "../WALDPILZ_Logo (1).png"
 
+import { getHealthResponseString } from "@/features/health/api/health"
+import { getAssetSrc } from "@/lib/asset-src"
+
 export function Header() {
   const navigate = useNavigate()
 
@@ -22,7 +25,7 @@ export function Header() {
         {/* Logo */}
         <div className="flex flex-col items-center">
           <img
-            src={waldpilzLogo}
+            src={getAssetSrc(waldpilzLogo)}
             alt="Waldpilz Logo"
             className="h-16 w-auto"
           />
@@ -30,7 +33,9 @@ export function Header() {
 
         {/* Health Check button */}
         <button
-          onClick={() => alert("Health Check erfolgreich!")}
+          onClick={() => getHealthResponseString().then((status) => {
+            alert(status);
+          })}
           className="p-2 text-foreground hover:text-foreground/70 transition-colors"
           aria-label="Health Check"
         >

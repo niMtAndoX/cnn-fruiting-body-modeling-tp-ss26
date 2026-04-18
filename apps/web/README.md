@@ -1,238 +1,202 @@
 # Waldpilz Web
 
-Das React-Frontend für die Waldpilz-Erkennung auf Resthölzern. Eine moderne, auf Vite aufgebaute Single-Page-Application mit TypeScript und komponenten-basierter Architektur.
+Das React-Frontend für die Waldpilz-Erkennung auf Resthölzern. Die Anwendung
+ist eine Vite-basierte Single-Page-Application mit TypeScript, React Router und
+einer feature-orientierten Struktur für Upload, Prediction-Flow und
+Ergebnisdarstellung.
 
-## Aktueller Stand
+## Überblick
 
-- React-App mit Vite als Build-Tool
-- TypeScript für Typsicherheit
-- Zentralisiertes Routing mit definierten Seiten
-- Wiederverwendbare UI-Komponenten-Bibliothek (Shadcn)
-- Drei Hauptrouten: Startseite, Prognose-Seite und 404-Fallback
-- Umgebungsunabhängige API-Integration
-
----
+- React 19 mit Vite 8
+- TypeScript für die UI- und API-Typisierung
+- React Router für die Seitenstruktur
+- Feature-Modul für Prediction mit API, Hook, Model und Komponenten
+- Gemeinsame Docker-Bereitstellung mit dem Backend über das Root-`Makefile`
 
 ## Voraussetzungen
 
-- **Node.js 22** – Die Web-App ist für Node.js 22 entwickelt
-- **pnpm** – Moderner Paketmanager für Node.js
+- Node.js 22
+- `pnpm`
+- optional Docker für Container-Build und Deployment
 
 Optional für Entwicklung:
 
-- **VS Code** mit den Extensions `vue.volar` und `esbenp.prettier-vscode`
-
----
+- VS Code mit `dbaeumer.vscode-eslint`
+- VS Code mit `esbenp.prettier-vscode`
+- VS Code mit `ms-azuretools.vscode-containers`
 
 ## Installation
 
-Im Verzeichnis `apps/web/` ausführen:
+Im Verzeichnis `apps/web/`:
 
 ```bash
 pnpm install
 ```
 
----
+## Konfiguration
 
-## Lokale Entwicklung
+Die API-Basis-URL wird über `VITE_API_BASE_URL` gesetzt.
 
-Dev-Server mit Vite starten:
+```bash
+cp .env.example .env
+```
+
+Standardwert:
+
+```env
+VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1
+```
+
+Hinweis:
+
+- `VITE_*`-Variablen werden beim Build in das Frontend eingebettet
+- bei Änderungen an `VITE_API_BASE_URL` muss das Frontend neu gebaut werden
+- im gemeinsamen Docker-Deployment wird stattdessen `/api/v1` verwendet
+
+## Lokal entwickeln
+
+Dev-Server starten:
 
 ```bash
 pnpm dev
 ```
 
-Die App ist anschließend in der Regel erreichbar unter:
+Die App läuft danach unter:
 
 ```text
 http://localhost:5173
 ```
 
-Danach öffnet sich die Startseite. Die App wird beim Bearbeiten von Dateien automatisch neu geladen (Hot Module Reload).
-
----
+Wenn das Backend lokal separat läuft, sollte dort CORS für
+`http://localhost:5173` und `http://127.0.0.1:5173` erlaubt sein.
 
 ## Qualitätssicherung
 
-Linting ausführen (ESLint):
+Linting:
 
 ```bash
 pnpm lint
 ```
 
-Tests ausführen (Vitest):
+Tests:
 
 ```bash
 pnpm test
 ```
 
-Linting und Tests zusammen ausführen:
+TypeScript-Prüfung:
 
 ```bash
-pnpm check
+pnpm exec tsc --noEmit
 ```
 
-Dev-Server nur nach erfolgreichem Check starten:
+Produktions-Build:
 
 ```bash
-pnpm dev:checked
+pnpm build
 ```
 
----
+Gebauten Stand lokal prüfen:
 
-## Verfügbare Routen
-
-- `/` – **Startseite** (HomePage) – Übersicht und Willkommensscreen
-- `/prediction` – **Prognose-Seite** (PredictionPage) – Schnittstelle für Bilderkennung
-- `*` – **Not-Found-Seite** (NotFoundPage) – Fallback für unbekannte Routen
-
----
-
-## Projektstruktur
-
-```text
-src/
-├─ main.tsx                    # Einstiegspunkt: React-App mounted hier ins DOM
-├─ app/
-│  ├─ index.tsx               # App-Komponente: Root-Layout und Provider
-│  ├─ layout.tsx              # Globales Layout-Wrapper
-│  ├─ globals.css             # Globale CSS-Stile
-│  └─ router/
-│     └─ index.tsx            # Zentrale Routing-Defintion (React Router)
-├─ pages/
-│  ├─ HomePage.tsx            # Startseite-Komponente
-│  ├─ PredictionPage.tsx      # Prognose-Seite-Komponente
-│  └─ NotFoundPage.tsx        # 404-Fallback-Komponente
-├─ components/
-│  ├─ theme-provider.tsx      # Theme/Dark-Mode-Provider
-│  ├─ ui/                     # Wiederverwendbare UI-Komponenten (Shadcn-Library)
-│  │  ├─ button.tsx
-│  │  ├─ card.tsx
-│  │  ├─ input.tsx
-│  │  ├─ form.tsx
-│  │  ├─ dialog.tsx
-│  │  └─ ... (weitere komponenten)
-│  └─ waldpilz/               # Domain-spezifische Komponenten
-│     └─ ... (Waldpilz-Features)
-├─ features/
-│  └─ prediction/             # Zusammenhängende Prediction-Logik
-│     └─ ... (Feature-Komponenten)
-├─ hooks/
-│  ├─ use-mobile.ts           # Hook: Mobilitätserkennung
-│  └─ use-toast.ts            # Hook: Toast-Benachrichtigungen
-├─ lib/
-│  └─ utils.ts                # Utility-Funktionen (z. B. classname-Helfer)
-├─ shared/
-│  └─ api/                    # API-Client und Kommunikation mit Backend
-├─ styles/
-│  └─ globals.css             # Zusätzliche globale Stile
-└─ test/
-   ├─ app.test.tsx            # Integrationstests für App-Komponente
-   └─ setup.ts                # Vitest-Konfiguration und Setup
+```bash
+pnpm start
 ```
 
----
+Die Preview läuft dann unter `http://localhost:4173`.
 
-## Ordnerstruktur im Detail
+## Routen
 
-### `src/app/`
-Enthält die Anwendungs-Root-Komponente und globale Einstellungen:
-- **index.tsx** – App-Komponente, lädt Provider (Theme, Router, etc.)
-- **layout.tsx** – Globales Layout-Wrapper für alle Seiten
-- **router/index.tsx** – Zentrale Routing-Definition mit allen verfügbaren Routen
-- **globals.css** – Globale CSS-Stile (Fonts, Basis-Resets, etc.)
+- `/` – Startseite
+- `/prediction` – Bilderkennung mit Upload, Analyse und Ergebnisdarstellung
+- `*` – 404-Fallback
 
-### `src/pages/`
-Seiten-Komponenten, jede repräsentiert eine Route:
-- **HomePage.tsx** – Startseite unter `/`
-- **PredictionPage.tsx** – Prognose-Seite unter `/prediction`
-- **NotFoundPage.tsx** – 404-Seite für unbekannte Routen
+## Architektur
 
-### `src/components/`
-Wiederverwendbare Komponenten:
-- **ui/** – Shadcn UI Komponenten (Button, Card, Input, Form, Dialog, etc.)
-- **waldpilz/** – Domain-spezifische Komponenten für Waldpilz-Features
-- **theme-provider.tsx** – Provider für Theme/Dark-Mode-Unterstützung
-
-### `src/features/`
-Feature-basierte Organizierung zusammenhängender Logik:
-- **prediction/** – Alle Komponenten, Hooks und Logik bezüglich Bilderkennung
-
-### `src/hooks/`
-Wiederverwendbare React Custom Hooks:
-- **use-mobile.ts** – Erkennung, ob App auf mobiler Geräte läuft
-- **use-toast.ts** – Toast-Benachrichtigungen anzeigen
-
-### `src/lib/`
-Utility-Funktionen und Helfer:
-- **utils.ts** – Klassennamen-Merger (cn), String-Manipulatoren, etc.
-
-### `src/shared/`
-Geteilter Code, der app-übergreifend verwendet wird:
-- **api/** – API-Client für Kommunikation mit dem Backend (z. B. `/api/v1/predict`)
-
-### `src/styles/`
-Zusätzliche Stylesheets:
-- **globals.css** – Ergänzende globale Stile
-
-### `src/test/`
-Test-Dateien:
-- **app.test.tsx** – Integrationstests für die App-Komponente
-- **setup.ts** – Vitest-Setup und Test-Utilities
-
----
-
-## Architektur-Ansatz
-
-Die Web-App folgt folgendem Ansatz:
+Die Web-App trennt Seitenkomposition, Feature-Logik und gemeinsame
+Infrastruktur:
 
 ```mermaid
 flowchart TD
-    U[Browser] -->|HTTP| UI["UI-Layer<br/>(React Pages & Components)"]
-    UI -->|Props & Hooks| F["Feature Layer<br/>(Prediction Logic)"]
-    F -->|API Calls| A["API Client<br/>(shared/api/)"]
-    A -->|HTTP POST/GET| B["Backend API<br/>(apps/api)"]
-    B -->|JSON| A
-    A -->|Data| F
-    F -->|Callbacks| UI
-    UI -->|DOM| U
+    U[Browser] --> UI[Pages und UI-Komponenten]
+    UI --> F[Feature Prediction]
+    F --> H[Hooks]
+    F --> A[Feature API]
+    A --> S[shared/api/httpClient]
+    S --> B[Backend API]
+    B --> S
+    S --> F
+    F --> UI
 ```
 
----
+Wichtige Bereiche:
 
-## Entwicklungs-Workflow
+- `src/pages/` für Seiten wie `HomePage` und `PredictionPage`
+- `src/components/waldpilz/` für domänenspezifische UI-Bausteine
+- `src/features/prediction/` für Prediction-spezifische API-, Hook-, Modell- und UI-Logik
+- `src/features/health/` für den Health-Check-Flow
+- `src/shared/api/` und `src/shared/config/` für geteilte Infrastruktur wie HTTP-Client und Env-Zugriff
+- `src/test/` für Routing-, Seiten-, Feature- und UI-Tests
 
-### 1. Neue Seite hinzufügen
+## Docker für das Frontend allein
 
-1. Komponente unter `src/pages/NewPage.tsx` erstellen
-2. Route in `src/app/router/index.tsx` definieren
-3. Falls Komponenten geteilt werden → unter `src/components/` ablegen
+Image bauen:
 
-### 2. Neue Komponente hinzufügen
+```bash
+pnpm docker:build
+```
 
-- **UI-Komponente** → `src/components/ui/ComponentName.tsx`
-- **Domain-Komponente** → `src/components/waldpilz/ComponentName.tsx`
-- **Feature-Logik** → `src/features/featureName/ComponentName.tsx`
+Container starten:
 
-### 3. Mit dem Backend kommunizieren
+```bash
+pnpm docker:run
+```
 
-- API-Calls über `src/shared/api/` durchführen
-- Backend unter `http://localhost:5173` erwartet (konfigurierbar via `.env`)
-- Beispiel: `POST /api/v1/predict` für Bilderkennung
+Container stoppen:
 
-### 4. Styles anpassen
+```bash
+pnpm docker:stop
+```
 
-- Shadcn-Komponenten: `src/components/ui/...`
-- Global Styles: `src/styles/globals.css`
-- TypeScript unterstützt Tailwind CSS Klassen via `cn()` Utility
+Standardwerte:
 
----
+- Image: `waldpilz-web`
+- Container: `waldpilz-web`
+- Host-Port: `8080`
+- Container-Port: `80`
 
-## Nächste Schritte
+Wenn das Frontend allein gebaut wird, kann die API-Basis-URL beim Build
+überschrieben werden:
 
-Die Prediction-Seite wird fachlich erweitert um:
-- **Bild-Upload** – Datei-Input mit Validierung
-- **Backend-Integration** – Bilder an `/api/v1/predict` senden
-- **Ergebnisanzeige** – Erkannte Pilzarten und Vertrauenswerte anzeigen
-- **Error-Handling** – Nutzer-freundliche Fehlermeldungen bei API-Fehlern
-- **Loading-States** – Visuelles Feedback während der Verarbeitung
+```bash
+docker build \
+  --build-arg VITE_API_BASE_URL=http://127.0.0.1:8000/api/v1 \
+  -t waldpilz-web .
+```
+
+## Gemeinsames Deployment mit Backend
+
+Für den normalen Betrieb sollte die Anwendung aus dem Repository-Root gemeinsam
+gestartet werden:
+
+```bash
+make deploy
+```
+
+Danach ist die Anwendung standardmäßig unter `http://localhost:8080`
+erreichbar.
+
+Wichtige Befehle:
+
+- `make deploy` – baut und startet Frontend und Backend gemeinsam
+- `make ps` – zeigt Container-Status und Healthchecks
+- `make logs` – zeigt Logs beider Dienste
+- `make health` – prüft `GET /api/v1/health`
+- `make down` – stoppt den Stack
+- `make clean` – stoppt den Stack und entfernt Volumes
+
+Im gemeinsamen Deployment gilt:
+
+- das Frontend wird per Nginx ausgeliefert
+- Nginx proxyt `/api/v1`, `/docs`, `/redoc` und `/openapi.json` an das Backend
+- die Kommunikation zwischen Frontend und Backend läuft intern über Docker
+- das Frontend nutzt dafür dieselbe Origin mit der Basis-URL `/api/v1`

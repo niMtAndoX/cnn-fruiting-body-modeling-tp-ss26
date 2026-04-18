@@ -2,8 +2,8 @@
 
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
-import { AnalysisResult } from "@/pages/PredictionPage"
 import { cn } from "@/lib/utils"
+import type { AnalysisResult } from "@/features/prediction/model/prediction"
 
 interface HistorySectionProps {
   history: AnalysisResult[]
