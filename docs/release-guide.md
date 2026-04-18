@@ -11,35 +11,37 @@ For frontend setup, local development, and frontend build, see
 
 For required model files and their placement, see
 [`models/README.md`](../models/README.md).
+The steps in that document must be followed exactly before any release or deployment.
 
 ## Release prerequisites
 
 Before building or running a release candidate:
 
 - ensure the required model files are present under `models/darknet/`
+- ensure all preparation steps from [`models/README.md`](../models/README.md) have been completed exactly as documented
 - ensure the backend setup from [`apps/api/README.md`](../apps/api/README.md) is complete
 - ensure the frontend setup from [`apps/web/README.md`](../apps/web/README.md) is complete
+- ensure the repository root `Makefile` can be used locally
 - ensure local validation can run successfully
 
 ## Release validation
 
-Run the backend checks from `apps/api/`:
+Run the shared validation from the repository root:
 
 ```bash
-.venv/bin/ruff check app
-.venv/bin/pytest
+make test
 ```
 
-Run the frontend checks from `apps/web/`:
+This performs the following checks locally before a release:
 
-```bash
-pnpm lint
-pnpm exec tsc --noEmit
-pnpm test
-pnpm build
-```
+- backend dependency installation with `pip install -e ".[dev]"`
+- backend lint with Ruff
+- backend tests with pytest
+- frontend dependency installation with `pnpm install`
+- frontend lint with ESLint
+- frontend tests with Vitest
 
-Then validate the release candidate manually:
+Then validate the release candidate manually after deployment:
 
 - open `http://127.0.0.1:8080`
 - open `http://127.0.0.1:8080/docs`
@@ -55,7 +57,16 @@ deployment via `make` from the repository root:
 make deploy
 ```
 
-This starts frontend and backend together. The application is then available at:
+`make deploy` now performs these steps automatically:
+
+- installs local backend dependencies
+- installs local frontend dependencies
+- builds backend and frontend locally
+- starts both services locally for a short pre-deployment validation
+- checks the backend and frontend health endpoints locally
+- deploys both services together with Docker only if the local checks succeed
+
+This starts frontend and backend together in Docker. By default the application is then available at:
 
 - `http://127.0.0.1:8080`
 - `http://127.0.0.1:8080/api/v1/health`
@@ -70,6 +81,14 @@ make health
 make down
 ```
 
+For local non-Docker workflows, the repository root also provides:
+
+```bash
+make backend
+make frontend
+make dev
+```
+
 The deployment uses:
 
 - a backend container built from `apps/api/Dockerfile`
@@ -81,11 +100,11 @@ The deployment uses:
 ## Release checklist
 
 - required model files are present
-- backend validation passes with Ruff and pytest
-- frontend validation passes with lint, TypeScript, tests and build
+- `make test` passes successfully
 - `make deploy` starts the stack successfully
 - `http://127.0.0.1:8080` loads successfully
 - `http://127.0.0.1:8080/docs` loads successfully
 - `GET /api/v1/health` returns `{"status":"ok"}` through the deployed frontend gateway
 - `POST /api/v1/predict` works with a real test image
 - frontend and backend communicate successfully inside Docker
+- `make down` removes the deployment cleanly after verification

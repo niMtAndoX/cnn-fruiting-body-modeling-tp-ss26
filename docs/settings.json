@@ -1,0 +1,9 @@
+{
+    "conventionalCommits.scopes": [
+        "api",
+        "model",
+        "web"
+    ],
+    "python.terminal.activateEnvironment": false
+}
+

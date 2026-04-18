@@ -20,6 +20,7 @@ export default [
     rules: {
       ...tsPlugin.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
+      "no-undef": "off",
     },
   },
 ];

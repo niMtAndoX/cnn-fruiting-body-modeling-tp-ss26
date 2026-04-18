@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
-import { Upload, Search, CheckCircle, Zap, GraduationCap } from "lucide-react"
+import { Upload, Search, CheckCircle, GraduationCap } from "lucide-react"
 import backgroundWald from "@/components/wald_background.jpg"
 import waldpilzLogo from "@/components/WALDPILZ_Logo (1).png"
 import waldpilzLogoWhite from "@/components/WALDPILZ_Logo_weiß.png"
