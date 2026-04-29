@@ -4,6 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from app.api.schemas.error import ErrorResponse
+from app.domain.benchmark.exceptions import BenchmarkBadRequestError
 from app.domain.prediction.exceptions import (
     PredictionBadRequestError,
     PredictionExecutionError,
@@ -17,6 +18,20 @@ def register_exception_handlers(app: FastAPI) -> None:
     async def handle_prediction_bad_request(
         request: Request,
         exc: PredictionBadRequestError,
+    ) -> JSONResponse:
+        error_response = ErrorResponse(
+            error="bad_request",
+            message=str(exc),
+        )
+        return JSONResponse(
+            status_code=400,
+            content=error_response.model_dump(),
+        )
+
+    @app.exception_handler(BenchmarkBadRequestError)
+    async def handle_benchmark_bad_request(
+        request: Request,
+        exc: BenchmarkBadRequestError,
     ) -> JSONResponse:
         error_response = ErrorResponse(
             error="bad_request",
