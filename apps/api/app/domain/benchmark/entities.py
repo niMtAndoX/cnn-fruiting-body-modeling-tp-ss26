@@ -1,7 +1,9 @@
 """Domain-Entities für Benchmark-Ergebnisse."""
 
 from dataclasses import dataclass, field
-from typing import Literal
+from typing import Literal, Any
+
+from pathlib import Path
 
 
 BenchmarkMatchStatus = Literal[
@@ -10,6 +12,15 @@ BenchmarkMatchStatus = Literal[
     "false_negative",
 ]
 
+@dataclass(slots=True)
+class ImageLabelData:
+    image: Path
+    image_data: dict[str, Any]
+
+@dataclass(slots=True)
+class BenchmarkImageContainer:
+    images: list[ImageLabelData]
+    total_images: int
 
 @dataclass(slots=True)
 class BenchmarkBoundingBox:
