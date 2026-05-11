@@ -1,0 +1,39 @@
+from dataclasses import dataclass, field
+
+
+@dataclass
+class BenchmarkInput:
+	"""Eingabedaten für einen Benchmark-Lauf."""
+
+	test_archive_bytes: bytes
+	test_archive_filename: str
+	label_archive_bytes: bytes
+	label_archive_filename: str
+
+
+@dataclass
+class ImageBenchmarkResult:
+	"""Ergebnis der Benchmark-Auswertung für ein einzelnes Bild."""
+
+	image_id: str
+	ground_truth_count: int
+	predicted_count: int
+	true_positives: int
+	false_positives: int
+	false_negatives: int
+	error: str | None = None
+
+
+@dataclass
+class BenchmarkResult:
+	"""Ergebnis eines Benchmark-Laufs."""
+
+	model_version: str
+	precision: float
+	recall: float
+	f1_score: float
+	map_score: float
+	total_images: int
+	failed_images: int
+	processing_time_ms: int
+	image_results: list[ImageBenchmarkResult] = field(default_factory=list)

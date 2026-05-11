@@ -42,6 +42,10 @@ Thumbs.db
 # Grosse lokale Modellartefakte und Testbilder
 models/darknet/
 
+# Temporäre API-Verzeichnisse (z.B. Upload-Temp-Ordner) und Trainingsdaten
+apps/api/tmpr_*/
+**/Trainingsdaten/
+
 # --- Frontend: apps/web ---
 
 # Dependencies
@@ -49,6 +53,7 @@ apps/web/node_modules/
 
 # Build output
 apps/web/dist/
+.claude/
 
 # Vite cache
 apps/web/.vite/

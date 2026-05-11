@@ -71,7 +71,16 @@ class Settings(BaseSettings):
 
 	# Optionales Verzeichnis für temporär abgelegte Bilddateien
 	inference_temp_dir: str | None = None
- 
+
+	# Pfad zum Darknet-Binary (überschreibt die Suche via DARKNET_DIR im Skript)
+	darknet_bin_path: str | None = None
+
+	# Pfad zur bash-Executable (nur Windows; Standard: Git Bash)
+	bash_executable: str | None = None
+
+	# Maximale Upload-Größe pro Benchmark-Archiv in Megabyte
+	max_benchmark_archive_size_mb: int = 200
+
 	# Konfiguration für das Laden der Settings aus der Umgebung
 	model_config = SettingsConfigDict(
 		env_file=ENV_FILE,
@@ -261,6 +270,11 @@ class Settings(BaseSettings):
 			Die maximale Upload-Größe in Bytes als Integer.
 		"""
 		return self.max_upload_size_mb * 1024 * 1024
+
+	@property
+	def max_benchmark_archive_size_bytes(self) -> int:
+		"""Gibt die maximale Benchmark-Archiv-Größe in Bytes zurück."""
+		return self.max_benchmark_archive_size_mb * 1024 * 1024
 
 
 @lru_cache
