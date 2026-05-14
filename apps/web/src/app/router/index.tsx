@@ -14,9 +14,9 @@ export const routes: RouteObject[] = [
     element: <PredictionPage />,
   },
   {
-  path: "/benchmark",
-  element: <BenchmarkPage />,
-},
+    path: "/benchmark",
+    element: <BenchmarkPage />,
+  },
   {
     path: "*",
     element: <NotFoundPage />,

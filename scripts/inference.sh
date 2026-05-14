@@ -13,15 +13,15 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 MODEL_DIR="${MODEL_DIR:-$REPO_ROOT/models/darknet}"
 
-if [[ -n "${DARKNET_DIR:-}" ]]; then
-  RESOLVED_DARKNET_DIR="$DARKNET_DIR"
+if [[ -n "${DARKNET_BIN:-}" ]]; then
+  : # DARKNET_BIN already set, use as-is
+elif [[ -n "${DARKNET_DIR:-}" ]]; then
+  DARKNET_BIN="$DARKNET_DIR/src-cli/darknet"
 elif [[ -d "$REPO_ROOT/vendor/darknet/build" ]]; then
-  RESOLVED_DARKNET_DIR="$REPO_ROOT/vendor/darknet/build"
+  DARKNET_BIN="$REPO_ROOT/vendor/darknet/build/src-cli/darknet"
 else
-  RESOLVED_DARKNET_DIR="$HOME/src/darknet/build"
+  DARKNET_BIN="$HOME/src/darknet/build/src-cli/darknet"
 fi
-
-DARKNET_BIN="$RESOLVED_DARKNET_DIR/src-cli/darknet"
 DATA_FILE="${DARKNET_DATA_FILE:-$MODEL_DIR/Bilderkennung-Pilzwachstum.data}"
 CFG_FILE="${DARKNET_CFG_FILE:-$MODEL_DIR/Bilderkennung-Pilzwachstum.cfg}"
 WEIGHTS_FILE="${DARKNET_WEIGHTS_FILE:-$MODEL_DIR/Bilderkennung-Pilzwachstum_best.weights}"
