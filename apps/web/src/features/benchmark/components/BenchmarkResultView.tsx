@@ -1,4 +1,8 @@
 import { type BenchmarkResponse, type BenchmarkStatus } from "../model/benchmarkTypes"
+import { BenchmarkAccuracyGauge } from "./BenchmarkAccuracyGauge"
+import { BenchmarkConfusionBars } from "./BenchmarkConfusionBars"
+import { BenchmarkImageResultList } from "./BenchmarkImageResultList"
+import { BenchmarkMetricCards } from "./BenchmarkMetricCards"
 
 interface BenchmarkResultViewProps {
   result: BenchmarkResponse | null
@@ -15,18 +19,15 @@ function formatMs(value: number | null): string {
   return `${value} ms`
 }
 
-interface MetricCardProps {
-  label: string
-  value: string
-}
+function sumImageResultValues(
+  result: BenchmarkResponse,
+  key: "truePositives" | "falsePositives" | "falseNegatives",
+): number | null {
+  if (result.imageResults.length === 0) return null
 
-function MetricCard({ label, value }: MetricCardProps) {
-  return (
-    <div className="flex flex-col items-center gap-1 p-4 rounded-lg border-2 border-border bg-card/50">
-      <span className="text-2xl font-bold text-foreground">{value}</span>
-      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</span>
-    </div>
-  )
+  return result.imageResults.reduce((sum, imageResult) => {
+    return sum + (imageResult[key] ?? 0)
+  }, 0)
 }
 
 interface MetaRowProps {
@@ -46,25 +47,83 @@ function MetaRow({ label, value }: MetaRowProps) {
 export function BenchmarkResultView({ result, status }: BenchmarkResultViewProps) {
   if (status !== "success" || !result) return null
 
+  const truePositives = sumImageResultValues(result, "truePositives")
+  const falsePositives = sumImageResultValues(result, "falsePositives")
+  const falseNegatives = sumImageResultValues(result, "falseNegatives")
+
+  const accuracy =
+    truePositives !== null &&
+    falsePositives !== null &&
+    falseNegatives !== null &&
+    truePositives + falsePositives + falseNegatives > 0
+      ? truePositives / (truePositives + falsePositives + falseNegatives)
+      : null
+
+  const processedImages =
+    result.totalImages !== null && result.failedImages !== null
+      ? result.totalImages - result.failedImages
+      : null
+
+  const failedImageResults = result.imageResults.filter((imageResult) => imageResult.error)
+
   return (
     <div className="space-y-4">
       <h3 className="text-base font-bold text-foreground">Benchmark-Ergebnis</h3>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <MetricCard label="Precision" value={formatPercent(result.precision)} />
-        <MetricCard label="Recall" value={formatPercent(result.recall)} />
-        <MetricCard label="F1-Score" value={formatPercent(result.f1Score)} />
-        <MetricCard label="mAP" value={formatPercent(result.mAP)} />
-      </div>
+      <BenchmarkAccuracyGauge value={accuracy} />
+
+      <BenchmarkMetricCards
+        metrics={[
+          { label: "Precision", value: formatPercent(result.precision) },
+          { label: "Recall", value: formatPercent(result.recall) },
+          { label: "F1-Score", value: formatPercent(result.f1Score) },
+          { label: "mAP", value: formatPercent(result.mAP) },
+        ]}
+      />
+
+      <BenchmarkConfusionBars
+        truePositives={truePositives}
+        falsePositives={falsePositives}
+        falseNegatives={falseNegatives}
+      />
 
       <div className="rounded-lg border border-border bg-card/50 p-4 divide-y divide-border">
-        {result.totalImages !== null && (
-          <MetaRow label="Verarbeitete Bilder" value={String(result.totalImages)} />
-        )}
+        <MetaRow
+          label="Bilder gesamt"
+          value={result.totalImages === null ? null : String(result.totalImages)}
+        />
+        <MetaRow
+          label="Verarbeitete Bilder"
+          value={processedImages === null ? null : String(processedImages)}
+        />
+        <MetaRow
+          label="Fehlerhafte Bilder"
+          value={result.failedImages === null ? null : String(result.failedImages)}
+        />
         <MetaRow label="Verarbeitungszeit" value={formatMs(result.processingTimeMs)} />
         <MetaRow label="Model-Version" value={result.modelVersion} />
         <MetaRow label="Request ID" value={result.requestId} />
       </div>
+
+      <div className="rounded-lg border border-border bg-card/50 p-4">
+        <h4 className="font-semibold text-foreground mb-2">Nicht auswertbare Bilder</h4>
+
+        {failedImageResults.length > 0 ? (
+          <ul className="space-y-1 text-sm text-muted-foreground">
+            {failedImageResults.map((imageResult) => (
+              <li key={imageResult.imageId ?? imageResult.error}>
+                {imageResult.imageId ?? "Unbekanntes Bild"}: {imageResult.error}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Keine nicht auswertbaren Bilder vorhanden.
+          </p>
+        )}
+      </div>
+
+      <BenchmarkImageResultList imageResults={result.imageResults} />
     </div>
   )
 }

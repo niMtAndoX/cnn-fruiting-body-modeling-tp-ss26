@@ -1,5 +1,14 @@
 export type BenchmarkStatus = "idle" | "loading" | "success" | "error"
 
+export interface ImageBenchmarkResult {
+  imageId: string | null
+  groundTruthCount: number | null
+  predictedCount: number | null
+  truePositives: number | null
+  falsePositives: number | null
+  falseNegatives: number | null
+  error: string | null
+}
 export interface BenchmarkResponse {
   requestId: string | null
   modelVersion: string | null
@@ -9,6 +18,8 @@ export interface BenchmarkResponse {
   f1Score: number | null
   mAP: number | null
   totalImages: number | null
+  failedImages: number | null
+  imageResults: ImageBenchmarkResult[]
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -35,6 +46,22 @@ export function normalizeBenchmarkResponse(value: unknown): BenchmarkResponse {
     f1Score: asNullableNumber(record?.f1_score),
     mAP: asNullableNumber(record?.map),
     totalImages: asNullableNumber(record?.total_images),
+    failedImages: asNullableNumber(record?.failed_images),
+    imageResults: Array.isArray(record?.image_results)
+    ? record.image_results.map((img) => {
+      const image = asRecord(img)
+
+      return {
+        imageId: asNullableString(image?.image_id),
+        groundTruthCount: asNullableNumber(image?.ground_truth_count),
+        predictedCount: asNullableNumber(image?.predicted_count),
+        truePositives: asNullableNumber(image?.true_positives),
+        falsePositives: asNullableNumber(image?.false_positives),
+        falseNegatives: asNullableNumber(image?.false_negatives),
+        error: asNullableString(image?.error),
+      }
+    })
+  : [],
   }
 }
 
