@@ -63,8 +63,14 @@ class Settings(BaseSettings):
     # IoU-Schwellwert für Benchmark-Matching
     benchmark_iou_threshold: float = 0.5
 
-    # Score-Schwellwert für Benchmark-Predictions
-    benchmark_score_threshold: float = 0.5
+    # Pfad zum Darknet-Binary (überschreibt die Suche via DARKNET_DIR im Skript)
+    darknet_bin_path: str | None = None
+
+    # Pfad zur bash-Executable (nur Windows; Standard: Git Bash)
+    bash_executable: str | None = None
+
+    # Maximale Upload-Größe pro Benchmark-Archiv in Megabyte
+    max_benchmark_archive_size_mb: int = 200
 
     # Erlaubte MIME-Types für Uploads
     allowed_upload_content_types: Annotated[list[str], NoDecode] = [
@@ -171,16 +177,6 @@ class Settings(BaseSettings):
             raise ValueError("benchmark_iou_threshold must be between 0.0 and 1.0")
         return value
 
-    @field_validator("benchmark_score_threshold")
-    @classmethod
-    def validate_benchmark_score_threshold(cls, value: float) -> float:
-        """
-        Validiert den Score-Schwellwert für Benchmark-Predictions.
-        """
-        if value < 0.0 or value > 1.0:
-            raise ValueError("benchmark_score_threshold must be between 0.0 and 1.0")
-        return value
-
     @field_validator("inference_timeout_seconds")
     @classmethod
     def validate_inference_timeout_seconds(cls, value: int) -> int:
@@ -246,6 +242,11 @@ class Settings(BaseSettings):
         Gibt die maximale Benchmark-ZIP-Größe in Bytes zurück.
         """
         return self.max_benchmark_zip_size_mb * 1024 * 1024
+
+    @property
+    def max_benchmark_archive_size_bytes(self) -> int:
+        """Gibt die maximale Benchmark-Archiv-Größe in Bytes zurück."""
+        return self.max_benchmark_archive_size_mb * 1024 * 1024
 
 
 @lru_cache

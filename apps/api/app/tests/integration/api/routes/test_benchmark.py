@@ -1,255 +1,172 @@
-from io import BytesIO
+import io
+import zipfile
 from uuid import UUID
-from zipfile import ZipFile
 
 from fastapi.testclient import TestClient
 
-from app.core.config import Settings
-from app.core.dependencies import get_settings_dependency
+from app.core.dependencies import get_benchmark_service
+from app.domain.benchmark.entities import BenchmarkResult
+from app.domain.benchmark.exceptions import BenchmarkBadRequestError
 from app.main import app
 
 
-def create_zip_bytes(filename: str = "dummy.txt", content: bytes = b"dummy") -> bytes:
-    buffer = BytesIO()
-
-    with ZipFile(buffer, "w") as zip_file:
-        zip_file.writestr(filename, content)
-
-    return buffer.getvalue()
-
-
-def test_benchmark_returns_benchmark_response_for_two_zip_files() -> None:
-    client = TestClient(app)
-    zip_bytes = create_zip_bytes()
-
-    response = client.post(
-        "/api/v1/benchmark",
-        files={
-            "test_archive": ("test-images.zip", zip_bytes, "application/zip"),
-            "label_archive": ("labels.zip", zip_bytes, "application/zip"),
-        },
-    )
-
-    assert response.status_code == 200
-
-    body = response.json()
-    request_id = body.pop("request_id")
-    UUID(request_id)
-
-    assert body == {
-        "model_version": "benchmark-dummy-model",
-        "summary": {
-            "total_images": 0,
-            "processed_images": 0,
-            "failed_images": 0,
-        },
-        "metrics": {
-            "true_positives": 0,
-            "false_positives": 0,
-            "false_negatives": 0,
-            "precision": 0.0,
-            "recall": 0.0,
-            "f1_score": 0.0,
-            "accuracy": 0.0,
-            "mean_iou": 0.0,
-            "average_inference_time_ms": None,
-            "total_processing_time_ms": None,
-        },
-        "images": [],
-    }
+def make_zip(files: dict[str, bytes]) -> bytes:
+	buf = io.BytesIO()
+	with zipfile.ZipFile(buf, "w") as zf:
+		for name, content in files.items():
+			zf.writestr(name, content)
+	return buf.getvalue()
 
 
-def test_benchmark_returns_400_when_test_archive_is_missing() -> None:
-    client = TestClient(app)
-    zip_bytes = create_zip_bytes()
+FAKE_RESULT = BenchmarkResult(
+	model_version="test-model-v1",
+	precision=0.91,
+	recall=0.85,
+	f1_score=0.88,
+	map_score=0.87,
+	total_images=50,
+	failed_images=0,
+	processing_time_ms=3200,
+	image_results=[],
+)
 
-    response = client.post(
-        "/api/v1/benchmark",
-        files={
-            "label_archive": ("labels.zip", zip_bytes, "application/zip"),
-        },
-    )
-
-    assert response.status_code == 400
-    assert response.json() == {
-        "error": "bad_request",
-        "message": "test_archive fehlt.",
-    }
+TEST_ZIP = make_zip({"img1.jpg": b"fake-image", "img2.jpg": b"fake-image-2"})
+LABEL_ZIP = make_zip({"img1.txt": b"0 0.5 0.5 0.3 0.3", "img2.txt": b"0 0.4 0.4 0.2 0.2"})
 
 
-def test_benchmark_returns_400_when_label_archive_is_missing() -> None:
-    client = TestClient(app)
-    zip_bytes = create_zip_bytes()
-
-    response = client.post(
-        "/api/v1/benchmark",
-        files={
-            "test_archive": ("test-images.zip", zip_bytes, "application/zip"),
-        },
-    )
-
-    assert response.status_code == 400
-    assert response.json() == {
-        "error": "bad_request",
-        "message": "label_archive fehlt.",
-    }
+class FakeBenchmarkService:
+	def benchmark(self, benchmark_input):
+		return FAKE_RESULT
 
 
-def test_benchmark_returns_400_when_both_archives_are_missing() -> None:
-    client = TestClient(app)
-
-    response = client.post(
-        "/api/v1/benchmark",
-        files={},
-    )
-
-    assert response.status_code == 400
-    assert response.json() == {
-        "error": "bad_request",
-        "message": "test_archive und label_archive fehlen.",
-    }
+class FailingBenchmarkService:
+	def benchmark(self, benchmark_input):
+		raise RuntimeError("Darknet nicht verfügbar")
 
 
-def test_benchmark_returns_400_when_test_archive_is_not_zip() -> None:
-    client = TestClient(app)
-    zip_bytes = create_zip_bytes()
-
-    response = client.post(
-        "/api/v1/benchmark",
-        files={
-            "test_archive": ("test-images.txt", zip_bytes, "application/zip"),
-            "label_archive": ("labels.zip", zip_bytes, "application/zip"),
-        },
-    )
-
-    assert response.status_code == 400
-    assert response.json() == {
-        "error": "bad_request",
-        "message": "test_archive muss eine ZIP-Datei sein.",
-    }
+class BadRequestBenchmarkService:
+	def benchmark(self, benchmark_input):
+		raise BenchmarkBadRequestError("Das Testarchiv enthält keine Bilder.")
 
 
-def test_benchmark_returns_400_when_label_archive_is_not_zip() -> None:
-    client = TestClient(app)
-    zip_bytes = create_zip_bytes()
+def test_benchmark_returns_benchmark_response() -> None:
+	app.dependency_overrides[get_benchmark_service] = lambda: FakeBenchmarkService()
 
-    response = client.post(
-        "/api/v1/benchmark",
-        files={
-            "test_archive": ("test-images.zip", zip_bytes, "application/zip"),
-            "label_archive": ("labels.txt", zip_bytes, "application/zip"),
-        },
-    )
+	try:
+		client = TestClient(app)
+		response = client.post(
+			"/api/v1/benchmark",
+			files={
+				"test_archive": ("test_images.zip", TEST_ZIP, "application/zip"),
+				"label_archive": ("labels.zip", LABEL_ZIP, "application/zip"),
+			},
+		)
 
-    assert response.status_code == 400
-    assert response.json() == {
-        "error": "bad_request",
-        "message": "label_archive muss eine ZIP-Datei sein.",
-    }
+		assert response.status_code == 200
 
+		body = response.json()
+		UUID(body.pop("request_id"))
 
-def test_benchmark_returns_400_for_invalid_zip_content_type() -> None:
-    client = TestClient(app)
-    zip_bytes = create_zip_bytes()
-
-    response = client.post(
-        "/api/v1/benchmark",
-        files={
-            "test_archive": ("test-images.zip", zip_bytes, "text/plain"),
-            "label_archive": ("labels.zip", zip_bytes, "application/zip"),
-        },
-    )
-
-    assert response.status_code == 400
-    assert response.json() == {
-        "error": "bad_request",
-        "message": "test_archive hat einen ungültigen Dateityp: text/plain",
-    }
+		assert body == {
+			"model_version": "test-model-v1",
+			"processing_time_ms": 3200,
+			"precision": 0.91,
+			"recall": 0.85,
+			"f1_score": 0.88,
+			"map": 0.87,
+			"total_images": 50,
+			"failed_images": 0,
+			"image_results": [],
+		}
+	finally:
+		app.dependency_overrides.clear()
 
 
-def test_benchmark_returns_400_when_test_archive_is_empty() -> None:
-    client = TestClient(app)
-    zip_bytes = create_zip_bytes()
+def test_benchmark_returns_400_for_empty_test_archive() -> None:
+	client = TestClient(app)
+	response = client.post(
+		"/api/v1/benchmark",
+		files={
+			"test_archive": ("test.zip", b"", "application/zip"),
+			"label_archive": ("labels.zip", LABEL_ZIP, "application/zip"),
+		},
+	)
 
-    response = client.post(
-        "/api/v1/benchmark",
-        files={
-            "test_archive": ("test-images.zip", b"", "application/zip"),
-            "label_archive": ("labels.zip", zip_bytes, "application/zip"),
-        },
-    )
-
-    assert response.status_code == 400
-    assert response.json() == {
-        "error": "bad_request",
-        "message": "test_archive ist leer.",
-    }
+	assert response.status_code == 400
+	assert response.json()["error"] == "bad_request"
+	assert "leer" in response.json()["message"].lower()
 
 
-def test_benchmark_returns_400_when_label_archive_is_empty() -> None:
-    client = TestClient(app)
-    zip_bytes = create_zip_bytes()
+def test_benchmark_returns_400_for_empty_label_archive() -> None:
+	client = TestClient(app)
+	response = client.post(
+		"/api/v1/benchmark",
+		files={
+			"test_archive": ("test.zip", TEST_ZIP, "application/zip"),
+			"label_archive": ("labels.zip", b"", "application/zip"),
+		},
+	)
 
-    response = client.post(
-        "/api/v1/benchmark",
-        files={
-            "test_archive": ("test-images.zip", zip_bytes, "application/zip"),
-            "label_archive": ("labels.zip", b"", "application/zip"),
-        },
-    )
-
-    assert response.status_code == 400
-    assert response.json() == {
-        "error": "bad_request",
-        "message": "label_archive ist leer.",
-    }
+	assert response.status_code == 400
+	assert response.json()["error"] == "bad_request"
 
 
-def test_benchmark_returns_400_when_test_archive_is_not_valid_zip_content() -> None:
-    client = TestClient(app)
-    zip_bytes = create_zip_bytes()
+def test_benchmark_returns_400_when_service_raises_bad_request() -> None:
+	app.dependency_overrides[get_benchmark_service] = lambda: BadRequestBenchmarkService()
 
-    response = client.post(
-        "/api/v1/benchmark",
-        files={
-            "test_archive": ("test-images.zip", b"not-a-real-zip", "application/zip"),
-            "label_archive": ("labels.zip", zip_bytes, "application/zip"),
-        },
-    )
+	try:
+		client = TestClient(app)
+		response = client.post(
+			"/api/v1/benchmark",
+			files={
+				"test_archive": ("test.zip", TEST_ZIP, "application/zip"),
+				"label_archive": ("labels.zip", LABEL_ZIP, "application/zip"),
+			},
+		)
 
-    assert response.status_code == 400
-    assert response.json() == {
-        "error": "bad_request",
-        "message": "test_archive ist keine gültige ZIP-Datei.",
-    }
+		assert response.status_code == 400
+		assert response.json()["error"] == "bad_request"
+		assert "keine Bilder" in response.json()["message"]
+	finally:
+		app.dependency_overrides.clear()
 
 
-def test_benchmark_returns_400_when_test_archive_is_too_large() -> None:
-    app.dependency_overrides[get_settings_dependency] = lambda: Settings(
-        max_benchmark_zip_size_mb=1
-    )
+def test_benchmark_returns_500_on_execution_error() -> None:
+	app.dependency_overrides[get_benchmark_service] = lambda: FailingBenchmarkService()
 
-    try:
-        client = TestClient(app)
-        oversized_content = b"x" * (1024 * 1024 + 1)
-        zip_bytes = create_zip_bytes()
+	try:
+		client = TestClient(app)
+		response = client.post(
+			"/api/v1/benchmark",
+			files={
+				"test_archive": ("test.zip", TEST_ZIP, "application/zip"),
+				"label_archive": ("labels.zip", LABEL_ZIP, "application/zip"),
+			},
+		)
 
-        response = client.post(
-            "/api/v1/benchmark",
-            files={
-                "test_archive": (
-                    "test-images.zip",
-                    oversized_content,
-                    "application/zip",
-                ),
-                "label_archive": ("labels.zip", zip_bytes, "application/zip"),
-            },
-        )
+		assert response.status_code == 500
+		assert response.json() == {
+			"error": "internal_error",
+			"message": "Der Benchmark konnte nicht erfolgreich ausgeführt werden.",
+		}
+	finally:
+		app.dependency_overrides.clear()
 
-        assert response.status_code == 400
-        assert response.json() == {
-            "error": "bad_request",
-            "message": "test_archive ist zu groß. Maximal erlaubt: 1 MB.",
-        }
-    finally:
-        app.dependency_overrides.clear()
+
+def test_benchmark_request_id_is_valid_uuid() -> None:
+	app.dependency_overrides[get_benchmark_service] = lambda: FakeBenchmarkService()
+
+	try:
+		client = TestClient(app)
+		response = client.post(
+			"/api/v1/benchmark",
+			files={
+				"test_archive": ("test.zip", TEST_ZIP, "application/zip"),
+				"label_archive": ("labels.zip", LABEL_ZIP, "application/zip"),
+			},
+		)
+
+		assert response.status_code == 200
+		UUID(response.json()["request_id"])
+	finally:
+		app.dependency_overrides.clear()

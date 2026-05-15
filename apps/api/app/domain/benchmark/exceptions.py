@@ -2,4 +2,8 @@
 
 
 class BenchmarkBadRequestError(Exception):
-    """Fehler für ungültige Eingaben oder nicht nutzbare Benchmark-Anfragen."""
+	"""Fehler für ungültige Eingaben beim Benchmark-Aufruf."""
+
+
+class BenchmarkExecutionError(Exception):
+	"""Fehler bei der Ausführung des Benchmarks."""

@@ -7,9 +7,13 @@ export async function getHealthStatus(): Promise<HealthResponse> {
 }
 
 export async function getHealthResponseString(): Promise<string> {
-    if ((await getHealthStatus()).status === "ok"){
-        return "Die API läuft!";
-    }else{
+    try {
+        if ((await getHealthStatus()).status === "ok") {
+            return "Die API läuft!";
+        } else {
+            return "Die API läuft nicht.";
+        }
+    } catch {
         return "Die API läuft nicht.";
     }
 }

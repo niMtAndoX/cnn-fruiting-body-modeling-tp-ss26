@@ -45,7 +45,7 @@ Die API stellt aktuell zwei Hauptendpunkte bereit:
 ## Repository-Überblick
 
 ```text
-forest-fungi-platform/
+cnn-fruiting-body-modeling-tp-ss26/
 ├─ apps/
 │  ├─ api/
 │  └─ web/
