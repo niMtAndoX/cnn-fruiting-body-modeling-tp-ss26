@@ -3,6 +3,16 @@ from pathlib import Path
 from typing import Any
 
 
+@dataclass(frozen=True, slots=True)
+class BoundingBox:
+	"""Achsparallele Bounding Box in Bildkoordinaten."""
+
+	x: float
+	y: float
+	width: float
+	height: float
+
+
 @dataclass
 class BenchmarkInput:
 	"""Eingabedaten für einen Benchmark-Lauf."""
