@@ -108,7 +108,33 @@ Die Preview läuft dann unter `http://localhost:4173`.
 
 - `/` – Startseite
 - `/prediction` – Bilderkennung mit Upload, Analyse und Ergebnisdarstellung
+- `/benchmark` – Modell-Benchmark mit zwei ZIP-Uploads (Testbilder + Labels)
 - `*` – 404-Fallback
+
+## Benchmark
+
+Die Route `/benchmark` erlaubt es, die Modellgenauigkeit gegen einen annotierten Datensatz zu messen.
+
+### Benötigte ZIP-Dateien
+
+**Testbilder-Archiv** (`test_archive`):
+- ZIP-Datei mit den Bildern, die das Modell analysieren soll (JPG, PNG).
+- Bilder können direkt im Wurzelverzeichnis oder in Unterordnern liegen.
+
+**Label-Archiv** (`label_archive`):
+- ZIP-Datei mit den Ground-Truth-Annotationen im YOLO-Format.
+- Pro Bild eine `.txt`-Datei mit gleichem Dateinamen.
+- Jede Zeile: `<class_id> <x_center> <y_center> <width> <height>` (normiert 0–1).
+- Dateinamen müssen exakt mit den Bilddateinamen übereinstimmen.
+
+### Lokaler Testablauf
+
+1. Dev-Server starten: `pnpm dev`
+2. Browser öffnen: `http://localhost:5173/benchmark`
+3. Testbilder-Archiv und Label-Archiv als ZIP hochladen.
+4. „Benchmark starten" klicken.
+5. Das Backend muss unter der konfigurierten `VITE_API_BASE_URL` erreichbar sein
+   und einen `POST /benchmark`-Endpunkt bereitstellen.
 
 ## Architektur
 

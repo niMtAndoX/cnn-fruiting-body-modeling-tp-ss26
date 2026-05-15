@@ -1,6 +1,7 @@
 """Startet das Inferenz-Skript und erkennt technische Fehler beim Aufruf."""
 
 import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -37,6 +38,8 @@ class DarknetRunner:
         self,
         inference_script_path: str,
         inference_timeout_seconds: int,
+        darknet_bin_path: str | None = None,
+        bash_executable: str | None = None,
     ) -> None:
         """
         Initialisiert den Runner mit Skriptpfad und Timeout.
@@ -44,9 +47,14 @@ class DarknetRunner:
         Args:
             inference_script_path: Pfad zum Shell-Skript für die Inferenz.
             inference_timeout_seconds: Maximale Laufzeit des Skriptaufrufs in Sekunden.
+            darknet_bin_path: Optionaler Pfad zum Darknet-Binary; wird als DARKNET_BIN
+                an das Skript weitergegeben und überschreibt die interne Suche.
+            bash_executable: Pfad zur bash-Executable (nur Windows). Standard: Git Bash.
         """
         self.inference_script_path = Path(inference_script_path)
         self.inference_timeout_seconds = inference_timeout_seconds
+        self.darknet_bin_path = darknet_bin_path
+        self.bash_executable = bash_executable or r"C:\Program Files\Git\bin\bash.exe"
 
     def run(self, image_path: Path) -> InferenceRunResult:
         """
@@ -73,7 +81,18 @@ class DarknetRunner:
                 f"Inference script not found: {self.inference_script_path}"
             )
 
-        command = [str(self.inference_script_path), str(image_path)]
+        # On Windows .sh scripts need an explicit bash interpreter.
+        # Use the configured Git Bash path to avoid resolving to WSL bash.
+        if sys.platform == "win32":
+            command = [self.bash_executable, str(self.inference_script_path), str(image_path)]
+        else:
+            command = [str(self.inference_script_path), str(image_path)]
+
+        env: dict[str, str] | None = None
+        if self.darknet_bin_path:
+            import os
+            env = os.environ.copy()
+            env["DARKNET_BIN"] = self.darknet_bin_path
 
         try:
             completed_process = subprocess.run(
@@ -82,6 +101,7 @@ class DarknetRunner:
                 text=True,
                 timeout=self.inference_timeout_seconds,
                 check=False,
+                env=env,
             )
         except subprocess.TimeoutExpired as exc:
             raise InferenceTimeoutError(
