@@ -2,22 +2,23 @@ import json
 from pathlib import Path
 from typing import Any
 
+
 def parse_json_data(json_path: Path, image_path: Path) -> dict[str, Any]:
 
     try:
-        with open(json_path, 'r', encoding="utf-8") as f:
+        with open(json_path, encoding="utf-8") as f:
             full_json = json.load(f)
 
         label_list = []
 
-        for l in full_json["mark"]:
+        for label in full_json["mark"]:
             label_list.append({
-                "label": l["name"],
+                "label": label["name"],
                 "bbox": {
-                    "x": l["rect"]["int_x"],
-                    "y": l["rect"]["int_y"],
-                    "width": l["rect"]["int_w"],
-                    "height": l["rect"]["int_h"]
+                    "x": label["rect"]["int_x"],
+                    "y": label["rect"]["int_y"],
+                    "width": label["rect"]["int_w"],
+                    "height": label["rect"]["int_h"]
                 }
             })
 

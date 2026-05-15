@@ -312,10 +312,11 @@ def _compute_map_score(
 	cumulative_false_positives = 0
 	precisions: list[float] = []
 	recalls: list[float] = []
-
+ 
 	for true_positive, false_positive in zip(
 		true_positive_flags,
 		false_positive_flags,
+		strict=True,
 	):
 		cumulative_true_positives += true_positive
 		cumulative_false_positives += false_positive

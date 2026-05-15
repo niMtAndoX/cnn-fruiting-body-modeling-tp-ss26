@@ -1,7 +1,7 @@
-from pathlib import Path
-import shutil
-
 import os
+import shutil
+from pathlib import Path
+
 
 def unpack_zip(zip_file: str) -> str:
     """Entpackt die zip in einen temp Ordner und gibt den Pfad zurück"""

@@ -6,7 +6,6 @@ from app.api.router import api_router
 from app.core.config import Settings, get_settings
 from app.core.logging import configure_logging
 
-from app.domain.benchmark.dataset import get_image_data
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or get_settings()
