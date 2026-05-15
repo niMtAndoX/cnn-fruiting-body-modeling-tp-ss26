@@ -5,7 +5,11 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, File, UploadFile
 
-from app.api.schemas.benchmark import BenchmarkResponse, ImageBenchmarkResultSchema
+from app.api.schemas.benchmark import (
+	BenchmarkResponse,
+	ImageBenchmarkResultSchema,
+	LabelBenchmarkMetricsSchema,
+)
 from app.core.config import Settings
 from app.core.dependencies import get_benchmark_service, get_settings_dependency
 from app.domain.benchmark.entities import BenchmarkInput, BenchmarkResult
@@ -38,6 +42,20 @@ def to_benchmark_response(
 		map=result.map_score,
 		total_images=result.total_images,
 		failed_images=result.failed_images,
+		per_label=[
+			LabelBenchmarkMetricsSchema(
+				label=label_metric.label,
+				true_positives=label_metric.true_positives,
+				false_positives=label_metric.false_positives,
+				false_negatives=label_metric.false_negatives,
+				precision=label_metric.precision,
+				recall=label_metric.recall,
+				f1_score=label_metric.f1_score,
+				accuracy=label_metric.accuracy,
+				mean_iou=label_metric.mean_iou,
+			)
+			for label_metric in result.label_metrics
+		],
 		image_results=[
 			ImageBenchmarkResultSchema(
 				image_id=img.image_id,

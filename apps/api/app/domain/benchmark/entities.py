@@ -22,6 +22,17 @@ class BenchmarkObject:
 
 
 @dataclass(frozen=True, slots=True)
+class LabelMatchingResult:
+	"""Match-Ergebnis für ein einzelnes Label innerhalb eines Bildes."""
+
+	label: str
+	true_positives: int
+	false_positives: int
+	false_negatives: int
+	matched_ious: tuple[float, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
 class ObjectMatchingResult:
 	"""Ergebnis des Objekt-Matchings für ein einzelnes Bild."""
 
@@ -29,6 +40,22 @@ class ObjectMatchingResult:
 	false_positives: int
 	false_negatives: int
 	matched_ious: tuple[float, ...] = ()
+	label_results: tuple[LabelMatchingResult, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class LabelBenchmarkMetrics:
+	"""Aggregierte Benchmark-Metriken für ein einzelnes Label."""
+
+	label: str
+	true_positives: int
+	false_positives: int
+	false_negatives: int
+	precision: float
+	recall: float
+	f1_score: float
+	accuracy: float
+	mean_iou: float
 
 
 @dataclass
@@ -66,6 +93,7 @@ class ImageBenchmarkResult:
 	error: str | None = None
 	inference_time_ms: int | None = None
 	matched_ious: list[float] = field(default_factory=list)
+	label_results: list[LabelMatchingResult] = field(default_factory=list)
 
 
 @dataclass
@@ -86,4 +114,5 @@ class BenchmarkResult:
 	accuracy: float = 0.0
 	mean_iou: float = 0.0
 	average_inference_time_ms: float = 0.0
+	label_metrics: list[LabelBenchmarkMetrics] = field(default_factory=list)
 	image_results: list[ImageBenchmarkResult] = field(default_factory=list)

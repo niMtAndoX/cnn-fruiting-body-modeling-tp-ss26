@@ -4,6 +4,7 @@ from app.domain.benchmark.entities import (
 	BenchmarkObject,
 	BoundingBox,
 	ImageBenchmarkResult,
+	LabelMatchingResult,
 )
 from app.domain.benchmark.metrics import (
 	calculate_benchmark_result,
@@ -441,3 +442,155 @@ def test_calculate_benchmark_result_handles_empty_results_without_division_by_ze
 	assert result.mean_iou == pytest.approx(0.0)
 	assert result.average_inference_time_ms == pytest.approx(0.0)
 	assert result.processing_time_ms == 0
+ 
+ 
+def test_calculate_benchmark_result_returns_label_metrics_for_single_label_case() -> None:
+	image_results = [
+		ImageBenchmarkResult(
+			image_id="image-1",
+			ground_truth_count=2,
+			predicted_count=2,
+			true_positives=1,
+			false_positives=1,
+			false_negatives=1,
+			inference_time_ms=120,
+			matched_ious=[0.75],
+			label_results=[
+				LabelMatchingResult(
+					label="fungus",
+					true_positives=1,
+					false_positives=1,
+					false_negatives=1,
+					matched_ious=(0.75,),
+				)
+			],
+		)
+	]
+
+	result = calculate_benchmark_result(
+		model_version="darknet-cnn-v1",
+		image_results=image_results,
+		total_images=1,
+		failed_images=0,
+		processing_time_ms=300,
+	)
+
+	assert result.true_positives == 1
+	assert result.false_positives == 1
+	assert result.false_negatives == 1
+
+	assert len(result.label_metrics) == 1
+
+	label_metrics = result.label_metrics[0]
+
+	assert label_metrics.label == "fungus"
+	assert label_metrics.true_positives == 1
+	assert label_metrics.false_positives == 1
+	assert label_metrics.false_negatives == 1
+	assert label_metrics.precision == pytest.approx(0.5)
+	assert label_metrics.recall == pytest.approx(0.5)
+	assert label_metrics.f1_score == pytest.approx(0.5)
+	assert label_metrics.accuracy == pytest.approx(1 / 3)
+	assert label_metrics.mean_iou == pytest.approx(0.75)
+
+
+def test_calculate_benchmark_result_returns_metrics_per_label_for_multiple_labels() -> None:
+	image_results = [
+		ImageBenchmarkResult(
+			image_id="image-1",
+			ground_truth_count=3,
+			predicted_count=3,
+			true_positives=2,
+			false_positives=1,
+			false_negatives=1,
+			inference_time_ms=100,
+			matched_ious=[0.9, 0.8],
+			label_results=[
+				LabelMatchingResult(
+					label="fungus",
+					true_positives=1,
+					false_positives=1,
+					false_negatives=0,
+					matched_ious=(0.9,),
+				),
+				LabelMatchingResult(
+					label="wood",
+					true_positives=1,
+					false_positives=0,
+					false_negatives=1,
+					matched_ious=(0.8,),
+				),
+			],
+		),
+		ImageBenchmarkResult(
+			image_id="image-2",
+			ground_truth_count=2,
+			predicted_count=2,
+			true_positives=1,
+			false_positives=1,
+			false_negatives=1,
+			inference_time_ms=200,
+			matched_ious=[0.7],
+			label_results=[
+				LabelMatchingResult(
+					label="fungus",
+					true_positives=1,
+					false_positives=0,
+					false_negatives=1,
+					matched_ious=(0.7,),
+				),
+				LabelMatchingResult(
+					label="wood",
+					true_positives=0,
+					false_positives=1,
+					false_negatives=0,
+					matched_ious=(),
+				),
+			],
+		),
+	]
+
+	result = calculate_benchmark_result(
+		model_version="darknet-cnn-v1",
+		image_results=image_results,
+		total_images=2,
+		failed_images=0,
+		processing_time_ms=900,
+	)
+
+	assert result.true_positives == 3
+	assert result.false_positives == 2
+	assert result.false_negatives == 2
+	assert result.precision == pytest.approx(3 / 5)
+	assert result.recall == pytest.approx(3 / 5)
+	assert result.f1_score == pytest.approx(3 / 5)
+	assert result.accuracy == pytest.approx(3 / 7)
+	assert result.mean_iou == pytest.approx(0.8)
+	assert result.average_inference_time_ms == pytest.approx(150.0)
+
+	assert len(result.label_metrics) == 2
+
+	fungus_metrics = next(
+		metric for metric in result.label_metrics if metric.label == "fungus"
+	)
+	wood_metrics = next(
+		metric for metric in result.label_metrics if metric.label == "wood"
+	)
+
+	assert fungus_metrics.true_positives == 2
+	assert fungus_metrics.false_positives == 1
+	assert fungus_metrics.false_negatives == 1
+	assert fungus_metrics.precision == pytest.approx(2 / 3)
+	assert fungus_metrics.recall == pytest.approx(2 / 3)
+	assert fungus_metrics.f1_score == pytest.approx(2 / 3)
+	assert fungus_metrics.accuracy == pytest.approx(2 / 4)
+	assert fungus_metrics.mean_iou == pytest.approx(0.8)
+
+	assert wood_metrics.true_positives == 1
+	assert wood_metrics.false_positives == 1
+	assert wood_metrics.false_negatives == 1
+	assert wood_metrics.precision == pytest.approx(0.5)
+	assert wood_metrics.recall == pytest.approx(0.5)
+	assert wood_metrics.f1_score == pytest.approx(0.5)
+	assert wood_metrics.accuracy == pytest.approx(1 / 3)
+	assert wood_metrics.mean_iou == pytest.approx(0.8)

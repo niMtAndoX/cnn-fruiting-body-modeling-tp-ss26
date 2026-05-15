@@ -1,3 +1,4 @@
+from collections import defaultdict
 from collections.abc import Sequence
 
 from app.domain.benchmark.entities import (
@@ -5,6 +6,8 @@ from app.domain.benchmark.entities import (
 	BenchmarkResult,
 	BoundingBox,
 	ImageBenchmarkResult,
+	LabelBenchmarkMetrics,
+	LabelMatchingResult,
 	ObjectMatchingResult,
 )
 
@@ -71,6 +74,9 @@ def match_predictions_to_ground_truth(
 
 	Jedes Ground-Truth-Objekt und jede Prediction kann höchstens einmal
 	gematcht werden.
+
+	Zusätzlich zur globalen Zusammenfassung werden die Match-Ergebnisse
+	pro Label bereitgestellt.
 	"""
 	if not 0.0 <= iou_threshold <= 1.0:
 		raise ValueError("Der IoU-Schwellwert muss zwischen 0.0 und 1.0 liegen.")
@@ -98,6 +104,9 @@ def match_predictions_to_ground_truth(
 	matched_ground_truth_indices: set[int] = set()
 	matched_ious: list[float] = []
 
+	matched_counts_by_label: defaultdict[str, int] = defaultdict(int)
+	matched_ious_by_label: defaultdict[str, list[float]] = defaultdict(list)
+
 	for iou, prediction_index, ground_truth_index in match_candidates:
 		if prediction_index in matched_prediction_indices:
 			continue
@@ -105,19 +114,55 @@ def match_predictions_to_ground_truth(
 		if ground_truth_index in matched_ground_truth_indices:
 			continue
 
+		prediction = predictions[prediction_index]
+
 		matched_prediction_indices.add(prediction_index)
 		matched_ground_truth_indices.add(ground_truth_index)
 		matched_ious.append(iou)
 
+		matched_counts_by_label[prediction.label] += 1
+		matched_ious_by_label[prediction.label].append(iou)
+
 	true_positives = len(matched_prediction_indices)
 	false_positives = len(predictions) - true_positives
 	false_negatives = len(ground_truth_objects) - true_positives
+
+	prediction_counts_by_label: defaultdict[str, int] = defaultdict(int)
+	ground_truth_counts_by_label: defaultdict[str, int] = defaultdict(int)
+
+	for prediction in predictions:
+		prediction_counts_by_label[prediction.label] += 1
+
+	for ground_truth in ground_truth_objects:
+		ground_truth_counts_by_label[ground_truth.label] += 1
+
+	all_labels = sorted(
+		set(prediction_counts_by_label) | set(ground_truth_counts_by_label)
+	)
+
+	label_results = tuple(
+		LabelMatchingResult(
+			label=label,
+			true_positives=matched_counts_by_label[label],
+			false_positives=(
+				prediction_counts_by_label[label]
+				- matched_counts_by_label[label]
+			),
+			false_negatives=(
+				ground_truth_counts_by_label[label]
+				- matched_counts_by_label[label]
+			),
+			matched_ious=tuple(matched_ious_by_label[label]),
+		)
+		for label in all_labels
+	)
 
 	return ObjectMatchingResult(
 		true_positives=true_positives,
 		false_positives=false_positives,
 		false_negatives=false_negatives,
 		matched_ious=tuple(matched_ious),
+		label_results=label_results,
 	)
 
 
@@ -172,6 +217,8 @@ def calculate_benchmark_result(
 		len(inference_times),
 	)
 
+	label_metrics = _calculate_label_benchmark_metrics(image_results)
+
 	return BenchmarkResult(
 		model_version=model_version,
 		precision=precision,
@@ -187,8 +234,76 @@ def calculate_benchmark_result(
 		accuracy=accuracy,
 		mean_iou=mean_iou,
 		average_inference_time_ms=average_inference_time_ms,
+		label_metrics=label_metrics,
 		image_results=list(image_results),
 	)
+
+
+def _calculate_label_benchmark_metrics(
+	image_results: Sequence[ImageBenchmarkResult],
+) -> list[LabelBenchmarkMetrics]:
+	"""Aggregiert TP, FP, FN und IoU-Werte je Label."""
+	aggregated_counts: defaultdict[str, dict[str, int]] = defaultdict(
+		lambda: {
+			"true_positives": 0,
+			"false_positives": 0,
+			"false_negatives": 0,
+		}
+	)
+	aggregated_ious: defaultdict[str, list[float]] = defaultdict(list)
+
+	for image_result in image_results:
+		for label_result in image_result.label_results:
+			counts = aggregated_counts[label_result.label]
+			counts["true_positives"] += label_result.true_positives
+			counts["false_positives"] += label_result.false_positives
+			counts["false_negatives"] += label_result.false_negatives
+			aggregated_ious[label_result.label].extend(label_result.matched_ious)
+
+	label_metrics: list[LabelBenchmarkMetrics] = []
+
+	for label in sorted(aggregated_counts):
+		counts = aggregated_counts[label]
+		true_positives = counts["true_positives"]
+		false_positives = counts["false_positives"]
+		false_negatives = counts["false_negatives"]
+
+		precision = _safe_divide(
+			true_positives,
+			true_positives + false_positives,
+		)
+		recall = _safe_divide(
+			true_positives,
+			true_positives + false_negatives,
+		)
+		f1_score = _safe_divide(
+			2 * precision * recall,
+			precision + recall,
+		)
+		accuracy = _safe_divide(
+			true_positives,
+			true_positives + false_positives + false_negatives,
+		)
+		mean_iou = _safe_divide(
+			sum(aggregated_ious[label]),
+			len(aggregated_ious[label]),
+		)
+
+		label_metrics.append(
+			LabelBenchmarkMetrics(
+				label=label,
+				true_positives=true_positives,
+				false_positives=false_positives,
+				false_negatives=false_negatives,
+				precision=precision,
+				recall=recall,
+				f1_score=f1_score,
+				accuracy=accuracy,
+				mean_iou=mean_iou,
+			)
+		)
+
+	return label_metrics
 
 
 def _safe_divide(numerator: float | int, denominator: float | int) -> float:

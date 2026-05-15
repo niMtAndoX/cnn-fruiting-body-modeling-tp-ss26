@@ -16,6 +16,20 @@ class ImageBenchmarkResultSchema(BaseModel):
 	error: str | None = None
 
 
+class LabelBenchmarkMetricsSchema(BaseModel):
+	"""Aggregierte Benchmark-Metriken für ein einzelnes Label."""
+
+	label: str
+	true_positives: int
+	false_positives: int
+	false_negatives: int
+	precision: float
+	recall: float
+	f1_score: float
+	accuracy: float
+	mean_iou: float
+
+
 class BenchmarkResponse(BaseModel):
 	"""Antwortschema für einen Benchmark-Lauf."""
 
@@ -37,4 +51,5 @@ class BenchmarkResponse(BaseModel):
 
 	total_images: int
 	failed_images: int
+	per_label: list[LabelBenchmarkMetricsSchema] = Field(default_factory=list)
 	image_results: list[ImageBenchmarkResultSchema]
