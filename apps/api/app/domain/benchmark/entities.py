@@ -1,4 +1,6 @@
 from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
 
 
 @dataclass
@@ -9,6 +11,18 @@ class BenchmarkInput:
 	test_archive_filename: str
 	label_archive_bytes: bytes
 	label_archive_filename: str
+
+
+@dataclass(slots=True)
+class ImageLabelData:
+	image: Path
+	image_data: dict[str, Any]
+
+
+@dataclass(slots=True)
+class BenchmarkImageContainer:
+	images: list[ImageLabelData]
+	total_images: int
 
 
 @dataclass
