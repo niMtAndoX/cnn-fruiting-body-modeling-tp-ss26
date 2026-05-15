@@ -28,6 +28,7 @@ class ObjectMatchingResult:
 	true_positives: int
 	false_positives: int
 	false_negatives: int
+	matched_ious: tuple[float, ...] = ()
 
 
 @dataclass
@@ -63,6 +64,8 @@ class ImageBenchmarkResult:
 	false_positives: int
 	false_negatives: int
 	error: str | None = None
+	inference_time_ms: int | None = None
+	matched_ious: list[float] = field(default_factory=list)
 
 
 @dataclass
@@ -77,4 +80,10 @@ class BenchmarkResult:
 	total_images: int
 	failed_images: int
 	processing_time_ms: int
+	true_positives: int = 0
+	false_positives: int = 0
+	false_negatives: int = 0
+	accuracy: float = 0.0
+	mean_iou: float = 0.0
+	average_inference_time_ms: float = 0.0
 	image_results: list[ImageBenchmarkResult] = field(default_factory=list)

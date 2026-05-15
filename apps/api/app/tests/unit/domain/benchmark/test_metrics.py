@@ -1,7 +1,12 @@
 import pytest
 
-from app.domain.benchmark.entities import BenchmarkObject, BoundingBox
+from app.domain.benchmark.entities import (
+	BenchmarkObject,
+	BoundingBox,
+	ImageBenchmarkResult,
+)
 from app.domain.benchmark.metrics import (
+	calculate_benchmark_result,
 	calculate_iou,
 	match_predictions_to_ground_truth,
 )
@@ -94,6 +99,7 @@ def test_match_predictions_to_ground_truth_counts_true_positive_for_matching_lab
 	assert result.true_positives == 1
 	assert result.false_positives == 0
 	assert result.false_negatives == 0
+	assert result.matched_ious == pytest.approx((1.0,))
 
 
 def test_match_predictions_to_ground_truth_counts_label_mismatch_as_false_positive_and_false_negative() -> None:
@@ -119,6 +125,7 @@ def test_match_predictions_to_ground_truth_counts_label_mismatch_as_false_positi
 	assert result.true_positives == 0
 	assert result.false_positives == 1
 	assert result.false_negatives == 1
+	assert result.matched_ious == ()
 
 
 def test_match_predictions_to_ground_truth_counts_iou_below_threshold_as_false_positive_and_false_negative() -> None:
@@ -144,6 +151,7 @@ def test_match_predictions_to_ground_truth_counts_iou_below_threshold_as_false_p
 	assert result.true_positives == 0
 	assert result.false_positives == 1
 	assert result.false_negatives == 1
+	assert result.matched_ious == ()
 
 
 def test_match_predictions_to_ground_truth_counts_unmatched_predictions_as_false_positives() -> None:
@@ -280,3 +288,156 @@ def test_match_predictions_to_ground_truth_rejects_invalid_iou_threshold(
 			ground_truth_objects=[],
 			iou_threshold=iou_threshold,
 		)
+
+
+def test_calculate_benchmark_result_returns_perfect_metrics() -> None:
+	image_results = [
+		ImageBenchmarkResult(
+			image_id="image-1",
+			ground_truth_count=1,
+			predicted_count=1,
+			true_positives=1,
+			false_positives=0,
+			false_negatives=0,
+			inference_time_ms=100,
+			matched_ious=[1.0],
+		),
+		ImageBenchmarkResult(
+			image_id="image-2",
+			ground_truth_count=1,
+			predicted_count=1,
+			true_positives=1,
+			false_positives=0,
+			false_negatives=0,
+			inference_time_ms=200,
+			matched_ious=[0.8],
+		),
+	]
+
+	result = calculate_benchmark_result(
+		model_version="darknet-cnn-v1",
+		image_results=image_results,
+		total_images=2,
+		failed_images=0,
+		processing_time_ms=750,
+	)
+
+	assert result.true_positives == 2
+	assert result.false_positives == 0
+	assert result.false_negatives == 0
+	assert result.precision == pytest.approx(1.0)
+	assert result.recall == pytest.approx(1.0)
+	assert result.f1_score == pytest.approx(1.0)
+	assert result.accuracy == pytest.approx(1.0)
+	assert result.mean_iou == pytest.approx(0.9)
+	assert result.average_inference_time_ms == pytest.approx(150.0)
+	assert result.processing_time_ms == 750
+
+
+def test_calculate_benchmark_result_returns_partial_metrics() -> None:
+	image_results = [
+		ImageBenchmarkResult(
+			image_id="image-1",
+			ground_truth_count=1,
+			predicted_count=2,
+			true_positives=1,
+			false_positives=1,
+			false_negatives=0,
+			inference_time_ms=100,
+			matched_ious=[0.8],
+		),
+		ImageBenchmarkResult(
+			image_id="image-2",
+			ground_truth_count=1,
+			predicted_count=0,
+			true_positives=0,
+			false_positives=0,
+			false_negatives=1,
+			inference_time_ms=200,
+			matched_ious=[],
+		),
+	]
+
+	result = calculate_benchmark_result(
+		model_version="darknet-cnn-v1",
+		image_results=image_results,
+		total_images=2,
+		failed_images=0,
+		processing_time_ms=900,
+	)
+
+	assert result.true_positives == 1
+	assert result.false_positives == 1
+	assert result.false_negatives == 1
+	assert result.precision == pytest.approx(0.5)
+	assert result.recall == pytest.approx(0.5)
+	assert result.f1_score == pytest.approx(0.5)
+	assert result.accuracy == pytest.approx(1 / 3)
+	assert result.mean_iou == pytest.approx(0.8)
+	assert result.average_inference_time_ms == pytest.approx(150.0)
+	assert result.processing_time_ms == 900
+
+
+def test_calculate_benchmark_result_returns_zero_detection_metrics_for_completely_wrong_results() -> None:
+	image_results = [
+		ImageBenchmarkResult(
+			image_id="image-1",
+			ground_truth_count=1,
+			predicted_count=2,
+			true_positives=0,
+			false_positives=2,
+			false_negatives=1,
+			inference_time_ms=120,
+			matched_ious=[],
+		),
+		ImageBenchmarkResult(
+			image_id="image-2",
+			ground_truth_count=1,
+			predicted_count=0,
+			true_positives=0,
+			false_positives=0,
+			false_negatives=1,
+			inference_time_ms=180,
+			matched_ious=[],
+		),
+	]
+
+	result = calculate_benchmark_result(
+		model_version="darknet-cnn-v1",
+		image_results=image_results,
+		total_images=2,
+		failed_images=0,
+		processing_time_ms=1000,
+	)
+
+	assert result.true_positives == 0
+	assert result.false_positives == 2
+	assert result.false_negatives == 2
+	assert result.precision == pytest.approx(0.0)
+	assert result.recall == pytest.approx(0.0)
+	assert result.f1_score == pytest.approx(0.0)
+	assert result.accuracy == pytest.approx(0.0)
+	assert result.mean_iou == pytest.approx(0.0)
+	assert result.average_inference_time_ms == pytest.approx(150.0)
+	assert result.processing_time_ms == 1000
+
+
+def test_calculate_benchmark_result_handles_empty_results_without_division_by_zero() -> None:
+	result = calculate_benchmark_result(
+		model_version="darknet-cnn-v1",
+		image_results=[],
+		total_images=0,
+		failed_images=0,
+		processing_time_ms=0,
+	)
+
+	assert result.true_positives == 0
+	assert result.false_positives == 0
+	assert result.false_negatives == 0
+	assert result.precision == pytest.approx(0.0)
+	assert result.recall == pytest.approx(0.0)
+	assert result.f1_score == pytest.approx(0.0)
+	assert result.accuracy == pytest.approx(0.0)
+	assert result.mean_iou == pytest.approx(0.0)
+	assert result.average_inference_time_ms == pytest.approx(0.0)
+	assert result.processing_time_ms == 0

@@ -12,6 +12,7 @@ class ImageBenchmarkResultSchema(BaseModel):
 	true_positives: int
 	false_positives: int
 	false_negatives: int
+	inference_time_ms: int | None = None
 	error: str | None = None
 
 
@@ -21,10 +22,19 @@ class BenchmarkResponse(BaseModel):
 	request_id: str
 	model_version: str
 	processing_time_ms: int
+	average_inference_time_ms: float
+
+	true_positives: int
+	false_positives: int
+	false_negatives: int
+
 	precision: float
 	recall: float
 	f1_score: float
+	accuracy: float
+	mean_iou: float
 	map: float = Field(description="Mean Average Precision (mAP) bei IoU=0.5")
+
 	total_images: int
 	failed_images: int
 	image_results: list[ImageBenchmarkResultSchema]

@@ -2,7 +2,9 @@ from collections.abc import Sequence
 
 from app.domain.benchmark.entities import (
 	BenchmarkObject,
+	BenchmarkResult,
 	BoundingBox,
+	ImageBenchmarkResult,
 	ObjectMatchingResult,
 )
 
@@ -94,8 +96,9 @@ def match_predictions_to_ground_truth(
 
 	matched_prediction_indices: set[int] = set()
 	matched_ground_truth_indices: set[int] = set()
+	matched_ious: list[float] = []
 
-	for _, prediction_index, ground_truth_index in match_candidates:
+	for iou, prediction_index, ground_truth_index in match_candidates:
 		if prediction_index in matched_prediction_indices:
 			continue
 
@@ -104,6 +107,7 @@ def match_predictions_to_ground_truth(
 
 		matched_prediction_indices.add(prediction_index)
 		matched_ground_truth_indices.add(ground_truth_index)
+		matched_ious.append(iou)
 
 	true_positives = len(matched_prediction_indices)
 	false_positives = len(predictions) - true_positives
@@ -113,4 +117,83 @@ def match_predictions_to_ground_truth(
 		true_positives=true_positives,
 		false_positives=false_positives,
 		false_negatives=false_negatives,
+		matched_ious=tuple(matched_ious),
 	)
+
+
+def calculate_benchmark_result(
+	*,
+	model_version: str,
+	image_results: Sequence[ImageBenchmarkResult],
+	total_images: int,
+	failed_images: int,
+	processing_time_ms: int,
+	map_score: float = 0.0,
+) -> BenchmarkResult:
+	"""Aggregiert Einzelbildergebnisse zu einem Benchmark-Gesamtergebnis."""
+	true_positives = sum(result.true_positives for result in image_results)
+	false_positives = sum(result.false_positives for result in image_results)
+	false_negatives = sum(result.false_negatives for result in image_results)
+
+	precision = _safe_divide(
+		true_positives,
+		true_positives + false_positives,
+	)
+	recall = _safe_divide(
+		true_positives,
+		true_positives + false_negatives,
+	)
+	f1_score = _safe_divide(
+		2 * precision * recall,
+		precision + recall,
+	)
+	accuracy = _safe_divide(
+		true_positives,
+		true_positives + false_positives + false_negatives,
+	)
+
+	matched_ious = [
+		iou
+		for result in image_results
+		for iou in result.matched_ious
+	]
+	mean_iou = _safe_divide(
+		sum(matched_ious),
+		len(matched_ious),
+	)
+
+	inference_times = [
+		result.inference_time_ms
+		for result in image_results
+		if result.inference_time_ms is not None
+	]
+	average_inference_time_ms = _safe_divide(
+		sum(inference_times),
+		len(inference_times),
+	)
+
+	return BenchmarkResult(
+		model_version=model_version,
+		precision=precision,
+		recall=recall,
+		f1_score=f1_score,
+		map_score=map_score,
+		total_images=total_images,
+		failed_images=failed_images,
+		processing_time_ms=processing_time_ms,
+		true_positives=true_positives,
+		false_positives=false_positives,
+		false_negatives=false_negatives,
+		accuracy=accuracy,
+		mean_iou=mean_iou,
+		average_inference_time_ms=average_inference_time_ms,
+		image_results=list(image_results),
+	)
+
+
+def _safe_divide(numerator: float | int, denominator: float | int) -> float:
+	"""Teilt sicher und liefert bei Nenner 0 den Wert 0.0."""
+	if denominator == 0:
+		return 0.0
+
+	return float(numerator / denominator)
