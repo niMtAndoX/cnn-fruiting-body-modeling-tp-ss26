@@ -13,6 +13,23 @@ class BoundingBox:
 	height: float
 
 
+@dataclass(frozen=True, slots=True)
+class BenchmarkObject:
+	"""Fachliches Objekt für Ground Truth oder Prediction im Benchmark."""
+
+	label: str
+	bounding_box: BoundingBox
+
+
+@dataclass(frozen=True, slots=True)
+class ObjectMatchingResult:
+	"""Ergebnis des Objekt-Matchings für ein einzelnes Bild."""
+
+	true_positives: int
+	false_positives: int
+	false_negatives: int
+
+
 @dataclass
 class BenchmarkInput:
 	"""Eingabedaten für einen Benchmark-Lauf."""

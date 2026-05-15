@@ -1,7 +1,10 @@
 import pytest
 
-from app.domain.benchmark.entities import BoundingBox
-from app.domain.benchmark.metrics import calculate_iou
+from app.domain.benchmark.entities import BenchmarkObject, BoundingBox
+from app.domain.benchmark.metrics import (
+	calculate_iou,
+	match_predictions_to_ground_truth,
+)
 
 
 def test_calculate_iou_returns_one_for_identical_boxes() -> None:
@@ -66,3 +69,214 @@ def test_calculate_iou_returns_zero_for_box_with_zero_area() -> None:
 	result = calculate_iou(first_box, second_box)
 
 	assert result == pytest.approx(0.0)
+
+
+def test_match_predictions_to_ground_truth_counts_true_positive_for_matching_label_and_iou() -> None:
+	predictions = [
+		BenchmarkObject(
+			label="fungus",
+			bounding_box=BoundingBox(x=0, y=0, width=10, height=10),
+		)
+	]
+	ground_truth_objects = [
+		BenchmarkObject(
+			label="fungus",
+			bounding_box=BoundingBox(x=0, y=0, width=10, height=10),
+		)
+	]
+
+	result = match_predictions_to_ground_truth(
+		predictions=predictions,
+		ground_truth_objects=ground_truth_objects,
+		iou_threshold=0.5,
+	)
+
+	assert result.true_positives == 1
+	assert result.false_positives == 0
+	assert result.false_negatives == 0
+
+
+def test_match_predictions_to_ground_truth_counts_label_mismatch_as_false_positive_and_false_negative() -> None:
+	predictions = [
+		BenchmarkObject(
+			label="fungus",
+			bounding_box=BoundingBox(x=0, y=0, width=10, height=10),
+		)
+	]
+	ground_truth_objects = [
+		BenchmarkObject(
+			label="wood",
+			bounding_box=BoundingBox(x=0, y=0, width=10, height=10),
+		)
+	]
+
+	result = match_predictions_to_ground_truth(
+		predictions=predictions,
+		ground_truth_objects=ground_truth_objects,
+		iou_threshold=0.5,
+	)
+
+	assert result.true_positives == 0
+	assert result.false_positives == 1
+	assert result.false_negatives == 1
+
+
+def test_match_predictions_to_ground_truth_counts_iou_below_threshold_as_false_positive_and_false_negative() -> None:
+	predictions = [
+		BenchmarkObject(
+			label="fungus",
+			bounding_box=BoundingBox(x=0, y=0, width=10, height=10),
+		)
+	]
+	ground_truth_objects = [
+		BenchmarkObject(
+			label="fungus",
+			bounding_box=BoundingBox(x=8, y=8, width=10, height=10),
+		)
+	]
+
+	result = match_predictions_to_ground_truth(
+		predictions=predictions,
+		ground_truth_objects=ground_truth_objects,
+		iou_threshold=0.5,
+	)
+
+	assert result.true_positives == 0
+	assert result.false_positives == 1
+	assert result.false_negatives == 1
+
+
+def test_match_predictions_to_ground_truth_counts_unmatched_predictions_as_false_positives() -> None:
+	predictions = [
+		BenchmarkObject(
+			label="fungus",
+			bounding_box=BoundingBox(x=0, y=0, width=10, height=10),
+		),
+		BenchmarkObject(
+			label="fungus",
+			bounding_box=BoundingBox(x=30, y=30, width=10, height=10),
+		),
+	]
+	ground_truth_objects = [
+		BenchmarkObject(
+			label="fungus",
+			bounding_box=BoundingBox(x=0, y=0, width=10, height=10),
+		)
+	]
+
+	result = match_predictions_to_ground_truth(
+		predictions=predictions,
+		ground_truth_objects=ground_truth_objects,
+		iou_threshold=0.5,
+	)
+
+	assert result.true_positives == 1
+	assert result.false_positives == 1
+	assert result.false_negatives == 0
+
+
+def test_match_predictions_to_ground_truth_counts_unmatched_ground_truth_objects_as_false_negatives() -> None:
+	predictions = [
+		BenchmarkObject(
+			label="fungus",
+			bounding_box=BoundingBox(x=0, y=0, width=10, height=10),
+		)
+	]
+	ground_truth_objects = [
+		BenchmarkObject(
+			label="fungus",
+			bounding_box=BoundingBox(x=0, y=0, width=10, height=10),
+		),
+		BenchmarkObject(
+			label="fungus",
+			bounding_box=BoundingBox(x=30, y=30, width=10, height=10),
+		),
+	]
+
+	result = match_predictions_to_ground_truth(
+		predictions=predictions,
+		ground_truth_objects=ground_truth_objects,
+		iou_threshold=0.5,
+	)
+
+	assert result.true_positives == 1
+	assert result.false_positives == 0
+	assert result.false_negatives == 1
+
+
+def test_match_predictions_to_ground_truth_matches_each_ground_truth_object_only_once() -> None:
+	predictions = [
+		BenchmarkObject(
+			label="fungus",
+			bounding_box=BoundingBox(x=0, y=0, width=10, height=10),
+		),
+		BenchmarkObject(
+			label="fungus",
+			bounding_box=BoundingBox(x=0, y=0, width=10, height=10),
+		),
+	]
+	ground_truth_objects = [
+		BenchmarkObject(
+			label="fungus",
+			bounding_box=BoundingBox(x=0, y=0, width=10, height=10),
+		)
+	]
+
+	result = match_predictions_to_ground_truth(
+		predictions=predictions,
+		ground_truth_objects=ground_truth_objects,
+		iou_threshold=0.5,
+	)
+
+	assert result.true_positives == 1
+	assert result.false_positives == 1
+	assert result.false_negatives == 0
+
+
+def test_match_predictions_to_ground_truth_uses_configurable_iou_threshold() -> None:
+	predictions = [
+		BenchmarkObject(
+			label="fungus",
+			bounding_box=BoundingBox(x=0, y=0, width=10, height=10),
+		)
+	]
+	ground_truth_objects = [
+		BenchmarkObject(
+			label="fungus",
+			bounding_box=BoundingBox(x=5, y=0, width=10, height=10),
+		)
+	]
+
+	result_with_lower_threshold = match_predictions_to_ground_truth(
+		predictions=predictions,
+		ground_truth_objects=ground_truth_objects,
+		iou_threshold=0.3,
+	)
+	result_with_higher_threshold = match_predictions_to_ground_truth(
+		predictions=predictions,
+		ground_truth_objects=ground_truth_objects,
+		iou_threshold=0.5,
+	)
+
+	assert result_with_lower_threshold.true_positives == 1
+	assert result_with_lower_threshold.false_positives == 0
+	assert result_with_lower_threshold.false_negatives == 0
+
+	assert result_with_higher_threshold.true_positives == 0
+	assert result_with_higher_threshold.false_positives == 1
+	assert result_with_higher_threshold.false_negatives == 1
+
+
+@pytest.mark.parametrize("iou_threshold", [-0.1, 1.1])
+def test_match_predictions_to_ground_truth_rejects_invalid_iou_threshold(
+	iou_threshold: float,
+) -> None:
+	with pytest.raises(
+		ValueError,
+		match="Der IoU-Schwellwert muss zwischen 0.0 und 1.0 liegen.",
+	):
+		match_predictions_to_ground_truth(
+			predictions=[],
+			ground_truth_objects=[],
+			iou_threshold=iou_threshold,
+		)
