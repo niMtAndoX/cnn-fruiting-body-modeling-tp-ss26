@@ -5,27 +5,57 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, File, UploadFile
 
-from app.api.schemas.benchmark import BenchmarkResponse, ImageBenchmarkResultSchema
+from app.api.schemas.benchmark import (
+	BenchmarkResponse,
+	ImageBenchmarkResultSchema,
+	LabelBenchmarkMetricsSchema,
+)
 from app.core.config import Settings
 from app.core.dependencies import get_benchmark_service, get_settings_dependency
-from app.domain.benchmark.entities import BenchmarkInput
-from app.domain.benchmark.exceptions import BenchmarkBadRequestError, BenchmarkExecutionError
+from app.domain.benchmark.entities import BenchmarkInput, BenchmarkResult
+from app.domain.benchmark.exceptions import (
+	BenchmarkBadRequestError,
+	BenchmarkExecutionError,
+)
 from app.domain.benchmark.service import BenchmarkService
 
 router = APIRouter(tags=["benchmark"])
 
 
-def to_benchmark_response(result, request_id: str) -> BenchmarkResponse:
+def to_benchmark_response(
+	result: BenchmarkResult,
+	request_id: str,
+) -> BenchmarkResponse:
 	return BenchmarkResponse(
 		request_id=request_id,
 		model_version=result.model_version,
 		processing_time_ms=result.processing_time_ms,
+		average_inference_time_ms=result.average_inference_time_ms,
+		true_positives=result.true_positives,
+		false_positives=result.false_positives,
+		false_negatives=result.false_negatives,
 		precision=result.precision,
 		recall=result.recall,
 		f1_score=result.f1_score,
+		accuracy=result.accuracy,
+		mean_iou=result.mean_iou,
 		map=result.map_score,
 		total_images=result.total_images,
 		failed_images=result.failed_images,
+		per_label=[
+			LabelBenchmarkMetricsSchema(
+				label=label_metric.label,
+				true_positives=label_metric.true_positives,
+				false_positives=label_metric.false_positives,
+				false_negatives=label_metric.false_negatives,
+				precision=label_metric.precision,
+				recall=label_metric.recall,
+				f1_score=label_metric.f1_score,
+				accuracy=label_metric.accuracy,
+				mean_iou=label_metric.mean_iou,
+			)
+			for label_metric in result.label_metrics
+		],
 		image_results=[
 			ImageBenchmarkResultSchema(
 				image_id=img.image_id,
@@ -34,6 +64,7 @@ def to_benchmark_response(result, request_id: str) -> BenchmarkResponse:
 				true_positives=img.true_positives,
 				false_positives=img.false_positives,
 				false_negatives=img.false_negatives,
+				inference_time_ms=img.inference_time_ms,
 				error=img.error,
 			)
 			for img in result.image_results

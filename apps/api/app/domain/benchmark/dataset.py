@@ -1,8 +1,9 @@
 from pathlib import Path
 
-from app.infrastructure.benchmark.zip_reader import unpack_zip
 from app.domain.benchmark.entities import BenchmarkImageContainer, ImageLabelData
 from app.infrastructure.benchmark.label_parser import parse_json_data
+from app.infrastructure.benchmark.zip_reader import unpack_zip
+
 
 def get_image_data(zip_name: str) -> BenchmarkImageContainer:
     """Die Zip Datei wird im models/benchmark ordner erwartet. die label json Dateien sollen im gleichen Ordner, 
@@ -27,6 +28,7 @@ def get_image_data(zip_name: str) -> BenchmarkImageContainer:
 
     images = BenchmarkImageContainer(image_data_list, len(image_data_list))
 
-    if images.total_images == 0: return None
+    if images.total_images == 0:
+        return None
 
     return images
