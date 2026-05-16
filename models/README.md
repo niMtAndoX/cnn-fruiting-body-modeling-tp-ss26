@@ -1,24 +1,31 @@
 # Modelle
 
-Die projektlokalen Darknet-Artefakte liegen standardmaessig unter `models/darknet/`.
+Die Darknet-Artefakte fuer Deployment und lokale Inferenz liegen standardmaessig
+unter `models/darknet/`.
 
-Diese Dateien muessen vom Nutzer bzw. Betreiber selbst bereitgestellt werden.
-Sie sind Teil der lokalen Laufzeitumgebung und werden nicht als vollstaendig
-versionierte Release-Artefakte aus dem Repository mitgeliefert.
-
-Fuer die Inferenz werden dort diese Dateien erwartet:
+Fuer ein kundentaugliches `make deploy` muss ein Release-Bundle oder ein
+ausgecheckter Projektstand diese Dateien bereits enthalten:
 
 - `Bilderkennung-Pilzwachstum.cfg`
 - `Bilderkennung-Pilzwachstum.data`
-- `Bilderkennung-Pilzwachstum.names`
 - `Bilderkennung-Pilzwachstum_best.weights`
 
-Optional koennen unter `models/darknet/Beispielbilder/` lokale Testbilder liegen.
+Zusaetzlich liegt aktuell auch `Bilderkennung-Pilzwachstum.names` in diesem
+Ordner. Falls die `.data`-Datei auf weitere Dateien verweist, muessen diese
+ebenfalls im Release-Bundle enthalten sein.
 
-`scripts/inference.sh` verwendet dieses Verzeichnis standardmaessig als `MODEL_DIR`.
-Der Darknet-Build wird bevorzugt unter `vendor/darknet/build` gesucht und faellt
-ansonsten auf `~/src/darknet/build` zurueck. Beides kann bei Bedarf ueber
-`MODEL_DIR`, `DARKNET_DIR`, `DARKNET_DATA_FILE`, `DARKNET_CFG_FILE` und
+`make deploy` prueft vor dem Docker-Build explizit:
+
+- dass `models/darknet/` existiert
+- dass `.data`, `.cfg` und `.weights` vorhanden sind
+
+Fehlen diese Dateien, bricht das Deployment vor dem Image-Build mit einer klaren
+Fehlermeldung ab.
+
+`scripts/inference.sh` verwendet dieses Verzeichnis standardmaessig als
+`MODEL_DIR`. Im Container setzt das API-Image `MODEL_DIR` und `DARKNET_BIN`
+explizit. Fuer lokale Sonderfaelle koennen weiterhin `MODEL_DIR`,
+`DARKNET_DIR`, `DARKNET_DATA_FILE`, `DARKNET_CFG_FILE` und
 `DARKNET_WEIGHTS_FILE` ueberschrieben werden.
 
 Die `.gitignore` in diesem Ordner ignoriert standardmaessig grosse lokale

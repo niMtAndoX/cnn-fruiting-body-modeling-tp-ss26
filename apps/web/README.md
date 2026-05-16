@@ -213,7 +213,7 @@ erreichbar.
 
 Wichtige Befehle:
 
-- `make deploy` – baut und startet Frontend und Backend gemeinsam
+- `make deploy` – validiert das Docker-Deployment, baut Images und startet Frontend und Backend gemeinsam
 - `make ps` – zeigt Container-Status und Healthchecks
 - `make logs` – zeigt Logs beider Dienste
 - `make health` – prüft `GET /api/v1/health`
