@@ -19,10 +19,9 @@ Before building or running a release candidate:
 
 - ensure the required model files are present under `models/darknet/`
 - ensure all preparation steps from [`models/README.md`](../models/README.md) have been completed exactly as documented
-- ensure the backend setup from [`apps/api/README.md`](../apps/api/README.md) is complete
-- ensure the frontend setup from [`apps/web/README.md`](../apps/web/README.md) is complete
-- ensure the repository root `Makefile` can be used locally
-- ensure local validation can run successfully
+- ensure Docker and Docker Compose V2 are available on the target system
+- ensure `ops/docker/.env.example` is part of the release bundle
+- ensure the repository root `Makefile` is used as the operator entrypoint
 
 ## Release validation
 
@@ -52,12 +51,14 @@ make deploy
 
 `make deploy` now performs these steps automatically:
 
-- installs local backend dependencies
-- installs local frontend dependencies
-- builds backend and frontend locally
-- starts both services locally for a short pre-deployment validation
-- checks the backend and frontend health endpoints locally
-- deploys both services together with Docker only if the local checks succeed
+- checks Docker availability
+- checks Docker Compose V2 availability
+- creates `ops/docker/.env` from `ops/docker/.env.example` if needed
+- validates that the required model artifacts exist
+- validates the Compose configuration
+- builds the Docker images
+- starts the stack with `docker compose up -d --build --wait`
+- waits for the service healthchecks before returning control
 
 This starts frontend and backend together in Docker. By default the application is then available at:
 
@@ -68,10 +69,12 @@ This starts frontend and backend together in Docker. By default the application 
 Useful commands:
 
 ```bash
+make up
 make ps
 make logs
 make health
 make down
+make clean
 ```
 
 For local non-Docker workflows, the repository root also provides:
@@ -89,9 +92,11 @@ The deployment uses:
 - Docker Compose under `ops/docker/docker-compose.yaml`
 - a root `Makefile` as the main operator entrypoint
 - same-origin API routing via the frontend Nginx proxy
+- `ops/docker/.env` as the local deployment configuration file
 
 ## Release checklist
 
+- `ops/docker/.env` exists and contains the intended deployment values
 - required model files are present
 - `make test` passes successfully
 - `make deploy` starts the stack successfully

@@ -171,7 +171,7 @@ Wichtige URLs nach dem Start:
 
 Wichtige Befehle:
 
-- `make deploy` – baut und startet Frontend und Backend gemeinsam
+- `make deploy` – validiert das Docker-Deployment, baut Images und startet Frontend und Backend gemeinsam
 - `make ps` – zeigt Container-Status und Health
 - `make logs` – zeigt Logs beider Dienste
 - `make health` – prüft den Health-Endpunkt

@@ -17,10 +17,10 @@ if [[ -n "${DARKNET_BIN:-}" ]]; then
   : # DARKNET_BIN already set, use as-is
 elif [[ -n "${DARKNET_DIR:-}" ]]; then
   DARKNET_BIN="$DARKNET_DIR/src-cli/darknet"
-elif [[ -d "$REPO_ROOT/vendor/darknet/build" ]]; then
+elif [[ -x "$REPO_ROOT/vendor/darknet/build/src-cli/darknet" ]]; then
   DARKNET_BIN="$REPO_ROOT/vendor/darknet/build/src-cli/darknet"
-else
-  DARKNET_BIN="$HOME/src/darknet/build/src-cli/darknet"
+elif [[ -x "$REPO_ROOT/vendor/darknet/build-linux/src-cli/darknet" ]]; then
+  DARKNET_BIN="$REPO_ROOT/vendor/darknet/build-linux/src-cli/darknet"
 fi
 DATA_FILE="${DARKNET_DATA_FILE:-$MODEL_DIR/Bilderkennung-Pilzwachstum.data}"
 CFG_FILE="${DARKNET_CFG_FILE:-$MODEL_DIR/Bilderkennung-Pilzwachstum.cfg}"
@@ -33,6 +33,11 @@ fi
 
 if [[ ! -d "$MODEL_DIR" ]]; then
   echo "Model directory not found: $MODEL_DIR" >&2
+  exit 1
+fi
+
+if [[ -z "${DARKNET_BIN:-}" ]]; then
+  echo "DARKNET_BIN is not configured and no repository-local Darknet build was found." >&2
   exit 1
 fi
 

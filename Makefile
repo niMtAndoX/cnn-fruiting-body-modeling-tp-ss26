@@ -1,7 +1,9 @@
 SHELL := /bin/sh
+.DEFAULT_GOAL := help
 
 COMPOSE_FILE := ops/docker/docker-compose.yaml
 COMPOSE_ENV := ops/docker/.env
+COMPOSE_ENV_EXAMPLE := ops/docker/.env.example
 DOCKER_COMPOSE := docker compose --env-file $(COMPOSE_ENV) -f $(COMPOSE_FILE)
 
 PYTHON ?= python3.12
@@ -11,20 +13,57 @@ DEV_API_PORT ?= 8000
 DEV_WEB_PORT ?= 4173
 CHECK_API_PORT ?= 18000
 CHECK_WEB_PORT ?= 14173
-SCRIPT_ENV := PYTHON="$(PYTHON)" PNPM="$(PNPM)" DEV_API_PORT="$(DEV_API_PORT)" DEV_WEB_PORT="$(DEV_WEB_PORT)" CHECK_API_PORT="$(CHECK_API_PORT)" CHECK_WEB_PORT="$(CHECK_WEB_PORT)"
-PROD_SCRIPT := ops/scripts/prod.sh
-DEV_SCRIPT := ops/scripts/dev.sh
-TEST_SCRIPT := ops/scripts/test.sh
-BACKEND_SCRIPT := ops/scripts/backend.sh
-FRONTEND_SCRIPT := ops/scripts/frontend.sh
+LOG_TAIL ?= 200
 
-.PHONY: test dev backend frontend deploy up down logs ps clean health
+SCRIPT_ENV := \
+	PYTHON="$(PYTHON)" \
+	PNPM="$(PNPM)" \
+	DEV_API_PORT="$(DEV_API_PORT)" \
+	DEV_WEB_PORT="$(DEV_WEB_PORT)" \
+	CHECK_API_PORT="$(CHECK_API_PORT)" \
+	CHECK_WEB_PORT="$(CHECK_WEB_PORT)"
 
-# Fuehrt lokal alle Backend- und Frontend-Tests sowie Linter aus.
+SCRIPT_DIR := ops/scripts
+TEST_SCRIPT := $(SCRIPT_DIR)/test.sh
+DEV_SCRIPT := $(SCRIPT_DIR)/dev.sh
+BACKEND_SCRIPT := $(SCRIPT_DIR)/backend.sh
+FRONTEND_SCRIPT := $(SCRIPT_DIR)/frontend.sh
+DEPLOY_SCRIPT := $(SCRIPT_DIR)/deploy.sh
+
+.PHONY: help compose-check test dev backend frontend deploy up down logs ps health clean
+
+help:
+	@printf '%s\n' \
+		'Verfügbare Targets:' \
+		'  make test      Führt lokal Backend- und Frontend-Tests sowie Linter aus.' \
+		'  make dev       Installiert lokale Dependencies, baut das Frontend und startet Backend + Frontend.' \
+		'  make backend   Installiert das Backend lokal und startet den lokalen Backend-Server.' \
+		'  make frontend  Installiert und baut das Frontend lokal und startet den Preview-Server.' \
+		'  make deploy    Validiert das Docker-Deployment, baut Images und startet den Stack per Docker Compose.' \
+		'  make up        Startet den bestehenden Docker-Stack ohne Neu-Build im Hintergrund.' \
+		'  make down      Stoppt den Docker-Stack und entfernt verwaiste Container.' \
+		'  make logs      Zeigt die Docker-Logs im Follow-Modus an.' \
+		'  make ps        Zeigt den Status aller Container im Compose-Projekt an.' \
+		'  make health    Prüft den Health-Endpunkt des deployten Stacks.' \
+		'  make clean     Stoppt den Docker-Stack und entfernt zusätzlich Volumes.'
+
+compose-check:
+	@if [ ! -f "$(COMPOSE_ENV)" ]; then \
+		test -f "$(COMPOSE_ENV_EXAMPLE)" || { \
+			echo "Compose-Env fehlt: $(COMPOSE_ENV)" >&2; \
+			echo "Beispiel-Datei fehlt ebenfalls: $(COMPOSE_ENV_EXAMPLE)" >&2; \
+			exit 1; \
+		}; \
+		cp "$(COMPOSE_ENV_EXAMPLE)" "$(COMPOSE_ENV)"; \
+		echo "$(COMPOSE_ENV) wurde neu angelegt. Werte bei Bedarf prüfen."; \
+	fi
+	@$(DOCKER_COMPOSE) config -q
+
+# Führt lokal alle Backend- und Frontend-Tests sowie Linter aus.
 test:
 	@$(SCRIPT_ENV) sh $(TEST_SCRIPT)
 
-# Installiert lokal alle Dependencies, baut Frontend und Backend und startet beide lokal.
+# Installiert lokal alle Dependencies, baut das Frontend und startet Frontend + Backend lokal.
 dev:
 	@$(SCRIPT_ENV) sh $(DEV_SCRIPT)
 
@@ -36,30 +75,30 @@ backend:
 frontend:
 	@$(SCRIPT_ENV) sh $(FRONTEND_SCRIPT)
 
-# Prueft Backend und Frontend lokal per Build und Healthcheck und deployed sie danach per Docker.
+# Validiert das Docker-Deployment, baut Images und startet den Stack per Docker Compose.
 deploy:
-	@$(SCRIPT_ENV) sh $(PROD_SCRIPT) deploy
+	@sh $(DEPLOY_SCRIPT)
 
 # Startet den bestehenden Docker-Stack ohne Neu-Build im Hintergrund.
-up:
-	$(DOCKER_COMPOSE) up -d
+up: compose-check
+	$(DOCKER_COMPOSE) up -d --remove-orphans
 
 # Stoppt den Docker-Stack und entfernt verwaiste Container.
-down:
+down: compose-check
 	$(DOCKER_COMPOSE) down --remove-orphans
 
 # Zeigt die Logs des laufenden Docker-Stacks im Follow-Modus an.
-logs:
-	$(DOCKER_COMPOSE) logs -f
+logs: compose-check
+	$(DOCKER_COMPOSE) logs --follow --tail=$(LOG_TAIL)
 
-# Zeigt den Status der Docker-Container im Stack an.
-ps:
-	$(DOCKER_COMPOSE) ps
+# Zeigt den Status aller Docker-Container im Stack an.
+ps: compose-check
+	$(DOCKER_COMPOSE) ps --all
 
-# Prueft den Health-Endpunkt des deployten Stacks ueber das Frontend-Gateway.
-health:
-	curl -fsS http://localhost:8080/api/v1/health
+# Prüft den Health-Endpunkt des deployten Stacks über das Frontend-Gateway.
+health: compose-check
+	@$(DOCKER_COMPOSE) exec -T web wget -qO- http://127.0.0.1/api/v1/health
 
-# Stoppt den Docker-Stack und entfernt zusaetzlich die zugehoerigen Volumes.
-clean:
+# Stoppt den Docker-Stack und entfernt zusätzlich die zugehörigen Volumes.
+clean: compose-check
 	$(DOCKER_COMPOSE) down --remove-orphans --volumes

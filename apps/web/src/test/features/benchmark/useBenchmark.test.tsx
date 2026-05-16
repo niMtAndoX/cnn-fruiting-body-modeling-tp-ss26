@@ -23,6 +23,8 @@ const successResponse: BenchmarkResponse = {
   f1Score: 0.88,
   mAP: 0.87,
   totalImages: 50,
+  failedImages: 0,
+  imageResults: [],
 }
 
 describe("useBenchmark", () => {
