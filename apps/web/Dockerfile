@@ -22,7 +22,9 @@ RUN pnpm build
 
 FROM nginx:1.30-alpine3.23@sha256:54a607c89d2aee403d38c4d079351821c5a5600fca6a477791d73d318c748102 AS runner
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+ENV NGINX_CLIENT_MAX_BODY_SIZE=450M
+
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 EXPOSE 80

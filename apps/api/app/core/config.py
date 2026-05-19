@@ -3,7 +3,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Annotated, Any, Literal
 
-from pydantic import field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 API_ROOT_DIR = Path(__file__).resolve().parents[2]
@@ -48,9 +48,6 @@ class Settings(BaseSettings):
     # Maximale Upload-Größe in Megabyte für einzelne Bild-Uploads
     max_upload_size_mb: int = 20
 
-    # Maximale Größe eines Benchmark-ZIP-Archivs in Megabyte
-    max_benchmark_zip_size_mb: int = 200
-
     # Maximale Anzahl an Bildern, die ein Benchmark-Datensatz enthalten darf
     max_benchmark_images: int = 500
 
@@ -63,8 +60,15 @@ class Settings(BaseSettings):
     # Pfad zur bash-Executable (nur Windows; Standard: Git Bash)
     bash_executable: str | None = None
 
-    # Maximale Upload-Größe pro Benchmark-Archiv in Megabyte
-    max_benchmark_archive_size_mb: int = 200
+    # Maximale Upload-Größe pro Benchmark-Archiv in Megabyte.
+    # Unterstützt den früheren Env-Namen MAX_BENCHMARK_ZIP_SIZE_MB weiter.
+    max_benchmark_archive_size_mb: int = Field(
+        default=200,
+        validation_alias=AliasChoices(
+            "MAX_BENCHMARK_ARCHIVE_SIZE_MB",
+            "MAX_BENCHMARK_ZIP_SIZE_MB",
+        ),
+    )
 
     # Erlaubte MIME-Types für Uploads
     allowed_upload_content_types: Annotated[list[str], NoDecode] = [
@@ -141,14 +145,14 @@ class Settings(BaseSettings):
             raise ValueError("max_upload_size_mb must be greater than 0")
         return value
 
-    @field_validator("max_benchmark_zip_size_mb")
+    @field_validator("max_benchmark_archive_size_mb")
     @classmethod
-    def validate_max_benchmark_zip_size_mb(cls, value: int) -> int:
+    def validate_max_benchmark_archive_size_mb(cls, value: int) -> int:
         """
-        Validiert die maximale Benchmark-ZIP-Größe in Megabyte.
+        Validiert die maximale Benchmark-Archiv-Größe in Megabyte.
         """
         if value <= 0:
-            raise ValueError("max_benchmark_zip_size_mb must be greater than 0")
+            raise ValueError("max_benchmark_archive_size_mb must be greater than 0")
         return value
 
     @field_validator("max_benchmark_images")
@@ -229,13 +233,6 @@ class Settings(BaseSettings):
         Gibt die maximale Upload-Größe in Bytes zurück.
         """
         return self.max_upload_size_mb * 1024 * 1024
-
-    @property
-    def max_benchmark_zip_size_bytes(self) -> int:
-        """
-        Gibt die maximale Benchmark-ZIP-Größe in Bytes zurück.
-        """
-        return self.max_benchmark_zip_size_mb * 1024 * 1024
 
     @property
     def max_benchmark_archive_size_bytes(self) -> int:

@@ -26,6 +26,7 @@ from app.domain.prediction.ports import PredictionPort
 _ScoredDetection = tuple[str, float, BenchmarkObject]
 
 _IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
+_LABEL_EXTENSIONS = {".txt"}
 _IOU_THRESHOLD = 0.5
 
 # Aktuell ist der Benchmark fachlich auf den bestehenden Ein-Klassen-Fall ausgelegt.
@@ -43,14 +44,17 @@ class BenchmarkService:
 	def benchmark(self, benchmark_input: BenchmarkInput) -> BenchmarkResult:
 		started_at = perf_counter()
 
-		test_files = _extract_zip(benchmark_input.test_archive_bytes, "Testbilder-Archiv")
-		label_files = _extract_zip(benchmark_input.label_archive_bytes, "Label-Archiv")
+		image_files = _extract_zip(
+			benchmark_input.test_archive_bytes,
+			"Testbilder-Archiv",
+			allowed_extensions=_IMAGE_EXTENSIONS,
+		)
+		label_files = _extract_zip(
+			benchmark_input.label_archive_bytes,
+			"Label-Archiv",
+			allowed_extensions=_LABEL_EXTENSIONS,
+		)
 
-		image_files = {
-			name: data
-			for name, data in test_files.items()
-			if Path(name).suffix.lower() in _IMAGE_EXTENSIONS
-		}
 		if not image_files:
 			raise BenchmarkBadRequestError(
 				"Das Testarchiv enthält keine unterstützten Bilder (JPG, PNG)."
@@ -184,18 +188,38 @@ class BenchmarkService:
 		)
 
 
-def _extract_zip(archive_bytes: bytes, label: str) -> dict[str, bytes]:
+def _extract_zip(
+	archive_bytes: bytes,
+	label: str,
+	allowed_extensions: set[str],
+) -> dict[str, bytes]:
 	try:
 		files: dict[str, bytes] = {}
 		with zipfile.ZipFile(io.BytesIO(archive_bytes)) as zip_file:
 			for name in zip_file.namelist():
-				if not name.endswith("/"):
+				if not name.endswith("/") and _is_allowed_archive_entry(name, allowed_extensions):
 					files[name] = zip_file.read(name)
 		return files
 	except zipfile.BadZipFile as exc:
 		raise BenchmarkBadRequestError(
 			f"Das {label} ist kein gültiges ZIP-Archiv."
 		) from exc
+
+
+def _is_allowed_archive_entry(name: str, allowed_extensions: set[str]) -> bool:
+	path = Path(name)
+
+	if path.suffix.lower() not in allowed_extensions:
+		return False
+
+	if not path.name or path.name.startswith("."):
+		return False
+
+	for part in path.parts[:-1]:
+		if not part or part.startswith(".") or part.startswith("__"):
+			return False
+
+	return True
 
 
 def _find_label_key(image_stem: str, label_files: dict[str, bytes]) -> str | None:

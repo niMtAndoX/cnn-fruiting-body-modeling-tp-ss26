@@ -110,6 +110,56 @@ def test_benchmark_counts_total_and_failed_images() -> None:
 	assert result.failed_images == 1
 
 
+def test_benchmark_ignores_non_benchmark_files_in_archives() -> None:
+	image_bytes = _make_real_image()
+	fake_result = PredictionResult(model_version="v1", detections=[], inference_time_ms=10)
+	service, port = _make_service(fake_result)
+
+	result = service.benchmark(
+		BenchmarkInput(
+			test_archive_bytes=_make_zip(
+				{
+					"dataset/img.jpg": image_bytes,
+					"._img.jpg": b"not-an-image",
+					"__MACOSX/._img.jpg": b"not-an-image",
+					".DS_Store": b"finder-metadata",
+					"Thumbs.db": b"windows-thumbnail-cache",
+					"desktop.ini": b"windows-metadata",
+					".directory": b"linux-directory-metadata",
+					".hidden/img.jpg": image_bytes,
+					"dataset/.hidden.jpg": image_bytes,
+					"dataset/img.jpg~": image_bytes,
+					"notes.md": b"not-a-benchmark-image",
+				}
+			),
+			test_archive_filename="test.zip",
+			label_archive_bytes=_make_zip(
+				{
+					"dataset/img.txt": b"0 0.5 0.5 0.2 0.2",
+					"._img.txt": b"0 0.1 0.1 0.1 0.1",
+					"__MACOSX/._img.txt": b"0 0.1 0.1 0.1 0.1",
+					".DS_Store": b"finder-metadata",
+					"Thumbs.db": b"windows-thumbnail-cache",
+					"desktop.ini": b"windows-metadata",
+					".directory": b"linux-directory-metadata",
+					".hidden/img.txt": b"0 0.1 0.1 0.1 0.1",
+					"dataset/.hidden.txt": b"0 0.1 0.1 0.1 0.1",
+					"dataset/img.txt~": b"0 0.1 0.1 0.1 0.1",
+					"readme.md": b"not-a-label-file",
+				}
+			),
+			label_archive_filename="labels.zip",
+		)
+	)
+
+	assert result.total_images == 1
+	assert result.failed_images == 0
+	assert len(port.received_inputs) == 1
+	assert port.received_inputs[0].filename == "img.jpg"
+	assert result.image_results[0].image_id == "img"
+	assert result.image_results[0].ground_truth_count == 1
+
+
 def test_benchmark_image_results_contain_per_image_data() -> None:
 	image_bytes = _make_real_image(width=200, height=200)
 	fake_result = PredictionResult(
