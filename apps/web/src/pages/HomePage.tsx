@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
-import { Upload, Search, CheckCircle, GraduationCap } from "lucide-react"
+import { Upload, Search, CheckCircle, GraduationCap, BarChart } from "lucide-react"
 import backgroundWald from "@/components/wald_background.jpg"
 import waldpilzLogo from "@/components/WALDPILZ_Logo (1).png"
 import waldpilzLogoWhite from "@/components/WALDPILZ_Logo_weiß.png"
 import { getAssetSrc } from "@/lib/asset-src"
+import { Header } from "@/components/waldpilz/header"
 
 export default function HomePage() {
   return (
@@ -20,32 +21,18 @@ export default function HomePage() {
         }}
       />
       <div className="relative z-10">
-      {/* Header */}
-      <header className="border-b-4 border-border bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img
-              src={getAssetSrc(waldpilzLogo)}
-              alt="Waldpilz Logo"
-              className="h-10 w-auto"
-            />
-          </div>
-          <Link to="/prediction">
-            <Button variant="default">Analyse starten</Button>
-          </Link>
-        </div>
-      </header>
+      <Header />
 
       {/* Kopfzeile */}
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-4xl text-center">
           <div className="opacity-0">Startseite</div>
           <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tighter text-balance text-white">
-            Spezialisierte <span className="text-yellow-300">KI-Erkennung</span>
+            Lackporlinge auf Fotos <span className="text-yellow-300">erkennen</span>
           </h1>
-          
+
           <p className="text-xl md:text-2xl text-gray-200 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Identifikation des <strong>Glänzenden Lackporlings</strong> (Ganoderma lucidum). Nutzen Sie modernste Technik zur Bestimmung dieses besonderen Vitalpilzes.
+            KI-gestützte Analyse für den <strong>Glänzenden Lackporling</strong>.
           </p>
           <div className="flex items-center justify-center gap-3 -mt-4">
             <img
@@ -85,7 +72,7 @@ export default function HomePage() {
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-5xl">
           <h2 className="text-3xl font-bold text-center mb-16 text-yellow-300">Der Analyse-Prozess</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
             <div className="flex flex-col items-center text-center group">
               <div className="size-20 rounded-2xl bg-card border-4 border-border flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
                 <Upload className="size-10 text-foreground group-hover:text-primary-foreground" />
@@ -113,6 +100,15 @@ export default function HomePage() {
                 Sie erhalten eine Einschätzung, ob es sich um den Glänzenden Lackporling handelt.
               </p>
             </div>
+            <Link to="/benchmark" className="flex flex-col items-center text-center group">
+              <div className="size-20 rounded-2xl bg-card border-4 border-border flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
+                <BarChart className="size-10 text-foreground group-hover:text-primary-foreground" />
+              </div>
+              <h3 className="text-xl font-bold mb-3 text-yellow-300">Benchmark</h3>
+              <p className="text-gray-200">
+                Vergleichen Sie die Modellleistung anhand standardisierter Metriken.
+              </p>
+            </Link>
           </div>
         </div>
       </section>
@@ -132,18 +128,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Weiterleitung Analyse */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl font-bold mb-6 text-gray-200">Haben Sie einen Fund gemacht?</h2>
-          <Link to="/prediction">
-            <Button size="lg" className="text-lg px-12 py-7 h-auto">
-              Lackporling-Check starten
-            </Button>
-          </Link>
-        </div>
-      </section>
-
       {/* Fußzeile */}
       <footer className="py-10 px-4 border-t-4 border-border bg-card">
         <div className="container mx-auto max-w-6xl flex flex-col md:flex-row justify-between items-center gap-6 text-muted-foreground text-sm">
@@ -154,7 +138,10 @@ export default function HomePage() {
               alt="Waldpilz Logo"
               className="h-10 w-auto"
             />
-          <p>&copy; 2026 – Entwicklungsteam der Ostfalia Hochschule Wolfenbüttel.</p>
+          <div className="text-center">
+            <p>&copy; 2026 – Ostfalia Hochschule Wolfenbüttel</p>
+            <p>Entwickelt von: Lasse Wiesen, Max Schwarz, Max Weber, Alex Teemann, Marven Diekelmann</p>
+          </div>
           <div className="flex gap-6">
             <a href="#" className="hover:text-primary">Impressum</a>
             <a href="#" className="hover:text-primary">Datenschutz</a>

@@ -25,7 +25,7 @@ describe("HomePage", () => {
     renderHomePage();
 
     const title = screen.getByRole("heading", {
-      name: /KI-Erkennung/i,
+      name: /erkennen/i,
     });
     expect(title).toBeInTheDocument();
   });
