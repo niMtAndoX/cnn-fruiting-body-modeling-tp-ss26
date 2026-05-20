@@ -12,6 +12,7 @@ interface HistorySectionProps {
   onAnalyze: () => void
   isAnalyzing: boolean
   hasImage: boolean
+  hasResult: boolean
 }
 
 const PLACEHOLDER_COLORS = ["#016401", "#074710", "#2B1A17", "#4A2C2A", "#654422"]
@@ -39,6 +40,7 @@ export function HistorySection({
   onAnalyze,
   isAnalyzing,
   hasImage,
+  hasResult,
 }: HistorySectionProps) {
   // Fill remaining slots with placeholders
   const displayItems = [...history]
@@ -84,13 +86,17 @@ export function HistorySection({
       <Button
         onClick={onAnalyze}
         disabled={!hasImage || isAnalyzing}
-        className="w-full h-12 text-lg bg-primary text-primary-foreground hover:bg-accent disabled:opacity-50"
+        className="w-full h-12 text-lg bg-primary text-primary-foreground hover:bg-accent disabled:opacity-70"
       >
         {isAnalyzing ? (
           <>
             <Spinner className="size-5" />
             Analysiere...
           </>
+        ) : hasResult ? (
+          "Erneut analysieren"
+        ) : hasImage ? (
+          "Analyse starten"
         ) : (
           "Jetzt analysieren!"
         )}

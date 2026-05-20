@@ -88,7 +88,10 @@ export default function PredictionPage() {
       <main className="container mx-auto px-4 py-6 max-w-4xl">
         <div className="bg-card/90 rounded-lg border-4 border-border relative">
           <div className="p-6 space-y-6">
-            <UploadForm onImageSelected={handleImageSelected} />
+            <UploadForm
+              onImageSelected={handleImageSelected}
+              selectedFileName={selectedImage?.file.name ?? null}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <AnalysisPanel
@@ -118,6 +121,7 @@ export default function PredictionPage() {
               onAnalyze={handleAnalyze}
               isAnalyzing={isAnalyzing}
               hasImage={selectedImage !== null}
+              hasResult={result !== null}
             />
           </div>
         </div>
