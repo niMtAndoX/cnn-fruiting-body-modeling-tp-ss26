@@ -9,13 +9,13 @@ import { Header } from "@/components/waldpilz/header"
 
 export default function HomePage() {
   return (
-    <div
-      className="min-h-screen bg-background text-foreground bg-cover bg-center bg-fixed relative"
-      style={{ backgroundImage: `url(${backgroundWald})` }}
-    >
-      {/* Grünliches transparentes Overlay für bessere Lesbarkeit */}
-      <div 
-        className="absolute inset-0 pointer-events-none" 
+    <div className="min-h-screen text-foreground relative overflow-hidden">
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-fixed scale-105"
+        style={{ backgroundImage: `url(${backgroundWald})`, filter: "blur(4px)" }}
+      />
+      <div
+        className="absolute inset-0 pointer-events-none"
         style={{
           background: "radial-gradient(ellipse 800px 100% at center, rgba(0, 0, 0, 0.35), transparent)"
         }}
