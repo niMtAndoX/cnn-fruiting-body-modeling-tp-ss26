@@ -15,7 +15,14 @@ import {
 
 export default function PredictionPage() {
   const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(null)
-  const [history, setHistory] = useState<AnalysisResult[]>([])
+  const [history, setHistory] = useState<AnalysisResult[]>(() => {
+    try {
+      const stored = sessionStorage.getItem("prediction-history")
+      return stored ? (JSON.parse(stored) as AnalysisResult[]) : []
+    } catch {
+      return []
+    }
+  })
   const [selectedHistoryIndex, setSelectedHistoryIndex] = useState<number | null>(null)
 
   const {
@@ -59,7 +66,13 @@ export default function PredictionPage() {
         status: completedPrediction.status,
       })
 
-      return [historyEntry, ...prev].slice(0, 5)
+      const newHistory = [historyEntry, ...prev].slice(0, 5)
+      try {
+        sessionStorage.setItem("prediction-history", JSON.stringify(newHistory))
+      } catch {
+        // ignore quota errors
+      }
+      return newHistory
     })
   }, [analyzeImage, selectedImage])
 
@@ -78,54 +91,58 @@ export default function PredictionPage() {
   }, [reset])
 
   return (
-    <div
-      className="min-h-screen bg-background bg-cover bg-center"
-      style={{ backgroundImage: `url(${backgroundWald})` }}
-    >
-      <Header />
-      <div className="opacity-0">Prediction Page</div>
+    <div className="min-h-screen relative overflow-hidden">
+      <div
+        className="absolute inset-0 bg-cover bg-center scale-105"
+        style={{ backgroundImage: `url(${backgroundWald})`, filter: "blur(4px)" }}
+      />
+      <div className="absolute inset-0 bg-black/20" />
+      <div className="relative z-10 min-h-screen">
+        <Header />
+        <div className="opacity-0">Prediction Page</div>
 
-      <main className="container mx-auto px-4 py-6 max-w-4xl">
-        <div className="bg-card/90 rounded-lg border-4 border-border relative">
-          <div className="p-6 space-y-6">
-            <UploadForm
-              onImageSelected={handleImageSelected}
-              selectedFileName={selectedImage?.file.name ?? null}
-            />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <AnalysisPanel
-                imageUrl={displayedImageUrl}
-                boundingBoxes={displayedPrediction?.boundingBoxes ?? []}
-                onClose={handleClose}
+        <main className="container mx-auto px-4 py-6 max-w-5xl">
+          <div className="bg-card/90 rounded-lg border-4 border-border relative">
+            <div className="p-6 space-y-6">
+              <UploadForm
+                onImageSelected={handleImageSelected}
+                selectedFileName={selectedImage?.file.name ?? null}
               />
-              <LogPanel
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <AnalysisPanel
+                  imageUrl={displayedImageUrl}
+                  boundingBoxes={displayedPrediction?.boundingBoxes ?? []}
+                  onClose={handleClose}
+                />
+                <LogPanel
+                  errorMessage={displayedErrorMessage}
+                  hasImage={Boolean(displayedImageUrl)}
+                  logs={displayedLogs}
+                  isAnalyzing={isAnalyzing}
+                  status={displayedStatus}
+                />
+              </div>
+
+              <PredictionResult
                 errorMessage={displayedErrorMessage}
-                hasImage={Boolean(displayedImageUrl)}
-                logs={displayedLogs}
-                isAnalyzing={isAnalyzing}
+                result={displayedPrediction}
                 status={displayedStatus}
               />
+
+              <HistorySection
+                history={history}
+                selectedIndex={selectedHistoryIndex}
+                onSelect={handleHistorySelect}
+                onAnalyze={handleAnalyze}
+                isAnalyzing={isAnalyzing}
+                hasImage={selectedImage !== null}
+                hasResult={result !== null}
+              />
             </div>
-
-            <PredictionResult
-              errorMessage={displayedErrorMessage}
-              result={displayedPrediction}
-              status={displayedStatus}
-            />
-
-            <HistorySection
-              history={history}
-              selectedIndex={selectedHistoryIndex}
-              onSelect={handleHistorySelect}
-              onAnalyze={handleAnalyze}
-              isAnalyzing={isAnalyzing}
-              hasImage={selectedImage !== null}
-              hasResult={result !== null}
-            />
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   )
 }

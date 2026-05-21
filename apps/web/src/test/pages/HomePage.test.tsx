@@ -39,11 +39,11 @@ describe("HomePage", () => {
     expect(button).toBeInTheDocument();
   });
 
-  it("zeigt den Navigations-Button zur Prediction-Seite im Header", () => {
+  it("zeigt den Link zur Benchmark-Seite", () => {
     renderHomePage();
 
-    const button = screen.getByRole("button", {
-      name: /Prediction/i,
+    const button = screen.getByRole("link", {
+      name: /Benchmark/i,
     });
     expect(button).toBeInTheDocument();
   });
