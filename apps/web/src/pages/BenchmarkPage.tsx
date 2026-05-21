@@ -44,12 +44,15 @@ export default function BenchmarkPage() {
   }
 
   return (
-    <div
-      className="min-h-screen bg-background bg-cover bg-center"
-      style={{ backgroundImage: `url(${backgroundWald})` }}
-    >
-      <Header />
-      <div className="opacity-0">Benchmark Page</div>
+    <div className="min-h-screen relative overflow-hidden">
+      <div
+        className="absolute inset-0 bg-cover bg-center scale-105"
+        style={{ backgroundImage: `url(${backgroundWald})`, filter: "blur(4px)" }}
+      />
+      <div className="absolute inset-0 bg-black/20" />
+      <div className="relative z-10 min-h-screen">
+        <Header />
+        <div className="opacity-0">Benchmark Page</div>
 
       <main className="container mx-auto px-4 py-6 max-w-4xl">
         <div className="bg-card/90 rounded-lg border-4 border-border relative">
@@ -66,12 +69,13 @@ export default function BenchmarkPage() {
               download={handleDownload}
             />
 
-            <BenchmarkProgress status={status} error={displayedError} />
+              <BenchmarkProgress status={status} error={displayedError} />
 
-            <BenchmarkResultView result={result} status={status} />
+              <BenchmarkResultView result={result} status={status} />
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   )
 }
