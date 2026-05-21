@@ -7,3 +7,4 @@ class PredictionBadRequestError(Exception):
 
 class PredictionExecutionError(Exception):
     """Fehler für interne Probleme bei der Ausführung der Vorhersage."""
+    

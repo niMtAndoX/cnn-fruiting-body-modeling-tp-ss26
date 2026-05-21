@@ -171,7 +171,7 @@ Wichtige URLs nach dem Start:
 
 Wichtige Befehle:
 
-- `make deploy` – baut und startet Frontend und Backend gemeinsam
+- `make deploy` – validiert das Docker-Deployment, baut Images und startet Frontend und Backend gemeinsam
 - `make ps` – zeigt Container-Status und Health
 - `make logs` – zeigt Logs beider Dienste
 - `make health` – prüft den Health-Endpunkt
@@ -187,7 +187,7 @@ Die Projektstruktur im Backend ist so organisiert:
 app/
 ├── main.py                    # Einstiegspunkt der FastAPI-App
 ├── api/
-│   ├── routes/                # HTTP-Endpunkte (health, predict)
+│   ├── routes/                # HTTP-Endpunkte (health, predict, benchmark)
 │   ├── schemas/               # Request- und Response-Schemas (Pydantic)
 │   └── error_handlers.py      # Zentrale Fehlerbehandlung
 ├── core/
@@ -212,8 +212,10 @@ app/
 - `main.py` – Erstellt die FastAPI-App, bindet Router ein
 - `api/routes/health.py` – Healthcheck-Endpunkt
 - `api/routes/predict.py` – Prediction-Endpunkt
+- `api/routes/benchmark.py` – Benchmark-Endpunkt für ZIP-basierte Modellbewertung
 - `core/config.py` – Zentrale Konfiguration (Env-Variablen, Settings)
 - `domain/prediction/service.py` – Fachlogik für die Bilderkennung
+- `domain/benchmark/service.py` – Fachlogik für ZIP-Verarbeitung, Vergleich und Metrikberechnung
 
 ---
 
@@ -338,6 +340,164 @@ Mögliche Fehlerursachen:
 
 ---
 
+### `POST /api/v1/benchmark`
+
+Führt einen Benchmark-Lauf für das Bilderkennungsmodell aus.
+
+Dabei werden zwei ZIP-Archive hochgeladen:
+
+- ein Archiv mit Testbildern
+- ein Archiv mit den zugehörigen Label-Dateien im YOLO-Format
+
+Der Endpunkt verarbeitet die Bilder, führt die Modellvorhersage aus, vergleicht die Vorhersagen mit den Ground-Truth-Labels und liefert zusammenfassende Bewertungsmetriken zurück.
+
+**Request:**
+
+- **Content-Type:** `multipart/form-data`
+- **Body-Parameter:**
+  - `test_archive` (erforderlich): ZIP-Archiv mit Testbildern
+  - `label_archive` (erforderlich): ZIP-Archiv mit Label-Dateien
+
+**Unterstützte Bildformate innerhalb des Test-Archivs:**
+
+- JPEG (`.jpg`, `.jpeg`)
+- PNG (`.png`)
+
+### Erwartete Struktur der ZIP-Archive
+
+Die Dateien werden anhand ihres Dateinamens einander zugeordnet.
+
+Beispiel:
+
+```text
+test_images.zip
+├── image_1.jpg
+└── image_2.png
+
+labels.zip
+├── image_1.txt
+└── image_2.txt
+```
+
+`image_1.jpg` wird also mit `image_1.txt` verglichen.
+
+### Label-Format
+
+Die Label-Dateien verwenden das YOLO-Format:
+
+```text
+<class_id> <x_center> <y_center> <width> <height>
+```
+
+Beispiel:
+
+```text
+0 0.5 0.5 0.4 0.4
+```
+
+Bedeutung:
+
+- `class_id`: Klassen-ID
+- `x_center`: horizontale Mittelpunktposition der Box
+- `y_center`: vertikale Mittelpunktposition der Box
+- `width`: Breite der Box
+- `height`: Höhe der Box
+
+Die Koordinaten sind normalisiert und liegen typischerweise zwischen `0.0` und `1.0`.
+
+> Hinweis: Der aktuelle Benchmark ist fachlich auf den bestehenden Ein-Klassen-Fall ausgelegt. Die API-Struktur unterstützt bereits Metriken pro Label über `per_label`; eine vollständige Mehrklassen-Auswertung der Ground-Truth-Labels kann später ergänzt werden.
+
+### Erfolgreiche Response (200 OK)
+
+```json
+{
+  "request_id": "8fd17d72-3d31-4d87-956c-f8595dc5503f",
+  "model_version": "darknet-cnn-v1",
+  "processing_time_ms": 1840,
+  "average_inference_time_ms": 412.5,
+  "true_positives": 3,
+  "false_positives": 1,
+  "false_negatives": 1,
+  "precision": 0.75,
+  "recall": 0.75,
+  "f1_score": 0.75,
+  "accuracy": 0.6,
+  "mean_iou": 0.82,
+  "map": 0.71,
+  "total_images": 4,
+  "failed_images": 0,
+  "per_label": [
+    {
+      "label": "fungus",
+      "true_positives": 3,
+      "false_positives": 1,
+      "false_negatives": 1,
+      "precision": 0.75,
+      "recall": 0.75,
+      "f1_score": 0.75,
+      "accuracy": 0.6,
+      "mean_iou": 0.82
+    }
+  ],
+  "image_results": [
+    {
+      "image_id": "image_1",
+      "ground_truth_count": 1,
+      "predicted_count": 1,
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "inference_time_ms": 398,
+      "error": null
+    }
+  ]
+}
+```
+
+### Kurzbeschreibung der Metriken
+
+- `true_positives`: korrekt erkannte Objekte
+- `false_positives`: Vorhersagen ohne gültiges Ground-Truth-Match
+- `false_negatives`: Ground-Truth-Objekte ohne passende Vorhersage
+- `precision`: Anteil korrekter Treffer an allen Vorhersagen
+- `recall`: Anteil gefundener Objekte an allen Ground-Truth-Objekten
+- `f1_score`: harmonisches Mittel aus Precision und Recall
+- `accuracy`: objektbezogene Trefferquote `TP / (TP + FP + FN)`
+- `mean_iou`: durchschnittliche IoU der erfolgreich gematchten Objekte
+- `map`: Mean Average Precision bei IoU-Schwelle `0.5`
+- `average_inference_time_ms`: durchschnittliche reine Modell-Inferenzzeit pro erfolgreich verarbeitetem Bild
+- `processing_time_ms`: gesamte Verarbeitungszeit des Benchmark-Laufs
+
+### Fehlerantworten
+
+**400 Bad Request** – Ungültige Benchmark-Eingabe:
+
+```json
+{
+  "error": "bad_request",
+  "message": "Das Testbilder-Archiv ist kein gültiges ZIP-Archiv."
+}
+```
+
+Mögliche Fehlerursachen:
+
+- Testbilder-Archiv ist leer
+- Label-Archiv ist leer
+- eines der Archive ist kein gültiges ZIP-Archiv
+- Testarchiv enthält keine unterstützten Bilder
+- Archivgröße überschreitet das konfigurierte Limit
+
+**500 Internal Server Error** – Fehler bei der Verarbeitung:
+
+```json
+{
+  "error": "internal_error",
+  "message": "Der Benchmark konnte nicht erfolgreich ausgeführt werden."
+}
+```
+
+---
+
 ## Verwendungsbeispiele
 
 ### Mit curl – Health-Check
@@ -385,6 +545,66 @@ curl -X 'POST' \
     }
   ],
   "inference_time_ms": 787
+}
+```
+
+---
+
+### Mit curl – Benchmark ausführen
+
+```bash
+curl -X 'POST' \
+  'http://127.0.0.1:8000/api/v1/benchmark' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'test_archive=@test_images.zip;type=application/zip' \
+  -F 'label_archive=@labels.zip;type=application/zip'
+```
+
+**Erwartete Antwort:**
+
+```json
+{
+  "request_id": "8fd17d72-3d31-4d87-956c-f8595dc5503f",
+  "model_version": "darknet-cnn-v1",
+  "processing_time_ms": 1840,
+  "average_inference_time_ms": 412.5,
+  "true_positives": 3,
+  "false_positives": 1,
+  "false_negatives": 1,
+  "precision": 0.75,
+  "recall": 0.75,
+  "f1_score": 0.75,
+  "accuracy": 0.6,
+  "mean_iou": 0.82,
+  "map": 0.71,
+  "total_images": 4,
+  "failed_images": 0,
+  "per_label": [
+    {
+      "label": "fungus",
+      "true_positives": 3,
+      "false_positives": 1,
+      "false_negatives": 1,
+      "precision": 0.75,
+      "recall": 0.75,
+      "f1_score": 0.75,
+      "accuracy": 0.6,
+      "mean_iou": 0.82
+    }
+  ],
+  "image_results": [
+    {
+      "image_id": "image_1",
+      "ground_truth_count": 1,
+      "predicted_count": 1,
+      "true_positives": 1,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "inference_time_ms": 398,
+      "error": null
+    }
+  ]
 }
 ```
 
@@ -478,6 +698,7 @@ API_PREFIX=/api/v1
 
 # Uploads
 MAX_UPLOAD_SIZE_MB=20
+MAX_BENCHMARK_ARCHIVE_SIZE_MB=200
 ALLOWED_UPLOAD_CONTENT_TYPES=image/jpeg,image/png
 
 # Modell

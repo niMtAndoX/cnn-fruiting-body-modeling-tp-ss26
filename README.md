@@ -81,9 +81,9 @@ Für erforderliche Modell-Dateien und deren Ablage:
 
 ---
 
-## Entwicklungsumgebung einrichten
+## Lokale Entwicklung
 
-### 1. Benötigte Software installieren
+### Voraussetzungen
 
 Für macOS per Homebrew:
 
@@ -150,13 +150,32 @@ code --install-extension EditorConfig.EditorConfig
 
 ---
 
-## Gemeinsames Deployment
+## Lokale Befehle
+
+Diese Kommandos sind bewusst fuer Entwickler-Workflows gedacht und duerfen
+lokale Toolchains wie Python 3.12, Node.js und pnpm voraussetzen:
+
+- `make test` – fuehrt lokal Backend- und Frontend-Tests sowie Linter aus
+- `make backend` – installiert das Backend lokal und startet den lokalen Backend-Server
+- `make frontend` – installiert und baut das Frontend lokal und startet den lokalen Preview-Server
+- `make dev` – installiert lokal alle Dependencies, baut Frontend und Backend und startet beide lokal
+
+---
+
+## Kundendeployment
 
 Die gesamte Anwendung kann aus dem Repository-Root über die `Makefile` gesteuert werden.
 Vor jedem Deployment muessen die Schritte aus [`models/README.md`](models/README.md)
 vollstaendig beachtet werden.
 
-Fuer das gemeinsame Docker-Deployment:
+### Voraussetzungen
+
+- Docker
+- Docker Compose V2
+
+### Start
+
+Fuer das gemeinsame Docker-Deployment ohne lokale Python-, Node- oder pnpm-Installation:
 
 ```bash
 make deploy
@@ -164,18 +183,33 @@ make deploy
 
 Danach ist die Anwendung standardmäßig unter `http://localhost:8080` erreichbar.
 
-Wichtige Befehle:
+Beim ersten Start wird `ops/docker/.env` automatisch aus
+`ops/docker/.env.example` erzeugt, falls die Datei noch nicht existiert.
+Eine vorhandene `ops/docker/.env` wird nicht überschrieben.
 
-- `make test` – fuehrt lokal alle Backend- und Frontend-Tests sowie Linter aus
-- `make backend` – installiert das Backend lokal und startet den lokalen Backend-Server
-- `make frontend` – installiert und baut das Frontend lokal und startet den lokalen Preview-Server
-- `make dev` – installiert lokal alle Dependencies, baut Frontend und Backend und startet beide lokal
-- `make deploy` – baut Backend und Frontend lokal, prueft beide per Healthcheck und deployed sie danach gemeinsam per Docker
+### Betrieb
+
+- `make deploy` – validiert Compose, baut Images und startet den Stack mit Health-Waiting
+- `make up` – startet den bestehenden Docker-Stack ohne Rebuild
 - `make ps` – zeigt den Status der Container
 - `make logs` – zeigt die Container-Logs
-- `make health` – prüft den Health-Endpunkt über das Frontend-Gateway
+- `make health` – prueft den Health-Endpunkt ueber das Frontend-Gateway
 - `make down` – stoppt den Docker-Stack und entfernt verwaiste Container
 - `make clean` – stoppt den Stack und entfernt zugehörige Volumes
+
+### Konfiguration
+
+- Deployment-Variablen liegen in `ops/docker/.env`
+- versioniert wird `ops/docker/.env.example`
+
+### Modellartefakte
+
+Vor `make deploy` muessen mindestens diese Dateien unter `models/darknet/`
+vorhanden sein:
+
+- `Bilderkennung-Pilzwachstum.data`
+- `Bilderkennung-Pilzwachstum.cfg`
+- `Bilderkennung-Pilzwachstum_best.weights`
 
 Das Frontend spricht im Deployment über denselben Origin mit `/api/v1`, und der
 Frontend-Nginx leitet diese Requests intern an das Backend weiter.

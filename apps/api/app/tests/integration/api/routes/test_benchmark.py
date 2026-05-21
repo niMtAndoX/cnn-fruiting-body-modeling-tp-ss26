@@ -70,12 +70,19 @@ def test_benchmark_returns_benchmark_response() -> None:
 		assert body == {
 			"model_version": "test-model-v1",
 			"processing_time_ms": 3200,
+			"average_inference_time_ms": 0.0,
+			"true_positives": 0,
+			"false_positives": 0,
+			"false_negatives": 0,
 			"precision": 0.91,
 			"recall": 0.85,
 			"f1_score": 0.88,
+			"accuracy": 0.0,
+			"mean_iou": 0.0,
 			"map": 0.87,
 			"total_images": 50,
 			"failed_images": 0,
+			"per_label": [],
 			"image_results": [],
 		}
 	finally:

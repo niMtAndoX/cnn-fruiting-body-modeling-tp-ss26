@@ -28,20 +28,6 @@ def register_exception_handlers(app: FastAPI) -> None:
             content=error_response.model_dump(),
         )
 
-    @app.exception_handler(PredictionExecutionError)
-    async def handle_prediction_execution_error(
-        request: Request,
-        exc: PredictionExecutionError,
-    ) -> JSONResponse:
-        error_response = ErrorResponse(
-            error="internal_error",
-            message=str(exc),
-        )
-        return JSONResponse(
-            status_code=500,
-            content=error_response.model_dump(),
-        )
-
     @app.exception_handler(BenchmarkBadRequestError)
     async def handle_benchmark_bad_request(
         request: Request,
@@ -53,6 +39,20 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
         return JSONResponse(
             status_code=400,
+            content=error_response.model_dump(),
+        )
+
+    @app.exception_handler(PredictionExecutionError)
+    async def handle_prediction_execution_error(
+        request: Request,
+        exc: PredictionExecutionError,
+    ) -> JSONResponse:
+        error_response = ErrorResponse(
+            error="internal_error",
+            message=str(exc),
+        )
+        return JSONResponse(
+            status_code=500,
             content=error_response.model_dump(),
         )
 

@@ -78,3 +78,4 @@ apps/web/yarn-error.log*
 apps/web/pnpm-debug.log*
 
 node_modules
+temptest

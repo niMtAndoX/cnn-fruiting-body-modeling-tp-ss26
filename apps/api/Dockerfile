@@ -1,4 +1,46 @@
-FROM python:3.12-slim
+# syntax=docker/dockerfile:1.7
+
+ARG PYTHON_BASE_IMAGE=python:3.12.13-slim-bookworm
+
+FROM ${PYTHON_BASE_IMAGE} AS api-builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    bash \
+    build-essential \
+    ca-certificates \
+    cmake \
+    git \
+    libopenblas-dev \
+    libopenblas0-openmp \
+    libopencv-dev \
+    libprotobuf-dev \
+    protobuf-compiler \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY apps/api /app/apps/api
+
+RUN python -m pip install --upgrade pip setuptools wheel && \
+    python -m pip wheel --wheel-dir /tmp/wheels /app/apps/api
+
+FROM api-builder AS darknet-builder
+
+ARG DARKNET_REPOSITORY=https://github.com/hank-ai/darknet.git
+ARG DARKNET_REF=v5.1
+
+RUN git clone "$DARKNET_REPOSITORY" /app/vendor/darknet && \
+    cd /app/vendor/darknet && \
+    git checkout "$DARKNET_REF" && \
+    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && \
+    cmake --build build --parallel "$(nproc)" && \
+    chmod +x /app/vendor/darknet/build/src-cli/darknet
+
+FROM ${PYTHON_BASE_IMAGE} AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -13,42 +55,34 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     MAX_UPLOAD_SIZE_MB=20 \
     ALLOWED_UPLOAD_CONTENT_TYPES=image/jpeg,image/png \
     MODEL_VERSION=darknet-cnn-v1 \
-    INFERENCE_SCRIPT_PATH=/opt/waldpilz/scripts/inference.sh \
-    MODEL_DIR=/opt/waldpilz/models/darknet \
-    DARKNET_DIR=/opt/waldpilz/vendor/darknet/build-linux \
+    INFERENCE_SCRIPT_PATH=/app/scripts/inference.sh \
+    MODEL_DIR=/app/models/darknet \
+    DARKNET_BIN=/app/vendor/darknet/build/src-cli/darknet \
     INFERENCE_TIMEOUT_SECONDS=30
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     bash \
     ca-certificates \
-    build-essential \
-    cmake \
-    git \
+    libopenblas0-openmp \
     libopencv-dev \
     libprotobuf-dev \
-    protobuf-compiler \
-    libopenblas64-openmp-dev \
-    file \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /opt/waldpilz
+WORKDIR /app
 
-COPY apps/api /opt/waldpilz/apps/api
-COPY scripts /opt/waldpilz/scripts
-COPY models /opt/waldpilz/models
+COPY --from=api-builder /tmp/wheels /tmp/wheels
 
-RUN git clone https://github.com/hank-ai/darknet.git /opt/waldpilz/vendor/darknet && \
-    chmod +x /opt/waldpilz/scripts/inference.sh && \
-    cd /opt/waldpilz/vendor/darknet && \
-    cmake -S . -B build-linux -DCMAKE_BUILD_TYPE=Release && \
-    cmake --build build-linux --parallel "$(nproc)" && \
-    file /opt/waldpilz/vendor/darknet/build-linux/src-cli/darknet && \
-    chmod +x /opt/waldpilz/vendor/darknet/build-linux/src-cli/darknet && \
-    cd /opt/waldpilz/apps/api && \
-    pip install --upgrade pip && \
-    pip install .
+RUN python -m pip install --upgrade pip && \
+    python -m pip install --no-cache-dir --no-index --find-links /tmp/wheels waldpilz-api && \
+    rm -rf /tmp/wheels
 
-WORKDIR /opt/waldpilz/apps/api
+COPY scripts /app/scripts
+COPY models /app/models
+COPY --from=darknet-builder /app/vendor/darknet/build /app/vendor/darknet/build
+
+RUN chmod +x /app/scripts/inference.sh /app/vendor/darknet/build/src-cli/darknet
+
+WORKDIR /app
 
 EXPOSE 8000
 
