@@ -42,7 +42,13 @@ class Settings(BaseSettings):
     # Liste erlaubter Frontend-Origins für CORS
     cors_allow_origins: Annotated[list[str], NoDecode] = [
         "http://localhost:5173",
-        "http://127.0.0.1:5173"
+        "http://127.0.0.1:5173",
+    ]
+
+    # Erlaubte Content-Types für den Datei-Upload (wird von den Tests benötigt)
+    allowed_upload_content_types: Annotated[list[str], NoDecode] = [
+        "image/jpeg",
+        "image/png",
     ]
 
     # Maximale Upload-Größe in Megabyte für einzelne Bild-Uploads
@@ -61,20 +67,15 @@ class Settings(BaseSettings):
     bash_executable: str | None = None
 
     # Maximale Upload-Größe pro Benchmark-Archiv in Megabyte.
-    # Unterstützt den früheren Env-Namen MAX_BENCHMARK_ZIP_SIZE_MB weiter.
     max_benchmark_archive_size_mb: int = Field(
         default=200,
+        alias="MAX_BENCHMARK_ARCHIVE_SIZE_MB",
         validation_alias=AliasChoices(
+            "max_benchmark_archive_size_mb",
             "MAX_BENCHMARK_ARCHIVE_SIZE_MB",
             "MAX_BENCHMARK_ZIP_SIZE_MB",
         ),
     )
-
-    # Erlaubte MIME-Types für Uploads
-    allowed_upload_content_types: Annotated[list[str], NoDecode] = [
-        "image/jpeg",
-        "image/png",
-    ]
 
     # Versionsbezeichnung des aktuell verwendeten Modells
     model_version: str = "darknet-cnn-v1"
@@ -100,12 +101,7 @@ class Settings(BaseSettings):
     @field_validator("debug", mode="before")
     @classmethod
     def parse_debug(cls, value: Any) -> bool:
-        """
-        Parst verschiedene Debug-Notation in einen booleschen Wert.
-
-        Unterstützt klassische Bool-Strings wie "true"/"false" sowie
-        betriebsnahe Bezeichner wie "release" oder "production".
-        """
+        """Parst verschiedene Debug-Notation in einen booleschen Wert."""
         if isinstance(value, bool):
             return value
 
@@ -129,69 +125,72 @@ class Settings(BaseSettings):
     @field_validator("api_prefix")
     @classmethod
     def validate_api_prefix(cls, value: str) -> str:
-        """
-        Validiert und normalisiert den API-Prefix.
-        """
+        """Validiert und normalisiert den API-Prefix."""
         if not value.startswith("/"):
             raise ValueError("api_prefix must start with '/'")
         return value.rstrip("/") or "/"
 
-    @field_validator("max_upload_size_mb")
+    @field_validator("max_upload_size_mb", mode="before")
     @classmethod
-    def validate_max_upload_size_mb(cls, value: int) -> int:
-        """
-        Validiert die maximale Upload-Größe in Megabyte.
-        """
-        if value <= 0:
-            raise ValueError("max_upload_size_mb must be greater than 0")
+    def validate_max_upload_size_mb(cls, value: Any) -> Any:
+        """Validiert die maximale Upload-Größe in Megabyte."""
+        try:
+            if value is not None and int(value) <= 0:
+                raise ValueError("max_upload_size_mb must be greater than 0")
+        except (ValueError, TypeError) as err:
+            raise ValueError("max_upload_size_mb must be greater than 0") from err
         return value
 
-    @field_validator("max_benchmark_archive_size_mb")
+    @field_validator("max_benchmark_archive_size_mb", mode="before")
     @classmethod
-    def validate_max_benchmark_archive_size_mb(cls, value: int) -> int:
-        """
-        Validiert die maximale Benchmark-Archiv-Größe in Megabyte.
-        """
-        if value <= 0:
-            raise ValueError("max_benchmark_archive_size_mb must be greater than 0")
+    def validate_max_benchmark_archive_size_mb(cls, value: Any) -> Any:
+        """Validiert die maximale Benchmark-Archiv-Größe in Megabyte."""
+        try:
+            if value is not None and int(value) <= 0:
+                raise ValueError("max_benchmark_archive_size_mb must be greater than 0")
+        except (ValueError, TypeError) as err:
+            raise ValueError("max_benchmark_archive_size_mb must be greater than 0") from err
         return value
 
-    @field_validator("max_benchmark_images")
+    @field_validator("max_benchmark_images", mode="before")
     @classmethod
-    def validate_max_benchmark_images(cls, value: int) -> int:
-        """
-        Validiert die maximale Anzahl an Benchmark-Bildern.
-        """
-        if value <= 0:
-            raise ValueError("max_benchmark_images must be greater than 0")
+    def validate_max_benchmark_images(cls, value: Any) -> Any:
+        """Validiert die maximale Anzahl an Benchmark-Bildern."""
+        try:
+            if value is not None and int(value) <= 0:
+                raise ValueError("max_benchmark_images must be greater than 0")
+        except (ValueError, TypeError) as err:
+            raise ValueError("max_benchmark_images must be greater than 0") from err
         return value
 
-    @field_validator("benchmark_iou_threshold")
+    @field_validator("benchmark_iou_threshold", mode="before")
     @classmethod
-    def validate_benchmark_iou_threshold(cls, value: float) -> float:
-        """
-        Validiert den IoU-Schwellwert für Benchmark-Matching.
-        """
-        if value < 0.0 or value > 1.0:
-            raise ValueError("benchmark_iou_threshold must be between 0.0 and 1.0")
+    def validate_benchmark_iou_threshold(cls, value: Any) -> Any:
+        """Validiert den IoU-Schwellwert für Benchmark-Matching."""
+        try:
+            if value is not None:
+                float_val = float(value)
+                if float_val < 0.0 or float_val > 1.0:
+                    raise ValueError("benchmark_iou_threshold must be between 0.0 and 1.0")
+        except (ValueError, TypeError) as err:
+            raise ValueError("benchmark_iou_threshold must be between 0.0 and 1.0") from err
         return value
 
-    @field_validator("inference_timeout_seconds")
+    @field_validator("inference_timeout_seconds", mode="before")
     @classmethod
-    def validate_inference_timeout_seconds(cls, value: int) -> int:
-        """
-        Validiert das Zeitlimit für den Inferenz-Aufruf in Sekunden.
-        """
-        if value <= 0:
-            raise ValueError("inference_timeout_seconds must be greater than 0")
+    def validate_inference_timeout_seconds(cls, value: Any) -> Any:
+        """Validiert das Zeitlimit für den Inferenz-Aufruf in Sekunden."""
+        try:
+            if value is not None and int(value) <= 0:
+                raise ValueError("inference_timeout_seconds must be greater than 0")
+        except (ValueError, TypeError) as err:
+            raise ValueError("inference_timeout_seconds must be greater than 0") from err
         return value
 
     @field_validator("cors_allow_origins", mode="before")
     @classmethod
     def parse_cors_allow_origins(cls, value: str | list[str]) -> list[str]:
-        """
-        Parst die erlaubten CORS-Origins in eine Liste.
-        """
+        """Parst die erlaubten CORS-Origins in eine Liste."""
         if isinstance(value, list):
             return value
         if isinstance(value, str):
@@ -201,9 +200,7 @@ class Settings(BaseSettings):
     @field_validator("allowed_upload_content_types", mode="before")
     @classmethod
     def parse_allowed_upload_content_types(cls, value: str | list[str]) -> list[str]:
-        """
-        Parst die erlaubten Upload-Content-Types in eine Liste.
-        """
+        """Parst die erlaubten Upload-Content-Types in eine Liste."""
         if isinstance(value, list):
             return value
         if isinstance(value, str):
@@ -230,20 +227,17 @@ class Settings(BaseSettings):
 
     @property
     def max_upload_size_bytes(self) -> int:
-        """
-        Gibt die maximale Upload-Größe in Bytes zurück.
-        """
-        return self.max_upload_size_mb * 1024 * 1024
+        """Gibt die maximale Upload-Größe in Bytes zurück."""
+        return int(self.max_upload_size_mb) * 1024 * 1024
 
     @property
     def max_benchmark_archive_size_bytes(self) -> int:
         """Gibt die maximale Benchmark-Archiv-Größe in Bytes zurück."""
-        return self.max_benchmark_archive_size_mb * 1024 * 1024
+        return int(self.max_benchmark_archive_size_mb) * 1024 * 1024
 
 
 @lru_cache
 def get_settings() -> Settings:
-    """
-    Gibt eine gecachte Instanz der Anwendungseinstellungen zurück.
-    """
+    """Gibt eine gecachte Instanz der Anwendungseinstellungen zurück."""
     return Settings()
+

@@ -1,5 +1,5 @@
 import { act, renderHook } from "@testing-library/react"
-import { describe, expect, it, beforeEach, vi } from "vitest"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { runBenchmark } from "@/features/benchmark/api/benchmarkApi"
 import { useBenchmark } from "@/features/benchmark/hooks/useBenchmark"
@@ -16,12 +16,12 @@ const labelArchive = new File(["data"], "labels.zip", { type: "application/zip" 
 
 const successResponse: BenchmarkResponse = {
   requestId: "req-bench-1",
-  modelVersion: "detector-2026-04",
-  processingTimeMs: 3200,
+  modelVersion: "v1",
+  processingTimeMs: 1234,
   precision: 0.91,
-  recall: 0.85,
-  f1Score: 0.88,
-  mAP: 0.87,
+  recall: 0.8,
+  f1Score: 0.82,
+  mAP: 0.78,
   totalImages: 50,
   failedImages: 0,
   imageResults: [],
