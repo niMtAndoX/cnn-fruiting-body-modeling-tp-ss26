@@ -63,12 +63,13 @@ class Settings(BaseSettings):
     # Maximale Upload-Größe pro Benchmark-Archiv in Megabyte.
     # Unterstützt den früheren Env-Namen MAX_BENCHMARK_ZIP_SIZE_MB weiter.
     max_benchmark_archive_size_mb: int = Field(
-        default=200,
-        validation_alias=AliasChoices(
-            "MAX_BENCHMARK_ARCHIVE_SIZE_MB",
-            "MAX_BENCHMARK_ZIP_SIZE_MB",
-        ),
-    )
+    default=200,
+    gt=0,
+    validation_alias=AliasChoices(
+        "MAX_BENCHMARK_ARCHIVE_SIZE_MB",
+        "MAX_BENCHMARK_ZIP_SIZE_MB",
+    ),
+)
 
     # Erlaubte MIME-Types für Uploads
     allowed_upload_content_types: Annotated[list[str], NoDecode] = [
