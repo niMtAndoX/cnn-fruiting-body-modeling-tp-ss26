@@ -12,6 +12,7 @@ interface BenchmarkUploadFormProps {
   onTestArchiveError: (message: string) => void
   onLabelArchiveError: (message: string) => void
   onStart: () => void
+  download: () => void
 }
 
 interface FileInputCardProps {
@@ -112,6 +113,7 @@ export function BenchmarkUploadForm({
   onTestArchiveError,
   onLabelArchiveError,
   onStart,
+  download
 }: BenchmarkUploadFormProps) {
   const testInputRef = useRef<HTMLInputElement>(null)
   const labelInputRef = useRef<HTMLInputElement>(null)
@@ -180,8 +182,12 @@ export function BenchmarkUploadForm({
         </div>
       )}
 
-      <Button onClick={onStart} disabled={!canStart} className="w-full sm:w-auto">
+      <Button onClick={onStart} disabled={!canStart} className="mr-2 w-full sm:w-auto">
         {isLoading ? "Benchmark läuft..." : "Benchmark starten"}
+      </Button>
+
+      <Button onClick={download} className="mx-2 w-full sm:w-auto">
+        Testdaten runterladen
       </Button>
     </div>
   )

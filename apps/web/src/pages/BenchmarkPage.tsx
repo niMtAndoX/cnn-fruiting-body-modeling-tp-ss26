@@ -32,6 +32,17 @@ export default function BenchmarkPage() {
 
   const displayedError = formError ?? error
 
+  function handleDownload() {
+    const link = document.createElement("a");
+    
+    link.href = "/Benchmark Testdaten.zip"; 
+    link.download = "Benchmark Testdaten.zip"; 
+    
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+
   return (
     <div className="min-h-screen relative overflow-hidden">
       <div
@@ -43,19 +54,20 @@ export default function BenchmarkPage() {
         <Header />
         <div className="opacity-0">Benchmark Page</div>
 
-        <main className="container mx-auto px-4 py-6 max-w-5xl">
-          <div className="bg-card/90 rounded-lg border-4 border-border relative">
-            <div className="p-6 space-y-6">
-              <BenchmarkUploadForm
-                testArchive={testArchive}
-                labelArchive={labelArchive}
-                isLoading={isLoading}
-                onTestArchiveSelected={handleTestArchiveSelected}
-                onLabelArchiveSelected={handleLabelArchiveSelected}
-                onTestArchiveError={setFormError}
-                onLabelArchiveError={setFormError}
-                onStart={handleStart}
-              />
+      <main className="container mx-auto px-4 py-6 max-w-4xl">
+        <div className="bg-card/90 rounded-lg border-4 border-border relative">
+          <div className="py-6 px-16 space-y-6">
+            <BenchmarkUploadForm
+              testArchive={testArchive}
+              labelArchive={labelArchive}
+              isLoading={isLoading}
+              onTestArchiveSelected={handleTestArchiveSelected}
+              onLabelArchiveSelected={handleLabelArchiveSelected}
+              onTestArchiveError={setFormError}
+              onLabelArchiveError={setFormError}
+              onStart={handleStart}
+              download={handleDownload}
+            />
 
               <BenchmarkProgress status={status} error={displayedError} />
 
