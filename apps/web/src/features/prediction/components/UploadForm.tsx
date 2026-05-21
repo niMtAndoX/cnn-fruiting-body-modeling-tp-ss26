@@ -7,7 +7,6 @@ import { isValidImageFile, type ImageDimensions, type SelectedImage } from "../m
 interface UploadFormProps {
   onError?: (message: string) => void
   onImageSelected: (selectedImage: SelectedImage) => void
-  selectedFileName?: string | null
 }
 
 function readFileAsDataUrl(file: File): Promise<string> {
@@ -40,7 +39,7 @@ function getImageDimensions(imageUrl: string): Promise<ImageDimensions> {
   })
 }
 
-export function UploadForm({ onError, onImageSelected, selectedFileName }: UploadFormProps) {
+export function UploadForm({ onError, onImageSelected }: UploadFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const processFile = useCallback(async (file: File | null | undefined) => {
@@ -77,7 +76,6 @@ export function UploadForm({ onError, onImageSelected, selectedFileName }: Uploa
       onFileDrop={handleFileDrop}
       onFileSelect={handleFileSelect}
       fileInputRef={fileInputRef}
-      selectedFileName={selectedFileName}
     />
   )
 }

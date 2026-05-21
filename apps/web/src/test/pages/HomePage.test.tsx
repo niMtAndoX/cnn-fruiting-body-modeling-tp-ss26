@@ -25,7 +25,7 @@ describe("HomePage", () => {
     renderHomePage();
 
     const title = screen.getByRole("heading", {
-      name: /erkennen/i,
+      name: /KI-Erkennung/i,
     });
     expect(title).toBeInTheDocument();
   });
@@ -39,11 +39,11 @@ describe("HomePage", () => {
     expect(button).toBeInTheDocument();
   });
 
-  it("zeigt den Link zur Benchmark-Seite", () => {
+  it("zeigt den Button 'Analyse starten' im Header", () => {
     renderHomePage();
 
     const button = screen.getByRole("link", {
-      name: /Benchmark/i,
+      name: /Analyse starten/i,
     });
     expect(button).toBeInTheDocument();
   });
