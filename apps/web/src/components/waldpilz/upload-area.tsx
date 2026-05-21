@@ -16,9 +16,10 @@ interface UploadAreaProps {
   onFileDrop: (e: React.DragEvent) => void
   onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void
   fileInputRef: RefObject<HTMLInputElement | null>
+  selectedFileName?: string | null
 }
 
-export function UploadArea({ onFileDrop, onFileSelect, fileInputRef }: UploadAreaProps) {
+export function UploadArea({ onFileDrop, onFileSelect, fileInputRef, selectedFileName }: UploadAreaProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const isMobile = useIsMobile()
@@ -70,6 +71,76 @@ export function UploadArea({ onFileDrop, onFileSelect, fileInputRef }: UploadAre
     input.click()
     setIsSheetOpen(false)
   }, [onFileSelect])
+
+  if (selectedFileName) {
+    return (
+      <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={`
+          relative border rounded-lg px-4 py-3 transition-all duration-200
+          flex items-center gap-3
+          ${isDragging
+            ? "border-primary bg-primary/10"
+            : "border-border bg-muted/30"
+          }
+        `}
+      >
+        <ImageIcon className="size-4 text-foreground/60 shrink-0" />
+        <span className="text-sm text-foreground/60 shrink-0">Aktuelles Bild:</span>
+        <span className="text-sm font-medium text-foreground flex-1 truncate">{selectedFileName}</span>
+
+        {isMobile ? (
+          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+            <SheetTrigger asChild>
+              <button className="text-sm text-primary hover:text-primary/80 transition-colors shrink-0 underline underline-offset-2">
+                Bild ersetzen
+              </button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="rounded-t-xl">
+              <SheetHeader>
+                <SheetTitle className="text-foreground">Bild auswählen</SheetTitle>
+              </SheetHeader>
+              <div className="flex flex-col gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-3 h-14 text-foreground"
+                  onClick={handleChooseExisting}
+                >
+                  <ImageIcon className="size-6" />
+                  Vorhandenes Foto wählen
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-3 h-14 text-foreground"
+                  onClick={handleTakePhoto}
+                >
+                  <Camera className="size-6" />
+                  Neues Foto aufnehmen
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
+        ) : (
+          <button
+            onClick={handleButtonClick}
+            className="text-sm text-primary hover:text-primary/80 transition-colors shrink-0 underline underline-offset-2"
+          >
+            Bild ersetzen
+          </button>
+        )}
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={onFileSelect}
+          className="hidden"
+        />
+      </div>
+    )
+  }
 
   return (
     <div
