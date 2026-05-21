@@ -136,8 +136,8 @@ class Settings(BaseSettings):
         try:
             if value is not None and int(value) <= 0:
                 raise ValueError("max_upload_size_mb must be greater than 0")
-        except (ValueError, TypeError):
-            raise ValueError("max_upload_size_mb must be greater than 0")
+        except (ValueError, TypeError) as err:
+            raise ValueError("max_upload_size_mb must be greater than 0") from err
         return value
 
     @field_validator("max_benchmark_archive_size_mb", mode="before")
@@ -147,8 +147,8 @@ class Settings(BaseSettings):
         try:
             if value is not None and int(value) <= 0:
                 raise ValueError("max_benchmark_archive_size_mb must be greater than 0")
-        except (ValueError, TypeError):
-            raise ValueError("max_benchmark_archive_size_mb must be greater than 0")
+        except (ValueError, TypeError) as err:
+            raise ValueError("max_benchmark_archive_size_mb must be greater than 0") from err
         return value
 
     @field_validator("max_benchmark_images", mode="before")
@@ -158,8 +158,8 @@ class Settings(BaseSettings):
         try:
             if value is not None and int(value) <= 0:
                 raise ValueError("max_benchmark_images must be greater than 0")
-        except (ValueError, TypeError):
-            raise ValueError("max_benchmark_images must be greater than 0")
+        except (ValueError, TypeError) as err:
+            raise ValueError("max_benchmark_images must be greater than 0") from err
         return value
 
     @field_validator("benchmark_iou_threshold", mode="before")
@@ -171,8 +171,8 @@ class Settings(BaseSettings):
                 float_val = float(value)
                 if float_val < 0.0 or float_val > 1.0:
                     raise ValueError("benchmark_iou_threshold must be between 0.0 and 1.0")
-        except (ValueError, TypeError):
-            raise ValueError("benchmark_iou_threshold must be between 0.0 and 1.0")
+        except (ValueError, TypeError) as err:
+            raise ValueError("benchmark_iou_threshold must be between 0.0 and 1.0") from err
         return value
 
     @field_validator("inference_timeout_seconds", mode="before")
@@ -182,8 +182,8 @@ class Settings(BaseSettings):
         try:
             if value is not None and int(value) <= 0:
                 raise ValueError("inference_timeout_seconds must be greater than 0")
-        except (ValueError, TypeError):
-            raise ValueError("inference_timeout_seconds must be greater than 0")
+        except (ValueError, TypeError) as err:
+            raise ValueError("inference_timeout_seconds must be greater than 0") from err
         return value
 
     @field_validator("cors_allow_origins", mode="before")
@@ -239,3 +239,4 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Gibt eine gecachte Instanz der Anwendungseinstellungen zurück."""
     return Settings()
+
