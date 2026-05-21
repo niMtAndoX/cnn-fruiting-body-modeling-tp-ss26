@@ -3,6 +3,7 @@ import { BenchmarkAccuracyGauge } from "./BenchmarkAccuracyGauge"
 import { BenchmarkConfusionBars } from "./BenchmarkConfusionBars"
 import { BenchmarkImageResultList } from "./BenchmarkImageResultList"
 import { BenchmarkMetricCards } from "./BenchmarkMetricCards"
+import { BenchmarkReportExportButton } from "./BenchmarkReportExportButton"
 
 interface BenchmarkResultViewProps {
   result: BenchmarkResponse | null
@@ -68,7 +69,10 @@ export function BenchmarkResultView({ result, status }: BenchmarkResultViewProps
 
   return (
     <div className="space-y-4">
-      <h3 className="text-base font-bold text-foreground">Benchmark-Ergebnis</h3>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h3 className="text-base font-bold text-foreground">Benchmark-Ergebnis</h3>
+        <BenchmarkReportExportButton result={result} />
+      </div>
 
       <BenchmarkAccuracyGauge value={accuracy} />
 
