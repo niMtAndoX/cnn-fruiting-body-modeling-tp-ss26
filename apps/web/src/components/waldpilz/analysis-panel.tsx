@@ -14,19 +14,19 @@ function MushroomPlaceholder() {
   return (
     <svg
       viewBox="0 0 100 100"
-      className="size-24 opacity-70"
+      className="size-24 opacity-30"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <ellipse cx="50" cy="35" rx="35" ry="25" className="fill-foreground/40" />
-      <circle cx="40" cy="30" r="4" className="fill-foreground/20" />
-      <circle cx="55" cy="25" r="3" className="fill-foreground/20" />
-      <circle cx="60" cy="38" r="5" className="fill-foreground/20" />
+      <ellipse cx="50" cy="35" rx="35" ry="25" className="fill-foreground/20" />
+      <circle cx="40" cy="30" r="4" className="fill-foreground/10" />
+      <circle cx="55" cy="25" r="3" className="fill-foreground/10" />
+      <circle cx="60" cy="38" r="5" className="fill-foreground/10" />
       <path
         d="M35 50 Q35 80 40 85 L60 85 Q65 80 65 50 Z"
-        className="fill-foreground/30"
+        className="fill-foreground/15"
       />
-      <ellipse cx="50" cy="88" rx="30" ry="5" className="fill-foreground/20" />
+      <ellipse cx="50" cy="88" rx="30" ry="5" className="fill-foreground/10" />
     </svg>
   )
 }
@@ -53,10 +53,8 @@ export function AnalysisPanel({ imageUrl, boundingBoxes, onClose }: AnalysisPane
           <BoundingBoxOverlay boxes={boundingBoxes} />
         </>
       ) : (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-4 text-center">
+        <div className="absolute inset-0 flex items-center justify-center">
           <MushroomPlaceholder />
-          <p className="text-sm font-medium text-foreground/70">Dein Bild erscheint hier</p>
-          <p className="text-xs text-foreground/45">JPG, PNG, WEBP · alle gängigen Formate</p>
         </div>
       )}
     </div>
