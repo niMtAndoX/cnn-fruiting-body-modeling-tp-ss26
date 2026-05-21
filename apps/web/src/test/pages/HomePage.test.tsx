@@ -39,11 +39,11 @@ describe("HomePage", () => {
     expect(button).toBeInTheDocument();
   });
 
-  it("zeigt den Button 'Analyse starten' im Header", () => {
+  it("zeigt den Navigations-Button zur Prediction-Seite im Header", () => {
     renderHomePage();
 
-    const button = screen.getByRole("link", {
-      name: /Analyse starten/i,
+    const button = screen.getByRole("button", {
+      name: /Prediction/i,
     });
     expect(button).toBeInTheDocument();
   });

@@ -50,7 +50,7 @@ export function HistorySection({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-foreground font-semibold">Letzte 5 Bilder</h3>
+      <h3 className="text-foreground font-semibold">Zuletzt analysierte Bilder</h3>
 
       <div className="grid grid-cols-5 gap-2 sm:gap-3">
         {displayItems.map((item, index) => (
