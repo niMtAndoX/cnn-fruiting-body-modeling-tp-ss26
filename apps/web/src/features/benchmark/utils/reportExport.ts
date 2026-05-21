@@ -37,7 +37,16 @@ function calculateAccuracy(result: BenchmarkResponse): number | null {
   return total > 0 ? truePositives / total : null
 }
 
-function drawGauge(doc: jsPDF, value: number | null, label: string, startY: number): void {
+function getLastAutoTableY(doc: JsPdfWithAutoTable, fallbackY: number): number {
+  return doc.lastAutoTable?.finalY ?? fallbackY
+}
+
+function drawGauge(
+  doc: jsPDF,
+  value: number | null,
+  label: string,
+  startY: number,
+): void {
   const percent = value ?? 0
   const centerX = 105
   const centerY = startY + 24
@@ -214,7 +223,7 @@ export function exportBenchmarkReport(result: BenchmarkResponse): void {
     },
   })
 
-  const firstTableEndY = autoTableDoc.lastAutoTable?.finalY ?? 52
+  const firstTableEndY = getLastAutoTableY(autoTableDoc, 52)
 
   drawGauge(doc, result.mAP, "mAP", firstTableEndY + 6)
 
