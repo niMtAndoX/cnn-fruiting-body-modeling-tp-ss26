@@ -3,6 +3,12 @@ import autoTable from "jspdf-autotable"
 
 import type { BenchmarkResponse } from "../model/benchmarkTypes"
 
+type JsPdfWithAutoTable = jsPDF & {
+  lastAutoTable?: {
+    finalY: number
+  }
+}
+
 function formatPercent(value: number | null): string {
   if (value === null) return "–"
   return `${(value * 100).toFixed(1)} %`
@@ -53,7 +59,9 @@ function drawGauge(doc: jsPDF, value: number | null, label: string, startY: numb
   for (let angle = startAngle; angle <= endAngle; angle += 0.05) {
     const x = centerX + Math.cos(angle) * radius
     const y = centerY + Math.sin(angle) * radius
+
     doc.line(previousX, previousY, x, y)
+
     previousX = x
     previousY = y
   }
@@ -145,6 +153,7 @@ function drawStackedConfusionBar(
 
 export function exportBenchmarkReport(result: BenchmarkResponse): void {
   const doc = new jsPDF("p", "mm", "a4")
+  const autoTableDoc = doc as JsPdfWithAutoTable
   const createdAt = new Date()
 
   const truePositives = sumImageResultValues(result, "truePositives")
@@ -182,7 +191,10 @@ export function exportBenchmarkReport(result: BenchmarkResponse): void {
       ["Request ID", result.requestId ?? "–"],
       ["Bilder gesamt", String(totalImages)],
       ["Verarbeitete Bilder", String(processedImages)],
-      ["Fehlerhafte Bilder", result.failedImages === null ? "–" : String(result.failedImages)],
+      [
+        "Fehlerhafte Bilder",
+        result.failedImages === null ? "–" : String(result.failedImages),
+      ],
       ["Verarbeitungszeit", formatMs(result.processingTimeMs)],
     ],
     theme: "grid",
@@ -202,10 +214,12 @@ export function exportBenchmarkReport(result: BenchmarkResponse): void {
     },
   })
 
-  drawGauge(doc, result.mAP, "mAP", (doc as any).lastAutoTable.finalY + 6)
+  const firstTableEndY = autoTableDoc.lastAutoTable?.finalY ?? 52
+
+  drawGauge(doc, result.mAP, "mAP", firstTableEndY + 6)
 
   autoTable(doc, {
-    startY: (doc as any).lastAutoTable.finalY + 54,
+    startY: firstTableEndY + 54,
     head: [["Kennzahl", "Wert"]],
     body: [
       ["Accuracy", formatPercent(accuracy)],
