@@ -1,5 +1,5 @@
 import { type BenchmarkResponse, type BenchmarkStatus } from "../model/benchmarkTypes"
-import { BenchmarkAccuracyGauge } from "./BenchmarkAccuracyGauge"
+import { BenchmarkHeroGauge } from "./BenchmarkHeroGauge"
 import { BenchmarkConfusionBars } from "./BenchmarkConfusionBars"
 import { BenchmarkImageResultList } from "./BenchmarkImageResultList"
 import { BenchmarkMetricCards } from "./BenchmarkMetricCards"
@@ -70,23 +70,6 @@ export function BenchmarkResultView({ result, status }: BenchmarkResultViewProps
     <div className="space-y-4">
       <h3 className="text-base font-bold text-foreground">Benchmark-Ergebnis</h3>
 
-      <BenchmarkAccuracyGauge value={accuracy} />
-
-      <BenchmarkMetricCards
-        metrics={[
-          { label: "Precision", value: formatPercent(result.precision) },
-          { label: "Recall", value: formatPercent(result.recall) },
-          { label: "F1-Score", value: formatPercent(result.f1Score) },
-          { label: "mAP", value: formatPercent(result.mAP) },
-        ]}
-      />
-
-      <BenchmarkConfusionBars
-        truePositives={truePositives}
-        falsePositives={falsePositives}
-        falseNegatives={falseNegatives}
-      />
-
       <div className="rounded-lg border border-border bg-card/50 p-4 divide-y divide-border">
         <MetaRow
           label="Bilder gesamt"
@@ -104,6 +87,23 @@ export function BenchmarkResultView({ result, status }: BenchmarkResultViewProps
         <MetaRow label="Model-Version" value={result.modelVersion} />
         <MetaRow label="Request ID" value={result.requestId} />
       </div>
+
+      <BenchmarkHeroGauge value={result.f1Score} description="Beurteilung des Modells durch Präzision und Recall." />
+
+      <BenchmarkMetricCards
+        metrics={[
+          { label: "Precision", value: formatPercent(result.precision), description: "Der Anteil der korrekt als positiv vorhergesagten Fälle an allen positiv getroffenen Vorhersagen." },
+          { label: "Recall", value: formatPercent(result.recall), description: "Der Anteil der korrekt erkannten positiven Fälle an allen tatsächlich positiven Fällen." },
+          { label: "Accuracy", value: formatPercent(accuracy), description: "Der Anteil aller korrekt getroffenen Vorhersagen an der Gesamtzahl der Vorhersagen." },
+          { label: "mAP", value: formatPercent(result.mAP), description: "Mittlere durchschnittliche Präzision (Mean Average Precision)." },
+        ]}
+      />
+
+      <BenchmarkConfusionBars
+        truePositives={truePositives}
+        falsePositives={falsePositives}
+        falseNegatives={falseNegatives}
+      />
 
       <div className="rounded-lg border border-border bg-card/50 p-4">
         <h4 className="font-semibold text-foreground mb-2">Nicht auswertbare Bilder</h4>
