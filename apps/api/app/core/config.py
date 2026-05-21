@@ -67,8 +67,6 @@ class Settings(BaseSettings):
     bash_executable: str | None = None
 
     # Maximale Upload-Größe pro Benchmark-Archiv in Megabyte.
-    # Unterstützt den früheren Env-Namen MAX_BENCHMARK_ZIP_SIZE_MB weiter.
-    # WICHTIG: gt=0 entfernt, damit der deutsche field_validator für den Test greift.
     max_benchmark_archive_size_mb: int = Field(
         default=200,
         alias="MAX_BENCHMARK_ARCHIVE_SIZE_MB",
@@ -102,11 +100,7 @@ class Settings(BaseSettings):
     @field_validator("debug", mode="before")
     @classmethod
     def parse_debug(cls, value: Any) -> bool:
-        """Parst verschiedene Debug-Notation in einen booleschen Wert.
-
-        Unterstützt klassische Bool-Strings wie "true"/"false" sowie
-        betriebsnahe Bezeichner wie "release" oder "production".
-        """
+        """Parst verschiedene Debug-Notation in einen booleschen Wert."""
         if isinstance(value, bool):
             return value
 
@@ -135,43 +129,60 @@ class Settings(BaseSettings):
             raise ValueError("api_prefix must start with '/'")
         return value.rstrip("/") or "/"
 
-    @field_validator("max_upload_size_mb")
+    @field_validator("max_upload_size_mb", mode="before")
     @classmethod
-    def validate_max_upload_size_mb(cls, value: int) -> int:
+    def validate_max_upload_size_mb(cls, value: Any) -> Any:
         """Validiert die maximale Upload-Größe in Megabyte."""
-        if value <= 0:
+        try:
+            if value is not None and int(value) <= 0:
+                raise ValueError("max_upload_size_mb must be greater than 0")
+        except (ValueError, TypeError):
             raise ValueError("max_upload_size_mb must be greater than 0")
         return value
 
-    @field_validator("max_benchmark_archive_size_mb")
+    @field_validator("max_benchmark_archive_size_mb", mode="before")
     @classmethod
-    def validate_max_benchmark_archive_size_mb(cls, value: int) -> int:
+    def validate_max_benchmark_archive_size_mb(cls, value: Any) -> Any:
         """Validiert die maximale Benchmark-Archiv-Größe in Megabyte."""
-        if value <= 0:
+        try:
+            if value is not None and int(value) <= 0:
+                raise ValueError("max_benchmark_archive_size_mb must be greater than 0")
+        except (ValueError, TypeError):
             raise ValueError("max_benchmark_archive_size_mb must be greater than 0")
         return value
 
-    @field_validator("max_benchmark_images")
+    @field_validator("max_benchmark_images", mode="before")
     @classmethod
-    def validate_max_benchmark_images(cls, value: int) -> int:
+    def validate_max_benchmark_images(cls, value: Any) -> Any:
         """Validiert die maximale Anzahl an Benchmark-Bildern."""
-        if value <= 0:
+        try:
+            if value is not None and int(value) <= 0:
+                raise ValueError("max_benchmark_images must be greater than 0")
+        except (ValueError, TypeError):
             raise ValueError("max_benchmark_images must be greater than 0")
         return value
 
-    @field_validator("benchmark_iou_threshold")
+    @field_validator("benchmark_iou_threshold", mode="before")
     @classmethod
-    def validate_benchmark_iou_threshold(cls, value: float) -> float:
+    def validate_benchmark_iou_threshold(cls, value: Any) -> Any:
         """Validiert den IoU-Schwellwert für Benchmark-Matching."""
-        if value < 0.0 or value > 1.0:
+        try:
+            if value is not None:
+                float_val = float(value)
+                if float_val < 0.0 or float_val > 1.0:
+                    raise ValueError("benchmark_iou_threshold must be between 0.0 and 1.0")
+        except (ValueError, TypeError):
             raise ValueError("benchmark_iou_threshold must be between 0.0 and 1.0")
         return value
 
-    @field_validator("inference_timeout_seconds")
+    @field_validator("inference_timeout_seconds", mode="before")
     @classmethod
-    def validate_inference_timeout_seconds(cls, value: int) -> int:
+    def validate_inference_timeout_seconds(cls, value: Any) -> Any:
         """Validiert das Zeitlimit für den Inferenz-Aufruf in Sekunden."""
-        if value <= 0:
+        try:
+            if value is not None and int(value) <= 0:
+                raise ValueError("inference_timeout_seconds must be greater than 0")
+        except (ValueError, TypeError):
             raise ValueError("inference_timeout_seconds must be greater than 0")
         return value
 
@@ -216,12 +227,12 @@ class Settings(BaseSettings):
     @property
     def max_upload_size_bytes(self) -> int:
         """Gibt die maximale Upload-Größe in Bytes zurück."""
-        return self.max_upload_size_mb * 1024 * 1024
+        return int(self.max_upload_size_mb) * 1024 * 1024
 
     @property
     def max_benchmark_archive_size_bytes(self) -> int:
         """Gibt die maximale Benchmark-Archiv-Größe in Bytes zurück."""
-        return self.max_benchmark_archive_size_mb * 1024 * 1024
+        return int(self.max_benchmark_archive_size_mb) * 1024 * 1024
 
 
 @lru_cache
