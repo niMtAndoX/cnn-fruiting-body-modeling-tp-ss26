@@ -286,6 +286,7 @@ export function exportBenchmarkReport(result: BenchmarkResponse): void {
   const doc = new jsPDF("p", "mm", "a4")
   const autoTableDoc = doc as JsPdfWithAutoTable
   const createdAt = new Date()
+  const pageWidth = doc.internal.pageSize.getWidth()
 
   const truePositives = sumImageResultValues(result, "truePositives")
   const falsePositives = sumImageResultValues(result, "falsePositives")
@@ -299,7 +300,7 @@ export function exportBenchmarkReport(result: BenchmarkResponse): void {
       : "–"
 
   doc.setFillColor(8, 38, 24)
-  doc.rect(0, 0, 210, 38, "F")
+  doc.rect(0, 0, pageWidth + 1, 38, "F")
 
   doc.setTextColor(255, 255, 255)
   doc.setFont("helvetica", "bold")
