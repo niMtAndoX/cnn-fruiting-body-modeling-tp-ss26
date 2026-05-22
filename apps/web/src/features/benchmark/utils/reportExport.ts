@@ -101,9 +101,11 @@ function drawStackedConfusionBar(
   const total = truePositives + falsePositives + falseNegatives
   const safeTotal = Math.max(total, 1)
 
-  const barX = 14
+  const contentX = 14
+  const contentWidth = 182
+  const barX = contentX
   const barY = startY + 18
-  const barWidth = 165
+  const barWidth = contentWidth
   const barHeight = 10
   const innerInset = 0.6
   const innerBarX = barX + innerInset
@@ -119,11 +121,11 @@ function drawStackedConfusionBar(
   doc.setFont("helvetica", "bold")
   doc.setFontSize(15)
   doc.setTextColor(12, 36, 26)
-  doc.text("TP / FP / FN Übersicht", 14, startY)
+  doc.text("TP / FP / FN Übersicht", contentX, startY)
 
   doc.setFont("helvetica", "normal")
   doc.setFontSize(9)
-  doc.text(`Gesamt: ${total}`, 182, startY, { align: "right" })
+  doc.text(`Gesamt: ${total}`, contentX + contentWidth, startY, { align: "right" })
 
   doc.setFillColor(245, 237, 225)
   doc.roundedRect(barX, barY, barWidth, barHeight, 2, 2, "F")
@@ -209,17 +211,22 @@ function drawStackedConfusionBar(
     { label: `FN ${falseNegatives}`, color: [185, 52, 52] },
   ] as const
 
-  let legendX = 14
+  doc.setFontSize(10)
+  const legendGap = 12
+  const legendItemWidths = legendItems.map((item) => 8 + doc.getTextWidth(item.label))
+  const totalLegendWidth =
+    legendItemWidths.reduce((sum, width) => sum + width, 0) + legendGap * (legendItems.length - 1)
 
-  legendItems.forEach((item) => {
+  let legendX = contentX + (contentWidth - totalLegendWidth) / 2
+
+  legendItems.forEach((item, index) => {
     doc.setFillColor(item.color[0], item.color[1], item.color[2])
     doc.roundedRect(legendX, legendY - 4, 5, 5, 1, 1, "F")
 
     doc.setTextColor(12, 36, 26)
-    doc.setFontSize(10)
     doc.text(item.label, legendX + 8, legendY)
 
-    legendX += 42
+    legendX += legendItemWidths[index] + legendGap
   })
 
   return legendY + 10
