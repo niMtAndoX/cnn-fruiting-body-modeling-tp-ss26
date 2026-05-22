@@ -8,7 +8,8 @@ interface ConfusionBarItem {
   label: string
   shortLabel: string
   value: number | null
-  colorClassName: string
+  barClassName: string
+  accentClassName: string
 }
 
 export function BenchmarkConfusionBars({
@@ -21,19 +22,22 @@ export function BenchmarkConfusionBars({
       label: "True Positives",
       shortLabel: "TP",
       value: truePositives,
-      colorClassName: "bg-emerald-600",
+      barClassName: "bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-600",
+      accentClassName: "bg-gradient-to-br from-emerald-600 to-teal-600",
     },
     {
       label: "False Positives",
       shortLabel: "FP",
       value: falsePositives,
-      colorClassName: "bg-orange-500",
+      barClassName: "bg-gradient-to-r from-amber-700 via-orange-700 to-orange-600",
+      accentClassName: "bg-gradient-to-br from-amber-700 to-orange-700",
     },
     {
       label: "False Negatives",
       shortLabel: "FN",
       value: falseNegatives,
-      colorClassName: "bg-red-600",
+      barClassName: "bg-gradient-to-r from-rose-800 via-red-700 to-red-600",
+      accentClassName: "bg-gradient-to-br from-rose-700 to-red-700",
     },
   ]
 
@@ -55,7 +59,7 @@ export function BenchmarkConfusionBars({
           return (
             <div
               key={item.shortLabel}
-              className={`h-full ${item.colorClassName}`}
+              className={`h-full ${item.barClassName}`}
               style={{ width }}
               title={`${item.label}: ${value}`}
             />
@@ -70,7 +74,7 @@ export function BenchmarkConfusionBars({
             className="rounded-md border border-border bg-background/40 p-3"
           >
             <div className="flex items-center gap-2">
-              <span className={`h-3 w-3 rounded-full ${item.colorClassName}`} />
+              <span className={`h-3 w-3 rounded-full ring-1 ring-black/10 ${item.accentClassName}`} />
               <span className="text-sm font-medium text-foreground">
                 {item.shortLabel}
               </span>

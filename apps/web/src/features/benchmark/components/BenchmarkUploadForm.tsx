@@ -55,15 +55,15 @@ function FileInputCard({
   }
 
   return (
-    <div className="flex flex-col gap-3 p-4 rounded-lg border-2 border-border bg-card/50">
+    <div className="flex flex-col gap-3 rounded-lg border-2 border-border bg-card/50 p-4">
       <div className="flex items-center gap-2">
-        <FileArchive className="size-5 text-primary shrink-0" />
+        <FileArchive className="size-5 shrink-0 text-primary" />
         <span className="font-semibold text-foreground">{label}</span>
       </div>
 
       <p className="text-sm text-muted-foreground">{description}</p>
 
-      <div className="text-xs text-muted-foreground bg-muted/50 rounded p-2 border border-border/50">
+      <div className="rounded border border-border/50 bg-muted/50 p-2 text-xs text-muted-foreground">
         {formatHint}
       </div>
 
@@ -80,7 +80,7 @@ function FileInputCard({
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className="flex items-center gap-2 px-3 py-2 rounded border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-colors text-sm text-muted-foreground hover:text-foreground"
+        className="flex items-center gap-2 rounded border-2 border-dashed border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-primary hover:bg-primary/5 hover:text-foreground"
       >
         <Upload className="size-4 shrink-0" />
         <span>{file ? "Andere Datei wählen" : "ZIP-Datei auswählen"}</span>
@@ -95,9 +95,9 @@ function FileInputCard({
 
       {file && (
         <div className="flex items-center gap-2 text-sm text-foreground">
-          <CheckCircle2 className="size-4 text-green-600 shrink-0" />
+          <CheckCircle2 className="size-4 shrink-0 text-green-600" />
           <span className="truncate font-medium">{file.name}</span>
-          <span className="text-muted-foreground shrink-0">({formatFileSize(file.size)})</span>
+          <span className="shrink-0 text-muted-foreground">({formatFileSize(file.size)})</span>
         </div>
       )}
     </div>
@@ -113,7 +113,7 @@ export function BenchmarkUploadForm({
   onTestArchiveError,
   onLabelArchiveError,
   onStart,
-  download
+  download,
 }: BenchmarkUploadFormProps) {
   const testInputRef = useRef<HTMLInputElement>(null)
   const labelInputRef = useRef<HTMLInputElement>(null)
@@ -124,12 +124,12 @@ export function BenchmarkUploadForm({
     <div className="space-y-4">
       <div>
         <h2 className="text-lg font-bold text-foreground">Benchmark starten</h2>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="mt-1 text-sm text-muted-foreground">
           Lade zwei ZIP-Archive hoch, um die Modellgenauigkeit zu messen.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <FileInputCard
           label="Testbilder-Archiv"
           description="Enthält die Einzelbilder, die das Modell analysieren soll."
@@ -158,7 +158,7 @@ export function BenchmarkUploadForm({
                 <strong>Zeile:</strong>{" "}
                 <code>{"<class_id> <x_center> <y_center> <width> <height>"}</code>
               </p>
-              <p>Alle Koordinaten normiert auf 0–1. Dateinamen müssen den Bilddateinamen entsprechen.</p>
+              <p>Alle Koordinaten normiert auf 0-1. Dateinamen müssen den Bilddateinamen entsprechen.</p>
             </div>
           }
           file={labelArchive}
@@ -182,13 +182,15 @@ export function BenchmarkUploadForm({
         </div>
       )}
 
-      <Button onClick={onStart} disabled={!canStart} className="mr-2 w-full sm:w-auto">
-        {isLoading ? "Benchmark läuft..." : "Benchmark starten"}
-      </Button>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <Button onClick={onStart} disabled={!canStart} className="w-full sm:w-auto">
+          {isLoading ? "Benchmark läuft..." : "Benchmark starten"}
+        </Button>
 
-      <Button onClick={download} className="mx-2 w-full sm:w-auto">
-        Testdaten runterladen
-      </Button>
+        <Button onClick={download} className="w-full sm:ml-auto sm:w-auto">
+          Testdaten runterladen
+        </Button>
+      </div>
     </div>
   )
 }

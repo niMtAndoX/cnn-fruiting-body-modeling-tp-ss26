@@ -13,7 +13,7 @@ export function BenchmarkHeroGauge({
     <div className="group relative rounded-xl border-2 border-border bg-card/50 p-6 flex flex-col items-center justify-center">
       <div className="relative w-32 h-32 rounded-full border-8 border-muted flex items-center justify-center">
         <div
-          className="absolute inset-0 rounded-full border-8 border-green-700"
+          className="absolute inset-0 rounded-full border-8 border-emerald-600"
           style={{
             clipPath: `inset(${100 - percentage}% 0 0 0)`,
           }}
