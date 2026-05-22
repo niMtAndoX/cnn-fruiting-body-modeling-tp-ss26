@@ -140,7 +140,7 @@ export default function HomePage() {
             />
           <div className="text-center">
             <p>&copy; 2026 – Ostfalia Hochschule Wolfenbüttel</p>
-            <p>Entwickelt von: Lasse Wiesen, Max Schwarz, Max Weber, Alex Teemann, Marven Diekelmann</p>
+            <p>Entwickelt von: Max Weber, Marven Diekelmann, Max Schwarz, Alex Teemann, Lasse Wiesen</p>
           </div>
           <div className="flex gap-6">
             <a href="#" className="hover:text-primary">Impressum</a>
