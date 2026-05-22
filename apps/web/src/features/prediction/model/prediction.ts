@@ -47,6 +47,7 @@ export interface LogEntry {
 export interface AnalysisResult {
   id: string
   imageUrl: string
+  dimensions: ImageDimensions
   prediction: PredictionDisplayResult
   status: Extract<PredictionFlowStatus, "success" | "empty">
   errorMessage: null
@@ -175,12 +176,14 @@ export function createPredictionDisplayResult(
 
 export function createAnalysisHistoryEntry({
   imageUrl,
+  dimensions,
   prediction,
   status,
   logs,
   historyLength,
 }: {
   imageUrl: string
+  dimensions: ImageDimensions
   prediction: PredictionDisplayResult
   status: Extract<PredictionFlowStatus, "success" | "empty">
   logs: LogEntry[]
@@ -189,6 +192,7 @@ export function createAnalysisHistoryEntry({
   return {
     id: crypto.randomUUID(),
     imageUrl,
+    dimensions,
     prediction,
     status,
     errorMessage: null,
