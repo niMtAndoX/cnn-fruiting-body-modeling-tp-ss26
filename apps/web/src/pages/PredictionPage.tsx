@@ -10,8 +10,38 @@ import { usePrediction } from "@/features/prediction/hooks/usePrediction"
 import {
   createAnalysisHistoryEntry,
   type AnalysisResult,
+  type ImageDimensions,
   type SelectedImage,
 } from "@/features/prediction/model/prediction"
+
+function getImageDimensions(imageUrl: string): Promise<ImageDimensions> {
+  return new Promise((resolve, reject) => {
+    const image = new Image()
+    image.onload = () => {
+      resolve({
+        height: image.naturalHeight,
+        width: image.naturalWidth,
+      })
+    }
+    image.onerror = () => reject(new Error("Bild konnte nicht geladen werden"))
+    image.src = imageUrl
+  })
+}
+
+async function createSelectedImageFromHistoryEntry(entry: AnalysisResult): Promise<SelectedImage> {
+  const response = await fetch(entry.imageUrl)
+  const blob = await response.blob()
+  const extension = blob.type.split("/")[1] || "png"
+  const file = new File([blob], `prediction-history.${extension}`, {
+    type: blob.type || "image/png",
+  })
+
+  return {
+    dimensions: entry.dimensions ?? await getImageDimensions(entry.imageUrl),
+    file,
+    imageUrl: entry.imageUrl,
+  }
+}
 
 export default function PredictionPage() {
   const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(null)
@@ -51,16 +81,28 @@ export default function PredictionPage() {
   }, [registerImageSelection])
 
   const handleAnalyze = useCallback(async () => {
-    const completedPrediction = await analyzeImage(selectedImage)
+    const imageToAnalyze =
+      selectedImage ?? (selectedHistoryEntry ? await createSelectedImageFromHistoryEntry(selectedHistoryEntry) : null)
 
-    if (!completedPrediction || !selectedImage) {
+    if (!imageToAnalyze) {
+      await analyzeImage(null)
+      return
+    }
+
+    setSelectedImage(imageToAnalyze)
+    setSelectedHistoryIndex(null)
+
+    const completedPrediction = await analyzeImage(imageToAnalyze)
+
+    if (!completedPrediction) {
       return
     }
 
     setHistory((prev) => {
       const historyEntry = createAnalysisHistoryEntry({
         historyLength: prev.length,
-        imageUrl: selectedImage.imageUrl,
+        dimensions: imageToAnalyze.dimensions,
+        imageUrl: imageToAnalyze.imageUrl,
         logs: completedPrediction.logs,
         prediction: completedPrediction.result,
         status: completedPrediction.status,
@@ -74,7 +116,7 @@ export default function PredictionPage() {
       }
       return newHistory
     })
-  }, [analyzeImage, selectedImage])
+  }, [analyzeImage, selectedHistoryEntry, selectedImage])
 
   const handleHistorySelect = useCallback((index: number) => {
     if (history[index]) {
@@ -136,8 +178,8 @@ export default function PredictionPage() {
                 onSelect={handleHistorySelect}
                 onAnalyze={handleAnalyze}
                 isAnalyzing={isAnalyzing}
-                hasImage={selectedImage !== null}
-                hasResult={result !== null}
+                hasImage={selectedImage !== null || selectedHistoryEntry !== null}
+                hasResult={displayedPrediction !== null}
               />
             </div>
           </div>
