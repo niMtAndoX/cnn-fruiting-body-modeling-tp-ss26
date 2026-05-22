@@ -73,7 +73,7 @@ export default function HomePage() {
         <div className="container mx-auto max-w-5xl">
           <h2 className="text-3xl font-bold text-center mb-16 text-yellow-300">Der Analyse-Prozess</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-            <div className="flex flex-col items-center text-center group">
+            <Link to="/prediction" className="flex flex-col items-center text-center group">
               <div className="size-20 rounded-2xl bg-card border-4 border-border flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
                 <Upload className="size-10 text-foreground group-hover:text-primary-foreground" />
               </div>
@@ -81,8 +81,8 @@ export default function HomePage() {
               <p className="text-gray-200">
                 Laden Sie eine Nahaufnahme des vermeintlichen Lackporlings hoch.
               </p>
-            </div>
-            <div className="flex flex-col items-center text-center group">
+            </Link>
+            <Link to="/prediction" className="flex flex-col items-center text-center group">
               <div className="size-20 rounded-2xl bg-card border-4 border-border flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
                 <Search className="size-10 text-foreground group-hover:text-primary-foreground" />
               </div>
@@ -90,8 +90,8 @@ export default function HomePage() {
               <p className="text-gray-200">
                 Die KI gleicht die Merkmale (Farbe, Glanz, Wuchsform) mit Referenzdaten ab.
               </p>
-            </div>
-            <div className="flex flex-col items-center text-center group">
+            </Link>
+            <Link to="/prediction" className="flex flex-col items-center text-center group">
               <div className="size-20 rounded-2xl bg-card border-4 border-border flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
                 <CheckCircle className="size-10 text-foreground group-hover:text-primary-foreground" />
               </div>
@@ -99,7 +99,7 @@ export default function HomePage() {
               <p className="text-gray-200">
                 Sie erhalten eine Einschätzung, ob es sich um den Glänzenden Lackporling handelt.
               </p>
-            </div>
+            </Link>
             <Link to="/benchmark" className="flex flex-col items-center text-center group">
               <div className="size-20 rounded-2xl bg-card border-4 border-border flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
                 <BarChart className="size-10 text-foreground group-hover:text-primary-foreground" />
