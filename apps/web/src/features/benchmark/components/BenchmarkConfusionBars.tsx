@@ -45,13 +45,22 @@ export function BenchmarkConfusionBars({
   const safeTotal = Math.max(total, 1)
 
   return (
-    <div className="rounded-lg border border-border bg-card/50 p-4 space-y-4">
-      <div className="flex items-center justify-between gap-4">
-        <h4 className="font-semibold text-foreground">TP / FP / FN Übersicht</h4>
-        <span className="text-sm text-muted-foreground">Gesamt: {total}</span>
+    <div className="space-y-4 rounded-[28px] border border-[#314a37]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(244,239,231,0.88))] p-5 shadow-[0_18px_50px_rgba(31,49,36,0.06)]">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#627966]">
+            Fehlerverteilung
+          </p>
+          <h4 className="mt-1 text-lg font-semibold tracking-tight text-[#213126]">
+            TP / FP / FN Uebersicht
+          </h4>
+        </div>
+        <span className="rounded-full border border-[#314a37]/10 bg-white/70 px-3 py-1 text-xs text-[#63776a]">
+          Gesamt: {total}
+        </span>
       </div>
 
-      <div className="flex h-3 w-full overflow-hidden rounded-full bg-muted">
+      <div className="flex h-4 w-full overflow-hidden rounded-full bg-[#dfe6dd]">
         {items.map((item) => {
           const value = item.value ?? 0
           const width = total > 0 ? `${(value / safeTotal) * 100}%` : "0%"
@@ -71,20 +80,18 @@ export function BenchmarkConfusionBars({
         {items.map((item) => (
           <div
             key={item.shortLabel}
-            className="rounded-md border border-border bg-background/40 p-3"
+            className="rounded-[22px] border border-[#314a37]/10 bg-white/72 p-4 shadow-sm"
           >
             <div className="flex items-center gap-2">
               <span className={`h-3 w-3 rounded-full ring-1 ring-black/10 ${item.accentClassName}`} />
-              <span className="text-sm font-medium text-foreground">
-                {item.shortLabel}
-              </span>
+              <span className="text-sm font-medium text-[#213126]">{item.shortLabel}</span>
             </div>
 
-            <p className="mt-2 text-2xl font-bold text-foreground">
+            <p className="mt-3 text-3xl font-semibold tracking-tight text-[#213126]">
               {item.value ?? "–"}
             </p>
 
-            <p className="text-xs text-muted-foreground">{item.label}</p>
+            <p className="mt-1 text-sm text-[#6a7b6f]">{item.label}</p>
           </div>
         ))}
       </div>

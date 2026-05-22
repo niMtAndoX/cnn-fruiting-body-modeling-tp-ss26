@@ -12,8 +12,8 @@ function getStatusCopy(status: PredictionFlowStatus, hasImage: boolean, errorMes
   switch (status) {
     case "loading":
       return {
-        description: "Das Bild wird gerade an das Backend gesendet und verarbeitet.",
-        title: "Analyse läuft",
+        description: "Das Bild wird gerade an das Backend uebermittelt und verarbeitet.",
+        title: "Analyse laeuft",
         tone: "info",
       } as const
     case "success":
@@ -38,7 +38,7 @@ function getStatusCopy(status: PredictionFlowStatus, hasImage: boolean, errorMes
     default:
       return hasImage
         ? {
-            description: "Das Bild ist bereit. Du kannst die Analyse jetzt starten.",
+            description: "Das Bild ist bereit und kann jetzt analysiert werden.",
             title: "Bild bereit",
             tone: "idle",
           }
@@ -60,15 +60,20 @@ export function PredictionStatus({
   return (
     <div
       className={cn(
-        "rounded-md border px-3 py-2 text-sm",
-        copy.tone === "error" && "border-destructive/50 bg-destructive/15 text-destructive-foreground",
-        copy.tone === "success" && "border-yellow-300/30 bg-yellow-300/10 text-yellow-300",
-        copy.tone === "info" && "border-yellow-300/30 bg-yellow-300/10 text-yellow-300",
-        copy.tone === "idle" && "border-yellow-300/20 bg-transparent text-yellow-300/80",
+        "rounded-2xl border px-4 py-3 text-sm shadow-sm",
+        copy.tone === "error" && "border-red-400/25 bg-red-950/25 text-red-50",
+        copy.tone === "success" && "border-emerald-300/20 bg-emerald-400/10 text-emerald-50",
+        copy.tone === "info" && "border-[#d9c6aa]/22 bg-white/8 text-stone-100",
+        copy.tone === "idle" && "border-white/10 bg-white/5 text-stone-200/90",
       )}
     >
-      <p className="font-medium">{copy.title}</p>
-      <p className={cn("mt-1 text-xs", copy.tone === "error" ? "text-destructive-foreground/80" : "text-inherit")}>
+      <p className="font-semibold tracking-tight">{copy.title}</p>
+      <p
+        className={cn(
+          "mt-1 text-xs leading-5",
+          copy.tone === "error" ? "text-red-100/85" : "text-inherit opacity-85",
+        )}
+      >
         {copy.description}
       </p>
     </div>

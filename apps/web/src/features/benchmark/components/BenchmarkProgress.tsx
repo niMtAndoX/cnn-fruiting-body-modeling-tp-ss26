@@ -9,11 +9,16 @@ interface BenchmarkProgressProps {
 export function BenchmarkProgress({ status, error }: BenchmarkProgressProps) {
   if (status === "loading") {
     return (
-      <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-muted/30">
-        <Loader2 className="size-5 text-primary animate-spin shrink-0" />
+      <div className="flex items-start gap-4 rounded-[24px] border border-emerald-800/10 bg-[linear-gradient(180deg,rgba(239,247,240,0.95),rgba(231,242,232,0.9))] p-4 shadow-[0_14px_35px_rgba(35,57,39,0.07)]">
+        <div className="mt-0.5 flex size-11 items-center justify-center rounded-2xl bg-white/80 text-[#2d5b3b]">
+          <Loader2 className="size-5 animate-spin" />
+        </div>
         <div>
-          <p className="text-sm font-medium text-foreground">Benchmark wird durchgeführt...</p>
-          <p className="text-xs text-muted-foreground">Bilder werden verarbeitet. Dies kann einige Minuten dauern.</p>
+          <p className="text-sm font-semibold text-[#213126]">Benchmark wird durchgefuehrt</p>
+          <p className="mt-1 text-sm leading-6 text-[#66796d]">
+            Bilder werden verarbeitet und mit den Label-Daten abgeglichen. Je nach Datensatz kann
+            dieser Schritt einige Minuten dauern.
+          </p>
         </div>
       </div>
     )
@@ -21,11 +26,13 @@ export function BenchmarkProgress({ status, error }: BenchmarkProgressProps) {
 
   if (status === "error" && error) {
     return (
-      <div className="flex items-start gap-3 p-4 rounded-lg border border-destructive/50 bg-destructive/10">
-        <XCircle className="size-5 text-destructive shrink-0 mt-0.5" />
+      <div className="flex items-start gap-4 rounded-[24px] border border-red-300/25 bg-[linear-gradient(180deg,rgba(255,244,244,0.95),rgba(248,232,232,0.9))] p-4 shadow-[0_14px_35px_rgba(81,24,24,0.07)]">
+        <div className="mt-0.5 flex size-11 items-center justify-center rounded-2xl bg-white/75 text-red-700">
+          <XCircle className="size-5" />
+        </div>
         <div>
-          <p className="text-sm font-medium text-destructive">Benchmark fehlgeschlagen</p>
-          <p className="text-sm text-foreground mt-1">{error}</p>
+          <p className="text-sm font-semibold text-red-800">Benchmark fehlgeschlagen</p>
+          <p className="mt-1 text-sm leading-6 text-[#5f4c4c]">{error}</p>
         </div>
       </div>
     )

@@ -10,8 +10,13 @@ interface BenchmarkReportExportButtonProps {
 
 export function BenchmarkReportExportButton({ result }: BenchmarkReportExportButtonProps) {
   return (
-    <Button type="button" variant="outline" onClick={() => exportBenchmarkReport(result)}>
-      <Download className="mr-2 size-4" />
+    <Button
+      type="button"
+      variant="outline"
+      onClick={() => exportBenchmarkReport(result)}
+      className="h-11 rounded-2xl border-[#314a37]/15 bg-[#fbfaf7] text-[#213126] hover:bg-white"
+    >
+      <Download className="size-4" />
       Report herunterladen
     </Button>
   )

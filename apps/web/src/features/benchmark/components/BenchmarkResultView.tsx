@@ -11,12 +11,12 @@ interface BenchmarkResultViewProps {
 }
 
 function formatPercent(value: number | null): string {
-  if (value === null) return "–"
+  if (value === null) return "-"
   return `${(value * 100).toFixed(1)} %`
 }
 
 function formatMs(value: number | null): string {
-  if (value === null) return "–"
+  if (value === null) return "-"
   return `${value} ms`
 }
 
@@ -31,16 +31,11 @@ function sumImageResultValues(
   }, 0)
 }
 
-interface MetaRowProps {
-  label: string
-  value: string | null
-}
-
-function MetaRow({ label, value }: MetaRowProps) {
+function MetaRow({ label, value }: { label: string; value: string | null }) {
   return (
-    <div className="flex items-center justify-between py-1 text-sm">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="font-mono text-foreground">{value ?? "–"}</span>
+    <div className="rounded-[22px] border border-[#314a37]/10 bg-white/82 px-5 py-4 shadow-sm">
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#586c5f]">{label}</p>
+      <p className="mt-2 font-mono text-base font-semibold text-[#213126]">{value ?? "-"}</p>
     </div>
   )
 }
@@ -68,13 +63,20 @@ export function BenchmarkResultView({ result, status }: BenchmarkResultViewProps
   const failedImageResults = result.imageResults.filter((imageResult) => imageResult.error)
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h3 className="text-base font-bold text-foreground">Benchmark-Ergebnis</h3>
+    <div className="space-y-5">
+      <div className="flex flex-col gap-3 rounded-[28px] border border-white/10 bg-[linear-gradient(135deg,rgba(24,34,28,0.8),rgba(44,58,46,0.72))] px-5 py-5 shadow-[0_20px_60px_rgba(14,22,17,0.2)] sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-200/80">
+            Auswertung
+          </p>
+          <h3 className="mt-1 text-2xl font-semibold tracking-tight text-white">
+            Benchmark-Ergebnis
+          </h3>
+        </div>
         <BenchmarkReportExportButton result={result} />
       </div>
 
-      <div className="rounded-lg border border-border bg-card/50 p-4 divide-y divide-border">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         <MetaRow
           label="Bilder gesamt"
           value={result.totalImages === null ? null : String(result.totalImages)}
@@ -92,16 +94,37 @@ export function BenchmarkResultView({ result, status }: BenchmarkResultViewProps
         <MetaRow label="Request ID" value={result.requestId} />
       </div>
 
-      <BenchmarkHeroGauge value={result.f1Score} description="Beurteilung des Modells durch Präzision und Recall." />
+      <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+        <BenchmarkHeroGauge
+          value={result.f1Score}
+          description="Beurteilung des Modells durch das Zusammenspiel von Praezision und Recall."
+        />
 
-      <BenchmarkMetricCards
-        metrics={[
-          { label: "Precision", value: formatPercent(result.precision), description: "Der Anteil der korrekt als positiv vorhergesagten Fälle an allen positiv getroffenen Vorhersagen." },
-          { label: "Recall", value: formatPercent(result.recall), description: "Der Anteil der korrekt erkannten positiven Fälle an allen tatsächlich positiven Fällen." },
-          { label: "Accuracy", value: formatPercent(accuracy), description: "Der Anteil aller korrekt getroffenen Vorhersagen an der Gesamtzahl der Vorhersagen." },
-          { label: "mAP", value: formatPercent(result.mAP), description: "Mittlere durchschnittliche Präzision (Mean Average Precision)." },
-        ]}
-      />
+        <BenchmarkMetricCards
+          metrics={[
+            {
+              label: "Precision",
+              value: formatPercent(result.precision),
+              description: "Korrekte positive Vorhersagen.",
+            },
+            {
+              label: "Recall",
+              value: formatPercent(result.recall),
+              description: "Erkannte positive Faelle.",
+            },
+            {
+              label: "Accuracy",
+              value: formatPercent(accuracy),
+              description: "Korrekte Vorhersagen gesamt.",
+            },
+            {
+              label: "mAP",
+              value: formatPercent(result.mAP),
+              description: "Mittlere Praezision ueber den Lauf.",
+            },
+          ]}
+        />
+      </div>
 
       <BenchmarkConfusionBars
         truePositives={truePositives}
@@ -109,21 +132,26 @@ export function BenchmarkResultView({ result, status }: BenchmarkResultViewProps
         falseNegatives={falseNegatives}
       />
 
-      <div className="rounded-lg border border-border bg-card/50 p-4">
-        <h4 className="font-semibold text-foreground mb-2">Nicht auswertbare Bilder</h4>
+      <div className="rounded-[28px] border border-[#314a37]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(244,239,231,0.88))] p-5 shadow-[0_18px_50px_rgba(31,49,36,0.06)]">
+        <h4 className="text-lg font-semibold tracking-tight text-[#213126]">Nicht auswertbare Bilder</h4>
 
         {failedImageResults.length > 0 ? (
-          <ul className="space-y-1 text-sm text-muted-foreground">
+          <ul className="mt-3 space-y-2 text-sm text-[#687a6d]">
             {failedImageResults.map((imageResult) => (
-              <li key={imageResult.imageId ?? imageResult.error}>
-                {imageResult.imageId ?? "Unbekanntes Bild"}: {imageResult.error}
+              <li
+                key={imageResult.imageId ?? imageResult.error}
+                className="rounded-[18px] border border-[#314a37]/10 bg-white/70 px-4 py-3"
+              >
+                <span className="font-medium text-[#213126]">
+                  {imageResult.imageId ?? "Unbekanntes Bild"}
+                </span>
+                {": "}
+                {imageResult.error}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            Keine nicht auswertbaren Bilder vorhanden.
-          </p>
+          <p className="mt-3 text-sm text-[#687a6d]">Keine nicht auswertbaren Bilder vorhanden.</p>
         )}
       </div>
 
