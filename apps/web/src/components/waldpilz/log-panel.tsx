@@ -74,7 +74,7 @@ export function LogPanel({
             {isAnalyzing && (
               <div className="flex items-center gap-2 rounded-2xl border border-emerald-400/15 bg-emerald-400/8 px-3 py-3 text-sm text-emerald-50">
                 <Spinner className="size-4" />
-                <span>Verarbeitung laeuft...</span>
+                <span>Verarbeitung läuft...</span>
               </div>
             )}
 

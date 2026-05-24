@@ -97,7 +97,7 @@ export function BenchmarkResultView({ result, status }: BenchmarkResultViewProps
       <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
         <BenchmarkHeroGauge
           value={result.f1Score}
-          description="Beurteilung des Modells durch das Zusammenspiel von Praezision und Recall."
+          description="Harmonisches Mittel aus Precision und Recall zur zusammengefassten Bewertung der Erkennung."
         />
 
         <BenchmarkMetricCards
@@ -105,22 +105,22 @@ export function BenchmarkResultView({ result, status }: BenchmarkResultViewProps
             {
               label: "Precision",
               value: formatPercent(result.precision),
-              description: "Korrekte positive Vorhersagen.",
+              description: "Anteil korrekter Treffer an allen Vorhersagen.",
             },
             {
               label: "Recall",
               value: formatPercent(result.recall),
-              description: "Erkannte positive Faelle.",
+              description: "Anteil erkannter Objekte an allen Ground-Truth-Objekten.",
             },
             {
               label: "Accuracy",
               value: formatPercent(accuracy),
-              description: "Korrekte Vorhersagen gesamt.",
+              description: "Anteil korrekter Zuordnungen über alle Vorhersagen hinweg.",
             },
             {
               label: "mAP",
               value: formatPercent(result.mAP),
-              description: "Mittlere Praezision ueber den Lauf.",
+              description: "Durchschnittliche Präzision über die Erkennungsschwelle bzw. IoU-Auswertung.",
             },
           ]}
         />

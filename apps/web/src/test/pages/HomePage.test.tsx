@@ -30,11 +30,11 @@ describe("HomePage", () => {
     expect(title).toBeInTheDocument();
   });
 
-  it("zeigt den Button 'Lackporling analysieren'", () => {
+  it("zeigt den Button 'Bildanalyse starten'", () => {
     renderHomePage();
 
     const button = screen.getByRole("link", {
-      name: /Lackporling analysieren/i,
+      name: /Bildanalyse starten/i,
     });
     expect(button).toBeInTheDocument();
   });
@@ -42,10 +42,10 @@ describe("HomePage", () => {
   it("zeigt den Link zur Benchmark-Seite", () => {
     renderHomePage();
 
-    const button = screen.getByRole("link", {
+    const buttons = screen.getAllByRole("link", {
       name: /Benchmark/i,
     });
-    expect(button).toBeInTheDocument();
+    expect(buttons.length).toBeGreaterThan(0);
   });
 
   it("zeigt die Akademische Kooperation Section", () => {

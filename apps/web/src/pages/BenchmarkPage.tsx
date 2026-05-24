@@ -70,11 +70,11 @@ export default function BenchmarkPage() {
                     Benchmark
                   </p>
                   <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-                    Modellqualitaet strukturiert auswerten
+                    Modellqualität strukturiert auswerten
                   </h1>
                   <p className="mt-3 max-w-2xl text-sm leading-7 text-stone-200/82 sm:text-base">
-                    Fuehre reproduzierbare Benchmark-Laeufe mit Testbildern und Ground-Truth-Labels
-                    durch, pruefe technische Kennzahlen und analysiere die Ergebnisverteilung pro Bild.
+                    Führe reproduzierbare Benchmark-Läufe mit Testbildern und Ground-Truth-Labels
+                    durch, prüfe technische Kennzahlen und analysiere die Ergebnisverteilung pro Bild.
                   </p>
                 </div>
               </div>

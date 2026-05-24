@@ -2,10 +2,11 @@
 
 import { X, ScanSearch } from "lucide-react"
 import { BoundingBoxOverlay } from "@/features/prediction/components/BoundingBoxOverlay"
-import type { PredictionBoundingBox } from "@/features/prediction/model/prediction"
+import type { ImageDimensions, PredictionBoundingBox } from "@/features/prediction/model/prediction"
 
 interface AnalysisPanelProps {
   imageUrl: string | null
+  imageDimensions?: ImageDimensions | null
   boundingBoxes: PredictionBoundingBox[]
   onClose?: () => void
 }
@@ -28,7 +29,12 @@ function MushroomPlaceholder() {
   )
 }
 
-export function AnalysisPanel({ imageUrl, boundingBoxes, onClose }: AnalysisPanelProps) {
+export function AnalysisPanel({ imageUrl, imageDimensions, boundingBoxes, onClose }: AnalysisPanelProps) {
+  const isLandscape =
+    imageDimensions !== null &&
+    imageDimensions !== undefined &&
+    imageDimensions.width >= imageDimensions.height
+
   return (
     <div className="overflow-hidden rounded-[28px] border border-[#314a37]/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(244,239,230,0.88))] shadow-[0_20px_60px_rgba(36,45,35,0.08)]">
       <div className="flex items-center justify-between border-b border-[#314a37]/10 px-5 py-4">
@@ -36,7 +42,7 @@ export function AnalysisPanel({ imageUrl, boundingBoxes, onClose }: AnalysisPane
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#627966]">
             Vorschau
           </p>
-          <h3 className="mt-1 text-base font-semibold text-[#213126]">Analyseflaeche</h3>
+          <h3 className="mt-1 text-base font-semibold text-[#213126]">Analysefläche</h3>
         </div>
 
         <div className="flex items-center gap-2">
@@ -59,14 +65,25 @@ export function AnalysisPanel({ imageUrl, boundingBoxes, onClose }: AnalysisPane
 
       <div className="relative aspect-square bg-[radial-gradient(circle_at_top,rgba(229,239,228,0.8),rgba(240,235,226,0.9)_52%,rgba(227,220,208,0.88))] md:min-h-[420px]">
         {imageUrl ? (
-          <>
-            <img
-              src={imageUrl}
-              alt="Hochgeladenes Bild"
-              className="h-full w-full object-contain"
-            />
-            <BoundingBoxOverlay boxes={boundingBoxes} />
-          </>
+          <div className="absolute inset-0 flex items-center justify-center p-4 sm:p-6">
+            <div
+              className={`relative overflow-hidden rounded-[24px] shadow-[0_16px_40px_rgba(19,31,24,0.12)] ${
+                isLandscape ? "w-full max-h-full" : "h-full max-w-full"
+              }`}
+              style={
+                imageDimensions
+                  ? { aspectRatio: `${imageDimensions.width} / ${imageDimensions.height}` }
+                  : undefined
+              }
+            >
+              <img
+                src={imageUrl}
+                alt="Hochgeladenes Bild"
+                className="h-full w-full object-contain"
+              />
+              <BoundingBoxOverlay boxes={boundingBoxes} />
+            </div>
+          </div>
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
             <div className="flex size-16 items-center justify-center rounded-[22px] bg-white/72 text-[#26402d] shadow-inner">

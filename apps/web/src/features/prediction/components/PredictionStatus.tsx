@@ -12,8 +12,8 @@ function getStatusCopy(status: PredictionFlowStatus, hasImage: boolean, errorMes
   switch (status) {
     case "loading":
       return {
-        description: "Das Bild wird gerade an das Backend uebermittelt und verarbeitet.",
-        title: "Analyse laeuft",
+        description: "Das Bild wird gerade an das Backend übermittelt und verarbeitet.",
+        title: "Analyse läuft",
         tone: "info",
       } as const
     case "success":

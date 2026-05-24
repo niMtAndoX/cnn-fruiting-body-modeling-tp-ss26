@@ -42,7 +42,7 @@ export function BenchmarkImageResultList({
             Ergebnisse pro Bild
           </h4>
         </div>
-        <span className="text-sm text-[#687a6d]">{imageResults.length} Eintraege</span>
+        <span className="text-sm text-[#687a6d]">{imageResults.length} Einträge</span>
       </div>
 
       <div className="mt-4 max-h-[28rem] space-y-3 overflow-y-auto pr-1">

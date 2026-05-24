@@ -34,7 +34,7 @@ function MobileImageSourceSheet({
       <SheetContent side="bottom" className="rounded-t-[24px] border-none bg-stone-50/95 px-5 pb-8 backdrop-blur-xl">
         <SheetHeader>
           <SheetTitle className="text-left text-base font-semibold text-[#1f3124]">
-            Bildquelle waehlen
+            Bildquelle wählen
           </SheetTitle>
         </SheetHeader>
 
@@ -45,7 +45,7 @@ function MobileImageSourceSheet({
             onClick={onChooseExisting}
           >
             <ImageIcon className="size-5" />
-            Vorhandenes Bild auswaehlen
+            Vorhandenes Bild auswählen
           </Button>
           <Button
             variant="outline"
@@ -189,22 +189,18 @@ export function UploadArea({ onFileDrop, onFileSelect, fileInputRef, selectedFil
               Bildquelle
             </p>
             <h3 className="mt-2 text-2xl font-semibold tracking-tight text-[#213126]">
-              Foto fuer die Analyse bereitstellen
+              Foto für die Analyse hochladen
             </h3>
             <p className="mt-2 text-sm leading-6 text-[#68796d]">
-              Lade eine Nahaufnahme hoch oder ziehe das Bild direkt in diesen Bereich. Das Bild wird
-              anschliessend in der Analyseflaeche angezeigt.
+              Lade eine Nahaufnahme hoch oder ziehe sie direkt hierher. Danach erscheint das Bild
+              sofort in der Analysefläche.
             </p>
           </div>
 
-          <div className="grid gap-2 rounded-[22px] border border-[#314a37]/10 bg-[#f3efe7]/80 p-3 text-sm text-[#55685a] sm:grid-cols-2 md:min-w-[20rem]">
+          <div className="rounded-[22px] border border-[#314a37]/10 bg-[#f3efe7]/80 p-3 text-sm text-[#55685a] md:min-w-[12rem]">
             <div>
               <p className="font-medium text-[#213126]">Formate</p>
               <p>JPG, PNG, WEBP</p>
-            </div>
-            <div>
-              <p className="font-medium text-[#213126]">Verwendung</p>
-              <p>Lokale Auswahl, API-basierte Analyse</p>
             </div>
           </div>
         </div>
@@ -214,10 +210,10 @@ export function UploadArea({ onFileDrop, onFileSelect, fileInputRef, selectedFil
             <Upload className="size-8" />
           </div>
           <div className="space-y-2">
-            <p className="text-lg font-semibold text-[#213126]">Bild hier ablegen oder manuell auswaehlen</p>
+            <p className="text-lg font-semibold text-[#213126]">Bild hier ablegen oder manuell auswählen</p>
             <p className="mx-auto max-w-md text-sm leading-6 text-[#6a796f]">
-              Fuer die besten Ergebnisse empfehlen wir ein scharfes, gut ausgeleuchtetes Bild mit
-              moeglichst wenig Hintergrundrauschen.
+              Für die besten Ergebnisse empfehlen wir ein scharfes, gut ausgeleuchtetes Bild mit
+              möglichst wenig Hintergrundrauschen.
             </p>
           </div>
 
@@ -225,7 +221,7 @@ export function UploadArea({ onFileDrop, onFileSelect, fileInputRef, selectedFil
             onClick={handleButtonClick}
             className="h-11 rounded-2xl bg-[#2d5b3b] px-5 text-white shadow-[0_12px_30px_rgba(45,91,59,0.28)] hover:bg-[#254b31]"
           >
-            Datei auswaehlen
+            Datei auswählen
           </Button>
         </div>
       </div>

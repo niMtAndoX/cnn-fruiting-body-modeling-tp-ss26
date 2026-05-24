@@ -10,7 +10,7 @@ interface PredictionResultProps {
 
 function formatInferenceTime(inferenceTimeMs: number | null): string {
   if (inferenceTimeMs === null) {
-    return "Nicht verfuegbar"
+    return "Nicht verfügbar"
   }
 
   return `${inferenceTimeMs.toFixed(0)} ms`
@@ -52,8 +52,8 @@ function MetadataCard({ label, value }: { label: string; value: string }) {
 function ResultMetadata({ result }: { result: PredictionDisplayResult }) {
   return (
     <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-      <MetadataCard label="Request ID" value={result.requestId ?? "Nicht verfuegbar"} />
-      <MetadataCard label="Model-Version" value={result.modelVersion ?? "Nicht verfuegbar"} />
+      <MetadataCard label="Request ID" value={result.requestId ?? "Nicht verfügbar"} />
+      <MetadataCard label="Model-Version" value={result.modelVersion ?? "Nicht verfügbar"} />
       <MetadataCard label="Inference-Zeit" value={formatInferenceTime(result.inferenceTimeMs)} />
     </div>
   )

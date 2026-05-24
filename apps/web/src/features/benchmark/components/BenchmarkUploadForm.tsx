@@ -87,7 +87,7 @@ function FileInputCard({
       >
         <span className="flex items-center gap-2">
           <Upload className="size-4 shrink-0" />
-          {file ? "Andere Datei waehlen" : "ZIP-Datei auswaehlen"}
+          {file ? "Andere Datei wählen" : "ZIP-Datei auswählen"}
         </span>
         <ArrowRight className="size-4" />
       </button>
@@ -134,7 +134,7 @@ export function BenchmarkUploadForm({
             Dateneingabe
           </p>
           <h2 className="mt-1 text-xl font-semibold tracking-tight text-[#213126]">
-            Benchmark-Datensaetze bereitstellen
+            Benchmark-Datensätze bereitstellen
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[#687a6d]">
             Lade Testbilder und Ground-Truth-Labels als getrennte ZIP-Archive hoch, um die
@@ -146,11 +146,11 @@ export function BenchmarkUploadForm({
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <FileInputCard
           label="Testbilder-Archiv"
-          description="Enthaelt die Einzelbilder, die das Modell analysieren soll."
+          description="Enthält die Einzelbilder, die das Modell analysieren soll."
           formatHint={
             <p>
-              <strong>Inhalt:</strong> Bilddateien (JPG, PNG) direkt im Archiv-Wurzelverzeichnis oder
-              in Unterordnern.
+              <strong>Inhalt:</strong> Bilddateien (JPG, PNG) direkt im Archiv-Wurzelverzeichnis
+              oder in Unterordnern.
             </p>
           }
           file={testArchive}
@@ -162,7 +162,7 @@ export function BenchmarkUploadForm({
 
         <FileInputCard
           label="Label-Archiv"
-          description="Enthaelt die maschinenlesbaren Vergleichsdaten (Ground Truth) zu den Testbildern."
+          description="Enthält die maschinenlesbaren Vergleichsdaten (Ground Truth) zu den Testbildern."
           formatHint={
             <div className="space-y-1">
               <p>
@@ -172,7 +172,7 @@ export function BenchmarkUploadForm({
                 <strong>Zeile:</strong>{" "}
                 <code>{"<class_id> <x_center> <y_center> <width> <height>"}</code>
               </p>
-              <p>Alle Koordinaten sind auf 0-1 normiert. Dateinamen muessen den Bilddateien entsprechen.</p>
+              <p>Alle Koordinaten sind auf 0-1 normiert. Dateinamen müssen den Bilddateien entsprechen.</p>
             </div>
           }
           file={labelArchive}
@@ -183,12 +183,46 @@ export function BenchmarkUploadForm({
         />
       </div>
 
+      <div className="grid gap-4 lg:grid-cols-[1fr_0.95fr]">
+        <div className="rounded-[24px] border border-[#7a563a]/14 bg-[linear-gradient(180deg,rgba(122,86,58,0.08),rgba(244,239,230,0.84))] p-4 shadow-[0_12px_35px_rgba(52,36,24,0.06)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7a563a]">
+            Wichtig
+          </p>
+          <p className="mt-2 text-sm leading-6 text-[#5f6f63]">
+            Die Dateinamen müssen exakt zusammenpassen, sonst kann der Benchmark Bilder und Labels
+            nicht korrekt zuordnen.
+          </p>
+          <div className="mt-3 rounded-[18px] border border-[#7a563a]/14 bg-white/75 px-4 py-3 font-mono text-sm text-[#213126]">
+            <p>bild_001.jpg ↔ bild_001.txt</p>
+            <p className="mt-1">bild_002.jpg ↔ bild_002.txt</p>
+          </div>
+        </div>
+
+        <div className="rounded-[24px] border border-[#314a37]/10 bg-[#f4efe6]/80 p-4 shadow-[0_12px_35px_rgba(31,49,36,0.05)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#627966]">
+            Erwartete ZIP-Struktur
+          </p>
+          <div className="mt-3 grid gap-3 font-mono text-sm text-[#213126] sm:grid-cols-2">
+            <div className="rounded-[18px] border border-[#314a37]/10 bg-white/72 px-4 py-3">
+              <p className="font-semibold">testbilder.zip</p>
+              <p className="mt-1">├─ bild_001.jpg</p>
+              <p>├─ bild_002.jpg</p>
+            </div>
+            <div className="rounded-[18px] border border-[#314a37]/10 bg-white/72 px-4 py-3">
+              <p className="font-semibold">labels.zip</p>
+              <p className="mt-1">├─ bild_001.txt</p>
+              <p>├─ bild_002.txt</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {(!testArchive || !labelArchive) && (
         <div className="flex items-center gap-2 rounded-2xl border border-[#314a37]/10 bg-[#f4efe7]/72 px-4 py-3 text-sm text-[#5f7363]">
           <AlertCircle className="size-4 shrink-0" />
           <span>
             {!testArchive && !labelArchive
-              ? "Bitte beide ZIP-Dateien auswaehlen, um den Benchmark zu starten."
+              ? "Bitte beide ZIP-Dateien auswählen, um den Benchmark zu starten."
               : !testArchive
                 ? "Testbilder-Archiv fehlt noch."
                 : "Label-Archiv fehlt noch."}
@@ -202,13 +236,13 @@ export function BenchmarkUploadForm({
           disabled={!canStart}
           className="h-11 rounded-2xl bg-[#2d5b3b] px-5 text-white shadow-[0_16px_35px_rgba(45,91,59,0.22)] hover:bg-[#254b31]"
         >
-          {isLoading ? "Benchmark laeuft..." : "Benchmark starten"}
+          {isLoading ? "Benchmark läuft..." : "Benchmark starten"}
         </Button>
 
         <Button
           onClick={download}
           variant="outline"
-          className="h-11 rounded-2xl border-[#314a37]/15 bg-[#fbfaf7] text-[#213126] hover:bg-white sm:ml-auto"
+          className="h-11 rounded-2xl border-[#314a37]/15 bg-[#fbfaf7] text-[#213126] hover:border-[#314a37]/28 hover:bg-[#f4efe6] hover:text-[#213126] hover:shadow-[0_10px_24px_rgba(33,49,38,0.08)] sm:ml-auto"
         >
           Testdaten runterladen
         </Button>

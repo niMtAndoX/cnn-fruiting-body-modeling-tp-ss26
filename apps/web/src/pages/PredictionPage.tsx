@@ -70,6 +70,7 @@ export default function PredictionPage() {
   const selectedHistoryEntry = selectedHistoryIndex !== null ? history[selectedHistoryIndex] ?? null : null
 
   const displayedImageUrl = selectedHistoryEntry?.imageUrl ?? selectedImage?.imageUrl ?? null
+  const displayedImageDimensions = selectedHistoryEntry?.dimensions ?? selectedImage?.dimensions ?? null
   const displayedPrediction = selectedHistoryEntry?.prediction ?? result
   const displayedStatus = selectedHistoryEntry?.status ?? status
   const displayedErrorMessage = selectedHistoryEntry?.errorMessage ?? errorMessage
@@ -163,11 +164,11 @@ export default function PredictionPage() {
                     Analyse
                   </p>
                   <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-                    Bildanalyse fuer Lackporlinge
+                    Bildanalyse für Lackporlinge
                   </h1>
                   <p className="mt-3 max-w-2xl text-sm leading-7 text-stone-200/82 sm:text-base">
                     Bild hochladen, Analyse starten und erkannte Treffer mit Bounding Boxes,
-                    Protokoll und Metadaten pruefen.
+                    Protokoll und Metadaten prüfen.
                   </p>
                 </div>
               </div>
@@ -180,7 +181,7 @@ export default function PredictionPage() {
                     Workflow
                   </p>
                   <h2 className="mt-1 text-xl font-semibold tracking-tight text-[#213126]">
-                    Bild laden, pruefen und analysieren
+                    Bild laden, prüfen und analysieren
                   </h2>
                 </div>
               </div>
@@ -194,6 +195,7 @@ export default function PredictionPage() {
                   {displayedImageUrl ? (
                     <AnalysisPanel
                       imageUrl={displayedImageUrl}
+                      imageDimensions={displayedImageDimensions}
                       boundingBoxes={displayedPrediction?.boundingBoxes ?? []}
                       onClose={handleClose}
                     />

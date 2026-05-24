@@ -54,4 +54,14 @@ describe("BenchmarkReportExportButton", () => {
     expect(exportBenchmarkReport).toHaveBeenCalledTimes(1)
     expect(exportBenchmarkReport).toHaveBeenCalledWith(benchmarkResult)
   })
+
+  it("behaelt die Schriftfarbe des Buttons auch beim Hover bei", () => {
+    render(<BenchmarkReportExportButton result={benchmarkResult} />)
+
+    expect(screen.getByRole("button", { name: /report herunterladen/i })).toHaveClass(
+      "text-[#213126]",
+      "hover:text-[#213126]",
+      "hover:bg-[#f4efe6]",
+    )
+  })
 })

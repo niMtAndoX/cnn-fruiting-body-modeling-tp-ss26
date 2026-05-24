@@ -56,7 +56,7 @@ export function HistorySection({
             Letzte Analysen
           </h3>
           <p className="mt-1 text-sm text-[#687a6d]">
-            Oeffne eines der letzten Bilder erneut oder starte eine neue Analyse mit dem aktuellen Bild.
+            Öffne eines der letzten Bilder erneut oder starte eine neue Analyse mit dem aktuellen Bild.
           </p>
         </div>
 
@@ -104,17 +104,17 @@ export function HistorySection({
         ))}
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-[#687a6d]">
+      <div className="flex flex-col gap-4 rounded-[24px] border border-[#7a563a]/10 bg-[linear-gradient(180deg,rgba(122,86,58,0.06),rgba(45,91,59,0.08))] px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-[#56685b]">
           {hasImage
-            ? "Das gewaehlte Bild ist bereit fuer eine erneute oder erstmalige Analyse."
-            : "Waehle ein Bild aus, um den Analyseprozess zu starten."}
+            ? "Das gewählte Bild ist bereit für die Analyse."
+            : "Wähle ein Bild aus, um die Analyse zu starten."}
         </p>
 
         <Button
           onClick={onAnalyze}
           disabled={!hasImage || isAnalyzing}
-          className="h-12 rounded-2xl bg-[#2d5b3b] px-6 text-base text-white shadow-[0_16px_35px_rgba(45,91,59,0.24)] hover:bg-[#254b31] disabled:opacity-60"
+          className="h-12 rounded-2xl bg-[#2d5b3b] px-6 text-base font-semibold text-white shadow-[0_18px_38px_rgba(45,91,59,0.28)] hover:bg-[#254b31] hover:shadow-[0_20px_44px_rgba(45,91,59,0.34)] disabled:opacity-60 sm:min-w-[15rem]"
         >
           {isAnalyzing ? (
             <>
@@ -126,7 +126,7 @@ export function HistorySection({
           ) : hasImage ? (
             "Analyse starten"
           ) : (
-            "Bild auswaehlen"
+            "Bild auswählen"
           )}
         </Button>
       </div>

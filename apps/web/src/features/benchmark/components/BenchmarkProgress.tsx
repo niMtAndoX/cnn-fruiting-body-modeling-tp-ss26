@@ -14,7 +14,7 @@ export function BenchmarkProgress({ status, error }: BenchmarkProgressProps) {
           <Loader2 className="size-5 animate-spin" />
         </div>
         <div>
-          <p className="text-sm font-semibold text-[#213126]">Benchmark wird durchgefuehrt</p>
+          <p className="text-sm font-semibold text-[#213126]">Benchmark wird durchgeführt</p>
           <p className="mt-1 text-sm leading-6 text-[#66796d]">
             Bilder werden verarbeitet und mit den Label-Daten abgeglichen. Je nach Datensatz kann
             dieser Schritt einige Minuten dauern.

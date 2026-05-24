@@ -1,16 +1,51 @@
 "use client"
 
 import { Activity, AlertCircle, BarChart, CheckCircle2, Home, ScanSearch } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useState, type ReactNode } from "react"
 import { useNavigate } from "react-router-dom"
 import waldpilzLogo from "../WALDPILZ_Logo (1).png"
 
 import { getHealthStatus } from "@/features/health/api/health"
 import { getAssetSrc } from "@/lib/asset-src"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface HealthNotification {
   ok: boolean
   message: string
+}
+
+function HeaderIconButton({
+  ariaLabel,
+  tooltip,
+  onClick,
+  children,
+}: {
+  ariaLabel: string
+  tooltip: string
+  onClick: () => void
+  children: ReactNode
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          onClick={onClick}
+          className="rounded-xl p-2 text-[#274333] transition-colors hover:bg-[#35523f]/8 hover:text-[#7a563a]"
+          aria-label={ariaLabel}
+          title={tooltip}
+        >
+          {children}
+        </button>
+      </TooltipTrigger>
+      <TooltipContent
+        side="bottom"
+        sideOffset={10}
+        className="rounded-xl bg-[#213126] px-3 py-1.5 text-xs font-medium text-[#f4efe6] shadow-[0_10px_24px_rgba(18,28,22,0.18)]"
+      >
+        {tooltip}
+      </TooltipContent>
+    </Tooltip>
+  )
 }
 
 export function Header() {
@@ -41,54 +76,52 @@ export function Header() {
 
   return (
     <div className="relative z-20">
-      <header className="bg-card border-b-2 border-border">
+      <header className="border-b border-[#314a37]/12 bg-[linear-gradient(180deg,rgba(247,244,238,0.96),rgba(238,231,220,0.92))] shadow-[0_10px_36px_rgba(22,31,24,0.08)] backdrop-blur-xl">
         <div className="container relative mx-auto h-20 px-4">
           <div className="flex h-full items-center justify-between">
             <div className="flex flex-1 items-center gap-2">
-              <button
+              <HeaderIconButton
                 onClick={() => navigate('/')}
-                className="p-2 text-foreground hover:text-foreground/70 transition-colors"
-                aria-label="Startseite"
-                title="Startseite"
+                ariaLabel="Startseite"
+                tooltip="Startseite"
               >
                 <Home className="size-6" />
-              </button>
+              </HeaderIconButton>
             </div>
 
             <div className="flex flex-1 items-center justify-end gap-2">
-              <button
+              <HeaderIconButton
                 onClick={() => navigate('/prediction')}
-                className="p-2 text-foreground hover:text-foreground/70 transition-colors"
-                aria-label="Analyse"
-                title="Analyse"
+                ariaLabel="Prediction"
+                tooltip="Prediction"
               >
                 <ScanSearch className="size-6" />
-              </button>
-              <button
+              </HeaderIconButton>
+              <HeaderIconButton
                 onClick={() => navigate('/benchmark')}
-                className="p-2 text-foreground hover:text-foreground/70 transition-colors"
-                aria-label="Benchmark"
-                title="Benchmark"
+                ariaLabel="Benchmark"
+                tooltip="Benchmark"
               >
                 <BarChart className="size-6" />
-              </button>
-              <button
+              </HeaderIconButton>
+              <HeaderIconButton
                 onClick={handleHealthCheck}
-                className="p-2 text-foreground hover:text-foreground/70 transition-colors"
-                aria-label="Health Check"
-                title="Health Check"
+                ariaLabel="Health Check"
+                tooltip="Health Check"
               >
                 <Activity className="size-6" />
-              </button>
+              </HeaderIconButton>
             </div>
           </div>
 
           <div className="pointer-events-none absolute inset-y-0 left-1/2 flex -translate-x-1/2 items-center">
-            <img
-              src={getAssetSrc(waldpilzLogo)}
-              alt="Waldpilz Logo"
-              className="h-16 w-auto"
-            />
+            <div className="rounded-[18px] border border-[#7a563a]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.58),rgba(121,86,58,0.06))] px-4 py-1 shadow-[0_8px_22px_rgba(28,34,28,0.06)]">
+              <img
+                src={getAssetSrc(waldpilzLogo)}
+                alt="Waldpilz Logo"
+                className="h-16 w-auto"
+              />
+            </div>
           </div>
         </div>
       </header>
