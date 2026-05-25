@@ -1,29 +1,109 @@
 # Waldpilz API
 
-Die FastAPI-basierte Backend-API für die Waldpilz-Erkennung auf Resthölzern.
+## Zweck des Backends
 
-Die eigentliche Browser-Oberfläche liegt im React-Frontend unter
-`apps/web/`. Die FastAPI-Dokumentation unter `/docs` ist zusätzlich für
-Entwicklung, Tests und manuelle API-Prüfung verfügbar.
+Die API unter `apps/api/` ist das fachliche und technische Rückgrat der
+Waldpilz-Anwendung.
+
+Sie ist verantwortlich für:
+
+- Annahme und Validierung von Uploads
+- Start der Darknet-Inferenz
+- Aufbereitung der Prediction-Antworten
+- Ausführung kompletter Benchmark-Läufe
+- Berechnung und Rückgabe von Kennzahlen
+- Bereitstellung einer stabilen HTTP-Schnittstelle für das Frontend
+
+Die eigentliche Browser-Oberfläche liegt im React-Frontend unter `apps/web/`.
+
+Zusätzlich stellt die API für Entwicklung und manuelle Tests eine OpenAPI-Doku
+unter `/docs`, `/redoc` und `/openapi.json` bereit.
+
+---
+
+## Technologie-Stack
+
+Das Backend basiert auf:
+
+- Python 3.12
+- FastAPI
+- Pydantic Settings
+- Uvicorn
+- Pillow
+- pytest
+- Ruff
+
+Die Modellinferenz selbst läuft nicht nativ in Python, sondern über das
+Shell-Skript `scripts/inference.sh`, das Darknet mit den Modellartefakten aus
+`models/darknet/` startet.
+
+---
 
 ## Voraussetzungen
 
-Bevor das Backend gestartet werden kann, werden folgende Tools benötigt:
+Bevor das Backend lokal gestartet werden kann, sollten folgende Werkzeuge
+installiert sein:
 
-- **Python 3.12** – Die API ist für Python 3.12 entwickelt
-- **pip** – Paketmanager für Python (im Regelfall mit Python installiert)
-- **virtualenv** oder das eingebaute `venv`-Modul
+- **Python 3.12**
+- **pip**
+- **venv** oder **virtualenv**
 
-Optional für Entwicklung:
+Optional, aber empfohlen:
 
-- **VS Code** mit den Extensions `ms-python.python`, `ms-python.vscode-pylance` und `charliermarsh.ruff`
-- **Docker** falls das Backend containerisiert laufen soll
+- **VS Code**
+- `ms-python.python`
+- `ms-python.vscode-pylance`
+- `charliermarsh.ruff`
+- **Docker**, wenn das Backend containerisiert getestet werden soll
+
+---
+
+## Projektstruktur im Backend
+
+Die Backend-Struktur ist so aufgebaut, dass HTTP-Schicht, Fachlogik und
+technische Integration sauber getrennt bleiben.
+
+```text
+app/
+├─ main.py                         # erstellt die FastAPI-App
+├─ run.py                          # lokaler Startpunkt
+├─ api/
+│  ├─ router.py                    # bindet alle Router zusammen
+│  ├─ routes/
+│  │  ├─ health.py                 # GET /api/v1/health
+│  │  ├─ predict.py                # POST /api/v1/predict
+│  │  └─ benchmark.py              # POST /api/v1/benchmark
+│  ├─ schemas/                     # Request-/Response-Schemas
+│  └─ error_handlers.py            # zentrale Fehlerbehandlung
+├─ core/
+│  ├─ config.py                    # Settings und Env-Parsing
+│  ├─ dependencies.py              # FastAPI-Dependencies
+│  └─ logging.py                   # Logging-Setup
+├─ domain/
+│  ├─ prediction/                  # Fachlogik Prediction
+│  └─ benchmark/                   # Fachlogik Benchmark
+├─ infrastructure/
+│  └─ darknet/                     # technische Darknet-Anbindung
+└─ tests/                          # Unit- und Integrationstests
+```
+
+### Warum diese Trennung wichtig ist
+
+- HTTP-spezifische Details bleiben in `app/api/`.
+- Fachlogik für Prediction und Benchmark bleibt in `domain/`.
+- Technische Details der Modellintegration bleiben in `infrastructure/`.
+- Konfiguration und Dependency Injection bleiben zentral in `core/`.
+
+Für neue Entwickler ist das wichtig, weil Änderungen dadurch leichter gezielt
+an der richtigen Stelle vorgenommen werden können.
 
 ---
 
 ## Backend lokal starten
 
-Vor dem ersten Start die Konfiguration anlegen:
+### 1. `.env` anlegen
+
+Im Verzeichnis `apps/api/`:
 
 macOS / Linux:
 
@@ -37,9 +117,9 @@ Windows PowerShell:
 Copy-Item .env.example .env
 ```
 
-### 1. Virtuelle Umgebung erstellen und aktivieren
+### 2. Virtuelle Umgebung erstellen und aktivieren
 
-Im Verzeichnis `apps/api/` ausführen:
+Im Verzeichnis `apps/api/`:
 
 macOS / Linux:
 
@@ -55,167 +135,189 @@ py -3.12 -m venv .venv
 .venv\Scripts\Activate.ps1
 ```
 
-### 2. Dependencies installieren
+### 3. Abhängigkeiten installieren
 
 ```bash
 pip install -e ".[dev]"
 ```
 
-Dadurch werden alle nötigen Pakete installiert, inkl. FastAPI, Uvicorn, Pydantic und den Dev-Tools.
+Damit werden sowohl Laufzeit- als auch Entwicklungsabhängigkeiten installiert.
 
-### 3. Backend starten
-
-macOS / Linux und Windows PowerShell:
+### 4. Backend starten
 
 ```bash
 python -m app.run
 ```
 
-Die API ist anschließend unter folgenden Adressen erreichbar:
+Danach ist die API erreichbar unter:
 
-- **API-Basis:** http://127.0.0.1:8000
-- **Swagger UI (interaktive API-Dokumentation):** http://127.0.0.1:8000/docs
-- **ReDoc (alternative API-Doku):** http://127.0.0.1:8000/redoc
-- **OpenAPI-Spec:** http://127.0.0.1:8000/openapi.json
+- `http://127.0.0.1:8000/api/v1`
+- `http://127.0.0.1:8000/docs`
+- `http://127.0.0.1:8000/redoc`
+- `http://127.0.0.1:8000/openapi.json`
 
-> **Hinweis:** Die Endpunkte sind unter `/api/v1/...` erreichbar, z. B. `/api/v1/health`.
+Wichtiger Hinweis:
 
-Wenn parallel das Frontend lokal auf `http://localhost:5173` läuft, muss
-`CORS_ALLOW_ORIGINS` in `apps/api/.env` diese Origin enthalten. Der Default in
-`.env.example` ist dafür bereits passend vorbereitet.
+- Die FastAPI-Dokumentation läuft unter `/docs`.
+- Die eigentlichen API-Endpunkte liegen unter `/api/v1/...`.
 
----
+Beispiel:
 
-## Backend mit Docker starten
-
-Das API-Image wird aus dem Repository-Root gebaut, weil der Dockerfile neben
-`apps/api/` auch `scripts/` und `models/` in das Image kopiert.
-
-Wichtig: Die benoetigten Modell-Dateien unter `models/darknet/` muessen vor dem
-Build selbst bereitgestellt werden. Details dazu stehen in
-[`models/README.md`](../../models/README.md).
-
-### 1. Docker-Image bauen
-
-Im Repository-Root ausführen:
-
-```bash
-docker build -f apps/api/Dockerfile -t waldpilz-api .
-```
-
-### 2. Container starten
-
-```bash
-docker run --rm -p 8000:8000 waldpilz-api
-```
-
-Das Image bringt bereits sinnvolle Standardwerte aus dem Dockerfile mit. Falls
-du davon abweichen willst, kannst du einzelne Variablen zur Laufzeit mit
-`docker run -e KEY=value ...` überschreiben.
-
-Die Portfreigabe `-p 8000:8000` bedeutet:
-
-- Der Port `8000` auf deinem Rechner wird auf Port `8000` im Container gemappt.
-- Die API ist dadurch lokal unter `http://127.0.0.1:8000` erreichbar.
-
-Falls Port `8000` auf deinem Rechner bereits belegt ist, kannst du z. B. auch
-`-p 8080:8000` verwenden. Dann bleibt der Container intern auf Port `8000`,
-ist lokal aber unter `http://127.0.0.1:8080` erreichbar.
-
-### 3. Container testen
-
-Nach dem Start sind die wichtigsten URLs:
-
-- **Healthcheck:** http://127.0.0.1:8000/api/v1/health
-- **Swagger UI:** http://127.0.0.1:8000/docs
-- **ReDoc:** http://127.0.0.1:8000/redoc
-- **OpenAPI-Spec:** http://127.0.0.1:8000/openapi.json
-
-Beispiel fuer den Healthcheck im Terminal:
-
-```bash
-curl http://127.0.0.1:8000/api/v1/health
-```
-
-Wenn alles laeuft, sollte die Antwort so aussehen:
-
-```json
-{
-  "status": "ok"
-}
-```
+- `GET /api/v1/health`
 
 ---
 
-## Gemeinsames Deployment mit Frontend
+## CORS und Zusammenspiel mit dem Frontend
 
-Für den regulären Betrieb wird das Backend zusammen mit dem Frontend aus dem
-Repository-Root gestartet:
+Wenn das Frontend lokal über `pnpm dev` läuft, arbeitet es typischerweise unter:
 
-```bash
-make deploy
-```
+- `http://localhost:5173`
+- `http://127.0.0.1:5173`
 
-Dabei gelten folgende Architektur-Regeln:
-
-- das Backend läuft als eigener Docker-Container
-- das Frontend läuft als eigener Docker-Container mit Nginx
-- das Frontend spricht im Deployment dieselbe Origin an und ruft `/api/v1` auf
-- Nginx leitet diese Requests intern an den API-Container weiter
-
-Wichtige URLs nach dem Start:
-
-- Anwendung: `http://127.0.0.1:8080`
-- Healthcheck: `http://127.0.0.1:8080/api/v1/health`
-- API-Doku: `http://127.0.0.1:8080/docs`
-
-Wichtige Befehle:
-
-- `make deploy` – validiert das Docker-Deployment, baut Images und startet Frontend und Backend gemeinsam
-- `make ps` – zeigt Container-Status und Health
-- `make logs` – zeigt Logs beider Dienste
-- `make health` – prüft den Health-Endpunkt
-- `make down` – stoppt den Stack
+Diese Origins müssen in `CORS_ALLOW_ORIGINS` erlaubt sein. Die
+`apps/api/.env.example` enthält dafür bereits einen sinnvollen Default.
 
 ---
 
-## Wichtigste Backend-Bereiche
+## Modell und Inferenz verstehen
 
-Die Projektstruktur im Backend ist so organisiert:
+Das Backend startet Darknet nicht direkt im Python-Code, sondern über
+`scripts/inference.sh`.
 
+Das ist wichtig, weil damit:
+
+- die Darknet-Binary zentral gekapselt ist
+- Modellpfade an einer Stelle zusammenlaufen
+- Fehler früh und verständlich geprüft werden können
+
+### Erwartete Modellartefakte
+
+Unter `models/darknet/` müssen mindestens diese Dateien vorliegen:
+
+- `Bilderkennung-Pilzwachstum.cfg`
+- `Bilderkennung-Pilzwachstum.data`
+- `Bilderkennung-Pilzwachstum.names`
+- `Bilderkennung-Pilzwachstum_best.weights`
+
+### Wichtiger Hinweis zur `.data`-Datei
+
+Die `.data`-Datei verweist aktuell auf:
+
+```text
+names = ./Bilderkennung-Pilzwachstum.names
 ```
-app/
-├── main.py                    # Einstiegspunkt der FastAPI-App
-├── api/
-│   ├── routes/                # HTTP-Endpunkte (health, predict, benchmark)
-│   ├── schemas/               # Request- und Response-Schemas (Pydantic)
-│   └── error_handlers.py      # Zentrale Fehlerbehandlung
-├── core/
-│   ├── config.py              # Zentrale Konfiguration (Settings)
-│   ├── dependencies.py        # FastAPI-Dependencies
-│   └── logging.py             # Logging-Setup
-├── domain/
-│   └── prediction/            # Fachlogik für Vorhersagen
-│       ├── service.py
-│       ├── entities.py
-│       └── ports.py
-├── infrastructure/
-│   └── darknet/               # Technische Darknet-Integration
-│       ├── runner.py
-│       ├── parser.py
-│       └── models.py
-└── tests/                     # Unit- und Integrationstests
+
+Dieser Pfad muss korrekt bleiben. Ein falscher `names`-Pfad kann dazu führen,
+dass Darknet beim Start abbricht.
+
+### Aktive Modellversion
+
+Die aktuelle Modellversionsbezeichnung lautet:
+
+```text
+darknet-cnn-v1.1
 ```
 
-**Wichtigste Dateien:**
+Die Modellversion wird über `MODEL_VERSION` gesteuert. Im Docker-Deployment wird
+dieser Wert üblicherweise über `ops/docker/.env` gesetzt.
 
-- `main.py` – Erstellt die FastAPI-App, bindet Router ein
-- `api/routes/health.py` – Healthcheck-Endpunkt
-- `api/routes/predict.py` – Prediction-Endpunkt
-- `api/routes/benchmark.py` – Benchmark-Endpunkt für ZIP-basierte Modellbewertung
-- `core/config.py` – Zentrale Konfiguration (Env-Variablen, Settings)
-- `domain/prediction/service.py` – Fachlogik für die Bilderkennung
-- `domain/benchmark/service.py` – Fachlogik für ZIP-Verarbeitung, Vergleich und Metrikberechnung
+Ältere Artefakte liegen weiterhin unter:
+
+- `models/darknet/old_model/`
+
+---
+
+## Wichtige Konfiguration in `apps/api/.env`
+
+Die Konfiguration wird in `app/core/config.py` definiert und über
+`apps/api/.env` geladen.
+
+Eine Vorlage liegt unter:
+
+- `apps/api/.env.example`
+
+### Typische Einstellungen
+
+```env
+APP_NAME=waldpilz-api
+APP_ENV=dev
+DEBUG=true
+
+API_HOST=127.0.0.1
+API_PORT=8000
+API_PREFIX=/api/v1
+
+LOG_LEVEL=INFO
+
+CORS_ALLOW_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+
+MAX_UPLOAD_SIZE_MB=20
+ALLOWED_UPLOAD_CONTENT_TYPES=image/jpeg,image/png
+
+MODEL_VERSION=darknet-cnn-v1.1
+INFERENCE_TIMEOUT_SECONDS=30
+
+MAX_BENCHMARK_ARCHIVE_SIZE_MB=2000
+MAX_BENCHMARK_IMAGES=500
+BENCHMARK_IOU_THRESHOLD=0.5
+```
+
+### Bedeutung ausgewählter Variablen
+
+- `MAX_UPLOAD_SIZE_MB`
+  - maximale Größe für einen Einzelbild-Upload
+- `ALLOWED_UPLOAD_CONTENT_TYPES`
+  - erlaubte MIME-Types für Prediction-Uploads
+- `MODEL_VERSION`
+  - Versionsbezeichnung, die in API-Responses zurückgegeben wird
+- `INFERENCE_TIMEOUT_SECONDS`
+  - Zeitlimit für `scripts/inference.sh`
+- `MAX_BENCHMARK_ARCHIVE_SIZE_MB`
+  - maximale Größe eines Benchmark-Archivs
+- `MAX_BENCHMARK_IMAGES`
+  - Obergrenze für die Anzahl der Benchmark-Bilder
+- `BENCHMARK_IOU_THRESHOLD`
+  - IoU-Schwelle für das Matching von Prediction und Ground Truth
+
+Hinweis:
+
+- Im Docker-Deployment ist `MAX_BENCHMARK_ARCHIVE_SIZE_MB` standardmäßig kleiner
+  gesetzt als in der lokalen Backend-`.env.example`.
+
+---
+
+## Qualitätssicherung
+
+### Linting
+
+```bash
+python -m ruff check .
+```
+
+### Tests
+
+```bash
+python -m pytest
+```
+
+### Nur Unit-Tests
+
+```bash
+python -m pytest -m unit
+```
+
+### Nur Integrationstests
+
+```bash
+python -m pytest -m integration
+```
+
+Wenn du das gesamte Projekt auf einmal prüfen willst, ist aus dem
+Repository-Root dieses Kommando sinnvoll:
+
+```bash
+make test
+```
 
 ---
 
@@ -223,13 +325,13 @@ app/
 
 ### `GET /api/v1/health`
 
-Prüft, ob der Service läuft und erreichbar ist.
+Prüft, ob der Service erreichbar ist.
 
-**Request:**
+#### Request
 
 Keine Parameter erforderlich.
 
-**Erfolgreiche Response (200 OK):**
+#### Erfolgreiche Response
 
 ```json
 {
@@ -237,35 +339,47 @@ Keine Parameter erforderlich.
 }
 ```
 
-**Verwendung:**
+#### Typische Verwendung
 
-Dieser Endpunkt wird genutzt, um die Verfügbarkeit des Backends zu prüfen, z. B. für Monitoring oder Healthchecks in Container-Umgebungen.
+- Health Checks im Docker-Stack
+- Monitoring
+- schneller Funktionscheck aus Frontend oder Terminal
 
 ---
 
 ### `POST /api/v1/predict`
 
-Nimmt ein Bild entgegen und führt die Erkennung von Fruchtkörpern auf dem Bild aus.
+Führt eine Modellvorhersage auf einem einzelnen Bild aus.
 
-**Request:**
+#### Request
 
-- **Content-Type:** `multipart/form-data`
-- **Body-Parameter:**
-  - `file` (erforderlich): Bilddatei (JPEG oder PNG, max. 20 MB)
+- `Content-Type: multipart/form-data`
+- Pflichtfeld: `file`
 
-**Unterstützte Bildformate:**
+#### Erlaubte Dateitypen
 
-- JPEG (`image/jpeg`)
-- PNG (`image/png`)
+- `image/jpeg`
+- `image/png`
 
-**Maximale Dateigröße:** 20 MB
+#### Standardlimit
 
-**Erfolgreiche Response (200 OK) – mit erkannten Objekten:**
+- maximal `20 MB`
+
+#### Beispiel-Request mit `curl`
+
+```bash
+curl -X POST \
+  "http://127.0.0.1:8000/api/v1/predict" \
+  -H "accept: application/json" \
+  -F "file=@testimage.png;type=image/png"
+```
+
+#### Erfolgreiche Response mit Erkennungen
 
 ```json
 {
   "request_id": "db65485c-73f5-478b-b86c-ccef70c62a5f",
-  "model_version": "darknet-cnn-v1",
+  "model_version": "darknet-cnn-v1.1",
   "detections": [
     {
       "label": "fungus",
@@ -282,39 +396,31 @@ Nimmt ein Bild entgegen und führt die Erkennung von Fruchtkörpern auf dem Bild
 }
 ```
 
-**Erfolgreiche Response (200 OK) – keine Objekte erkannt:**
-
-Wenn keine Fruchtkörper erkannt werden, bleibt die Struktur identisch, das `detections`-Array ist jedoch leer:
+#### Erfolgreiche Response ohne Erkennungen
 
 ```json
 {
   "request_id": "7f3a9b1c-4e2d-4a8f-b5c6-8d9e2f3a1b4c",
-  "model_version": "darknet-cnn-v1",
+  "model_version": "darknet-cnn-v1.1",
   "detections": [],
   "inference_time_ms": 412
 }
 ```
 
-**Immer vorhandene Felder:**
+#### Bedeutung der Response-Felder
 
-Unabhängig davon, ob Objekte erkannt wurden oder nicht, enthält jede erfolgreiche Response folgende Felder:
+- `request_id`
+  - eindeutige ID der Anfrage
+- `model_version`
+  - Versionsbezeichnung des verwendeten Modells
+- `detections`
+  - Liste aller erkannten Objekte
+- `inference_time_ms`
+  - reine Inferenzzeit in Millisekunden
 
-- `request_id` (string): Eindeutige ID für die Anfrage (UUID v4)
-- `model_version` (string): Version des verwendeten Modells
-- `detections` (array): Liste der Erkennungen (leer bei keinen Treffern)
-- `inference_time_ms` (integer): Dauer der Inferenz in Millisekunden
+#### Mögliche Fehler
 
-**Felder innerhalb von `detections` (falls vorhanden):**
-
-Jedes Objekt im `detections`-Array hat folgende Struktur:
-
-- `label` (string): Klassenbezeichnung des erkannten Objekts (z. B. `"fungus"`)
-- `score` (float): Konfidenzwert der Erkennung (0.0 bis 1.0)
-- `bbox` (object | null): Begrenzungsrahmen mit `x`, `y`, `width`, `height` (in Pixeln)
-
-**Fehlerantworten:**
-
-**400 Bad Request** – Ungültige Eingabe:
+Beispiel für einen fachlichen Fehler:
 
 ```json
 {
@@ -323,67 +429,75 @@ Jedes Objekt im `detections`-Array hat folgende Struktur:
 }
 ```
 
-Mögliche Fehlerursachen:
+Typische Ursachen:
 
-- Ungültiger MIME-Type (nur JPEG und PNG erlaubt)
-- Datei zu groß (über 20 MB)
-- Leere Datei hochgeladen
-
-**500 Internal Server Error** – Fehler bei der Verarbeitung:
-
-```json
-{
-  "error": "internal_error",
-  "message": "Die Bilderkennung konnte nicht erfolgreich ausgeführt werden."
-}
-```
+- ungültiger MIME-Type
+- Datei zu groß
+- leere Datei
 
 ---
 
 ### `POST /api/v1/benchmark`
 
-Führt einen Benchmark-Lauf für das Bilderkennungsmodell aus.
+Dieser Endpunkt ist für das Projekt besonders wichtig. Er führt einen kompletten
+Benchmark-Lauf gegen einen annotierten Datensatz aus.
 
 Dabei werden zwei ZIP-Archive hochgeladen:
 
-- ein Archiv mit Testbildern
-- ein Archiv mit den zugehörigen Label-Dateien im YOLO-Format
+- `test_archive`
+  - ZIP mit Testbildern
+- `label_archive`
+  - ZIP mit Ground-Truth-Labels im YOLO-Format
 
-Der Endpunkt verarbeitet die Bilder, führt die Modellvorhersage aus, vergleicht die Vorhersagen mit den Ground-Truth-Labels und liefert zusammenfassende Bewertungsmetriken zurück.
+Die API führt anschließend für jedes Bild eine Prediction aus, vergleicht die
+Vorhersagen mit den Labels und berechnet zusammenfassende Kennzahlen.
 
-**Request:**
+#### Request
 
-- **Content-Type:** `multipart/form-data`
-- **Body-Parameter:**
-  - `test_archive` (erforderlich): ZIP-Archiv mit Testbildern
-  - `label_archive` (erforderlich): ZIP-Archiv mit Label-Dateien
+- `Content-Type: multipart/form-data`
+- Pflichtfeld `test_archive`
+- Pflichtfeld `label_archive`
 
-**Unterstützte Bildformate innerhalb des Test-Archivs:**
+#### Beispiel-Request mit `curl`
 
-- JPEG (`.jpg`, `.jpeg`)
-- PNG (`.png`)
+```bash
+curl -X POST \
+  "http://127.0.0.1:8000/api/v1/benchmark" \
+  -H "accept: application/json" \
+  -F "test_archive=@testbilder.zip;type=application/zip" \
+  -F "label_archive=@labels.zip;type=application/zip"
+```
 
-### Erwartete Struktur der ZIP-Archive
+#### Erwartete Struktur der ZIP-Dateien
 
-Die Dateien werden anhand ihres Dateinamens einander zugeordnet.
+Das Matching erfolgt über den Dateinamen.
 
 Beispiel:
 
 ```text
-test_images.zip
-├── image_1.jpg
-└── image_2.png
+testbilder.zip
+├─ bild_001.jpg
+├─ bild_002.jpg
+└─ bild_003.png
 
 labels.zip
-├── image_1.txt
-└── image_2.txt
+├─ bild_001.txt
+├─ bild_002.txt
+└─ bild_003.txt
 ```
 
-`image_1.jpg` wird also mit `image_1.txt` verglichen.
+Wichtig:
 
-### Label-Format
+- `bild_001.jpg` muss zu `bild_001.txt` passen
+- `bild_002.jpg` muss zu `bild_002.txt` passen
+- `bild_003.png` muss zu `bild_003.txt` passen
 
-Die Label-Dateien verwenden das YOLO-Format:
+Wenn diese Zuordnung nicht stimmt, ist das Benchmark-Ergebnis fachlich nicht
+zuverlässig.
+
+#### YOLO-Label-Format
+
+Jede Zeile in einer Label-Datei hat dieses Format:
 
 ```text
 <class_id> <x_center> <y_center> <width> <height>
@@ -397,22 +511,23 @@ Beispiel:
 
 Bedeutung:
 
-- `class_id`: Klassen-ID
-- `x_center`: horizontale Mittelpunktposition der Box
-- `y_center`: vertikale Mittelpunktposition der Box
-- `width`: Breite der Box
-- `height`: Höhe der Box
+- `class_id`
+  - numerische Klassen-ID
+- `x_center`
+  - normalisierte X-Mittelpunktkoordinate
+- `y_center`
+  - normalisierte Y-Mittelpunktkoordinate
+- `width`
+  - normalisierte Box-Breite
+- `height`
+  - normalisierte Box-Höhe
 
-Die Koordinaten sind normalisiert und liegen typischerweise zwischen `0.0` und `1.0`.
-
-> Hinweis: Der aktuelle Benchmark ist fachlich auf den bestehenden Ein-Klassen-Fall ausgelegt. Die API-Struktur unterstützt bereits Metriken pro Label über `per_label`; eine vollständige Mehrklassen-Auswertung der Ground-Truth-Labels kann später ergänzt werden.
-
-### Erfolgreiche Response (200 OK)
+#### Erfolgreiche Response
 
 ```json
 {
   "request_id": "8fd17d72-3d31-4d87-956c-f8595dc5503f",
-  "model_version": "darknet-cnn-v1",
+  "model_version": "darknet-cnn-v1.1",
   "processing_time_ms": 1840,
   "average_inference_time_ms": 412.5,
   "true_positives": 3,
@@ -441,7 +556,7 @@ Die Koordinaten sind normalisiert und liegen typischerweise zwischen `0.0` und `
   ],
   "image_results": [
     {
-      "image_id": "image_1",
+      "image_id": "bild_001",
       "ground_truth_count": 1,
       "predicted_count": 1,
       "true_positives": 1,
@@ -454,23 +569,68 @@ Die Koordinaten sind normalisiert und liegen typischerweise zwischen `0.0` und `
 }
 ```
 
-### Kurzbeschreibung der Metriken
+#### Bedeutung der wichtigsten Benchmark-Felder
 
-- `true_positives`: korrekt erkannte Objekte
-- `false_positives`: Vorhersagen ohne gültiges Ground-Truth-Match
-- `false_negatives`: Ground-Truth-Objekte ohne passende Vorhersage
-- `precision`: Anteil korrekter Treffer an allen Vorhersagen
-- `recall`: Anteil gefundener Objekte an allen Ground-Truth-Objekten
-- `f1_score`: harmonisches Mittel aus Precision und Recall
-- `accuracy`: objektbezogene Trefferquote `TP / (TP + FP + FN)`
-- `mean_iou`: durchschnittliche IoU der erfolgreich gematchten Objekte
-- `map`: Mean Average Precision bei IoU-Schwelle `0.5`
-- `average_inference_time_ms`: durchschnittliche reine Modell-Inferenzzeit pro erfolgreich verarbeitetem Bild
-- `processing_time_ms`: gesamte Verarbeitungszeit des Benchmark-Laufs
+- `processing_time_ms`
+  - gesamte Laufzeit des Benchmark-Laufs
+- `average_inference_time_ms`
+  - durchschnittliche Modell-Inferenzzeit pro erfolgreich verarbeitetem Bild
+- `true_positives`
+  - korrekt erkannte Objekte
+- `false_positives`
+  - Vorhersagen ohne gültiges Match
+- `false_negatives`
+  - Ground-Truth-Objekte ohne passende Vorhersage
+- `precision`
+  - Anteil korrekter Treffer an allen Vorhersagen
+- `recall`
+  - Anteil erkannter Objekte an allen Ground-Truth-Objekten
+- `f1_score`
+  - harmonisches Mittel aus Precision und Recall
+- `accuracy`
+  - objektbezogene Trefferquote nach `TP / (TP + FP + FN)`
+- `mean_iou`
+  - durchschnittliche IoU der gematchten Objekte
+- `map`
+  - API-Feldname für die Mean Average Precision, in der UI als **mAP** dargestellt
+- `total_images`
+  - Anzahl aller Bilder im Benchmark-Lauf
+- `failed_images`
+  - Anzahl der Bilder, die nicht erfolgreich ausgewertet werden konnten
+- `per_label`
+  - aggregierte Kennzahlen pro Label
+- `image_results`
+  - Detailauswertung pro Bild
 
-### Fehlerantworten
+#### Bedeutung der Felder in `image_results`
 
-**400 Bad Request** – Ungültige Benchmark-Eingabe:
+- `image_id`
+  - Bildkennung oder Dateiname ohne fachliche Kennzahl
+- `ground_truth_count`
+  - Anzahl der Ground-Truth-Objekte im Bild
+- `predicted_count`
+  - Anzahl der vorhergesagten Objekte
+- `true_positives`
+  - korrekt gematchte Objekte
+- `false_positives`
+  - zusätzliche Vorhersagen ohne Match
+- `false_negatives`
+  - verpasste Ground-Truth-Objekte
+- `inference_time_ms`
+  - Inferenzzeit für dieses Bild
+- `error`
+  - Fehlermeldung, falls das Bild nicht verarbeitet werden konnte
+
+#### Typische fachliche Fehlerursachen
+
+- Testbilder-Archiv ist leer
+- Label-Archiv ist leer
+- eines der Archive ist kein gültiges ZIP-Archiv
+- Dateinamen von Bild und Label passen nicht zusammen
+- Archivgröße überschreitet das konfigurierte Limit
+- es sind keine unterstützten Bilder im Testarchiv enthalten
+
+#### Beispiel für eine Fehlerantwort
 
 ```json
 {
@@ -479,15 +639,12 @@ Die Koordinaten sind normalisiert und liegen typischerweise zwischen `0.0` und `
 }
 ```
 
-Mögliche Fehlerursachen:
+#### Wann kommt ein interner Fehler?
 
-- Testbilder-Archiv ist leer
-- Label-Archiv ist leer
-- eines der Archive ist kein gültiges ZIP-Archiv
-- Testarchiv enthält keine unterstützten Bilder
-- Archivgröße überschreitet das konfigurierte Limit
+Ein `500 Internal Server Error` deutet darauf hin, dass die Verarbeitung trotz
+fachlich plausibler Eingabe nicht erfolgreich abgeschlossen werden konnte.
 
-**500 Internal Server Error** – Fehler bei der Verarbeitung:
+Beispiel:
 
 ```json
 {
@@ -500,13 +657,96 @@ Mögliche Fehlerursachen:
 
 ## Verwendungsbeispiele
 
-### Mit curl – Health-Check
+### Health Check mit `curl`
 
 ```bash
-curl -X GET http://127.0.0.1:8000/api/v1/health
+curl -X GET "http://127.0.0.1:8000/api/v1/health"
 ```
 
-**Erwartete Antwort:**
+### Prediction mit `curl`
+
+```bash
+curl -X POST \
+  "http://127.0.0.1:8000/api/v1/predict" \
+  -H "accept: application/json" \
+  -F "file=@testimage.png;type=image/png"
+```
+
+### Benchmark mit `curl`
+
+```bash
+curl -X POST \
+  "http://127.0.0.1:8000/api/v1/benchmark" \
+  -H "accept: application/json" \
+  -F "test_archive=@testbilder.zip;type=application/zip" \
+  -F "label_archive=@labels.zip;type=application/zip"
+```
+
+### Prediction mit Python `requests`
+
+Installiere zunächst `requests`:
+
+```bash
+pip install requests
+```
+
+Beispiel:
+
+```python
+import requests
+
+with open("testimage.png", "rb") as image_file:
+    files = {"file": ("testimage.png", image_file, "image/png")}
+    response = requests.post(
+        "http://127.0.0.1:8000/api/v1/predict",
+        files=files,
+        timeout=60,
+    )
+
+response.raise_for_status()
+result = response.json()
+
+print("Request ID:", result["request_id"])
+print("Modellversion:", result["model_version"])
+print("Inferenzzeit:", result["inference_time_ms"], "ms")
+print("Erkennungen:", len(result["detections"]))
+```
+
+---
+
+## Backend mit Docker starten
+
+Das API-Image wird aus dem Repository-Root gebaut, weil der Docker-Build neben
+`apps/api/` auch `scripts/` und `models/` in das Image kopiert.
+
+### 1. Modellartefakte prüfen
+
+Vor dem Build müssen die Dateien unter `models/darknet/` vorhanden sein.
+Details dazu stehen in:
+
+- [`../../models/README.md`](../../models/README.md)
+
+### 2. Docker-Image bauen
+
+Im Repository-Root:
+
+```bash
+docker build -f apps/api/Dockerfile -t waldpilz-api .
+```
+
+### 3. Container starten
+
+```bash
+docker run --rm -p 8000:8000 waldpilz-api
+```
+
+### 4. Erreichbarkeit prüfen
+
+```bash
+curl http://127.0.0.1:8000/api/v1/health
+```
+
+Erwartete Antwort:
 
 ```json
 {
@@ -516,199 +756,37 @@ curl -X GET http://127.0.0.1:8000/api/v1/health
 
 ---
 
-### Mit curl – Bild hochladen
+## Gemeinsames Deployment mit dem Frontend
+
+Für den regulären Betrieb der Gesamtlösung:
 
 ```bash
-curl -X 'POST' \
-  'http://127.0.0.1:8000/api/v1/predict' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: multipart/form-data' \
-  -F 'file=@testimage.png;type=image/png'
+make deploy
 ```
 
-**Erwartete Antwort (mit Erkennungen):**
+Danach ist die Anwendung standardmäßig erreichbar unter:
 
-```json
-{
-  "request_id": "db65485c-73f5-478b-b86c-ccef70c62a5f",
-  "model_version": "darknet-cnn-v1",
-  "detections": [
-    {
-      "label": "fungus",
-      "score": 0.95148888,
-      "bbox": {
-        "x": 140,
-        "y": 25,
-        "width": 297,
-        "height": 281
-      }
-    }
-  ],
-  "inference_time_ms": 787
-}
-```
+- `http://127.0.0.1:8080`
+- `http://127.0.0.1:8080/api/v1/health`
+- `http://127.0.0.1:8080/docs`
+
+Im Deployment gilt:
+
+- das Backend läuft in einem eigenen Container
+- das Frontend läuft in einem eigenen Nginx-Container
+- das Frontend spricht dieselbe Origin an
+- Nginx leitet `/api/v1` intern an die API weiter
+
+### Wichtiger Hinweis für Windows
+
+Wenn du `make deploy` oder andere `make`-Kommandos auf Windows nutzt, führe sie
+über **Git Bash** aus. Die Deploy- und Hilfsskripte des Projekts sind
+POSIX-Shell-Skripte und sind genau für diesen Ausführungsweg vorgesehen.
 
 ---
-
-### Mit curl – Benchmark ausführen
-
-```bash
-curl -X 'POST' \
-  'http://127.0.0.1:8000/api/v1/benchmark' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: multipart/form-data' \
-  -F 'test_archive=@test_images.zip;type=application/zip' \
-  -F 'label_archive=@labels.zip;type=application/zip'
-```
-
-**Erwartete Antwort:**
-
-```json
-{
-  "request_id": "8fd17d72-3d31-4d87-956c-f8595dc5503f",
-  "model_version": "darknet-cnn-v1",
-  "processing_time_ms": 1840,
-  "average_inference_time_ms": 412.5,
-  "true_positives": 3,
-  "false_positives": 1,
-  "false_negatives": 1,
-  "precision": 0.75,
-  "recall": 0.75,
-  "f1_score": 0.75,
-  "accuracy": 0.6,
-  "mean_iou": 0.82,
-  "map": 0.71,
-  "total_images": 4,
-  "failed_images": 0,
-  "per_label": [
-    {
-      "label": "fungus",
-      "true_positives": 3,
-      "false_positives": 1,
-      "false_negatives": 1,
-      "precision": 0.75,
-      "recall": 0.75,
-      "f1_score": 0.75,
-      "accuracy": 0.6,
-      "mean_iou": 0.82
-    }
-  ],
-  "image_results": [
-    {
-      "image_id": "image_1",
-      "ground_truth_count": 1,
-      "predicted_count": 1,
-      "true_positives": 1,
-      "false_positives": 0,
-      "false_negatives": 0,
-      "inference_time_ms": 398,
-      "error": null
-    }
-  ]
-}
-```
-
----
-
-### Mit Python – requests
-
-Installiere zuerst `requests`:
-
-```bash
-pip install requests
-```
-
-**Beispiel-Skript:**
-
-```python
-import requests
-
-# Health-Check
-response = requests.get("http://127.0.0.1:8000/api/v1/health")
-print(response.json())
-# {'status': 'ok'}
-
-# Bild hochladen und Vorhersage erhalten
-with open("testimage.png", "rb") as image_file:
-    files = {"file": ("testimage.png", image_file, "image/png")}
-    response = requests.post(
-        "http://127.0.0.1:8000/api/v1/predict",
-        files=files
-    )
-    
-    if response.status_code == 200:
-        result = response.json()
-        print(f"Request ID: {result['request_id']}")
-        print(f"Modell-Version: {result['model_version']}")
-        print(f"Anzahl Erkennungen: {len(result['detections'])}")
-        print(f"Inferenz-Zeit: {result['inference_time_ms']} ms")
-        
-        for detection in result['detections']:
-            print(f"\n  - Label: {detection['label']}")
-            print(f"    Konfidenz: {detection['score']:.2f}")
-            if detection['bbox']:
-                bbox = detection['bbox']
-                print(f"    Position: ({bbox['x']}, {bbox['y']})")
-                print(f"    Größe: {bbox['width']}x{bbox['height']} px")
-    else:
-        print(f"Fehler: {response.status_code}")
-        print(response.json())
-```
-
----
-
-## Tests ausführen
-
-Unit- und Integrationstests können mit pytest ausgeführt werden:
-
-```bash
-pytest
-```
-
-Für spezifische Test-Typen:
-
-```bash
-# Nur Unit-Tests
-pytest -m unit
-
-# Nur Integrationstests
-pytest -m integration
-```
-
----
-
-## Konfiguration
-
-Die Konfiguration erfolgt über die Datei `.env` im Verzeichnis `apps/api/`.
-
-Eine versionierbare Vorlage liegt unter `apps/api/.env.example`.
-
-Wichtige Einstellungen:
-
-```env
-# Anwendung
-APP_NAME=waldpilz-api
-APP_ENV=dev
-DEBUG=true
-
-# API
-API_HOST=127.0.0.1
-API_PORT=8000
-API_PREFIX=/api/v1
-
-# Uploads
-MAX_UPLOAD_SIZE_MB=20
-MAX_BENCHMARK_ARCHIVE_SIZE_MB=200
-ALLOWED_UPLOAD_CONTENT_TYPES=image/jpeg,image/png
-
-# Modell
-MODEL_VERSION=darknet-cnn-v1
-INFERENCE_TIMEOUT_SECONDS=30
-```
-
-Die vollständige Liste der Konfigurationsoptionen findet sich in `app/core/config.py`.
 
 ## Weiterführende Dokumentation
 
-- Release- und Deployment-Abläufe: [`docs/release-guide.md`](../../docs/release-guide.md)
-- Modellartefakte und Ablage: [`models/README.md`](../../models/README.md)
+- [`../../README.md`](../../README.md) für den Projektüberblick
+- [`../../models/README.md`](../../models/README.md) für Modellartefakte
+- [`../../docs/release-guide.md`](../../docs/release-guide.md) für Release und Deployment
