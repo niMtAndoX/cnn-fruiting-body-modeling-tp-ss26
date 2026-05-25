@@ -3,9 +3,19 @@ import autoTable from "jspdf-autotable"
 
 import type { BenchmarkResponse, ImageBenchmarkResult } from "../model/benchmarkTypes"
 
-type JsPdfWithAutoTable = jsPDF & {
-  lastAutoTable?: {
-    finalY: number
+type AutoTablePageHookData = {
+  pageNumber: number
+}
+
+type AutoTableCellHookData = {
+  section: string
+  row: {
+    index: number
+  }
+  cell: {
+    styles: {
+      fillColor?: number[]
+    }
   }
 }
 
@@ -587,7 +597,7 @@ export function exportBenchmarkReport(result: BenchmarkResponse): void {
     alternateRowStyles: {
       fillColor: [251, 248, 243],
     },
-    willDrawPage: (data: any) => {
+    willDrawPage: (data: AutoTablePageHookData) => {
       drawDetailPageHeader(doc)
       if (data.pageNumber > 1) {
         setTextColor(doc, REPORT_COLORS.muted)
@@ -596,7 +606,7 @@ export function exportBenchmarkReport(result: BenchmarkResponse): void {
         doc.text("Fortsetzung der Detailauswertung.", 14, 33)
       }
     },
-    didParseCell: (data: any) => {
+    didParseCell: (data: AutoTableCellHookData) => {
       if (data.section !== "body") return
 
       const imageResult = result.imageResults[data.row.index]
