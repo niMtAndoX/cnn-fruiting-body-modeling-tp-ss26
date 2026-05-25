@@ -1,6 +1,6 @@
 "use client"
 
-import { AlertTriangle, Camera, Search, Check } from "lucide-react"
+import { AlertTriangle, Camera, Search, Check, TerminalSquare } from "lucide-react"
 import { Spinner } from "@/components/ui/spinner"
 import { PredictionStatus } from "@/features/prediction/components/PredictionStatus"
 import type { LogEntry, PredictionFlowStatus } from "@/features/prediction/model/prediction"
@@ -16,13 +16,13 @@ interface LogPanelProps {
 function LogIcon({ type }: { type: LogEntry["icon"] }) {
   switch (type) {
     case "camera":
-      return <Camera className="size-4 flex-shrink-0 text-yellow-300" />
+      return <Camera className="size-4 shrink-0 text-stone-300" />
     case "search":
-      return <Search className="size-4 flex-shrink-0 text-yellow-300" />
+      return <Search className="size-4 shrink-0 text-emerald-300" />
     case "check":
-      return <Check className="size-4 flex-shrink-0 text-yellow-300" />
+      return <Check className="size-4 shrink-0 text-emerald-300" />
     case "error":
-      return <AlertTriangle className="size-4 flex-shrink-0 text-red-300" />
+      return <AlertTriangle className="size-4 shrink-0 text-red-300" />
     default:
       return null
   }
@@ -36,34 +36,48 @@ export function LogPanel({
   status,
 }: LogPanelProps) {
   return (
-    <div className="aspect-square md:aspect-auto md:min-h-[300px] bg-[#594134] rounded-lg p-4 overflow-hidden flex flex-col">
-      <h3 className="text-yellow-300 font-semibold mb-3 text-sm">Analyse-Log</h3>
-      
-      <div className="flex-1 overflow-y-auto space-y-2">
+    <div className="flex aspect-square flex-col overflow-hidden rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(24,33,27,0.95),rgba(30,42,34,0.92))] shadow-[0_22px_70px_rgba(18,28,23,0.24)] md:aspect-auto md:min-h-[420px]">
+      <div className="flex items-center justify-between border-b border-white/8 px-5 py-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-400">
+            Protokoll
+          </p>
+          <h3 className="mt-1 text-base font-semibold text-stone-50">Analyse-Log</h3>
+        </div>
+
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-stone-300">
+          <TerminalSquare className="size-3.5" />
+          Live Status
+        </div>
+      </div>
+
+      <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
         {logs.length === 0 && !isAnalyzing ? (
           <PredictionStatus status={status} errorMessage={errorMessage} hasImage={hasImage} />
         ) : (
           <>
-            {logs.map((log) => (
-              <div
-                key={log.id}
-                className="flex items-start gap-2 text-log-text text-sm animate-in fade-in slide-in-from-bottom-2 duration-300"
-              >
-                <LogIcon type={log.icon} />
-                <span className="text-yellow-300/70 font-mono text-xs">
-                  [{log.timestamp}]
-                </span>
-                <span className={`flex-1 ${log.icon === "error" ? "text-red-200" : "text-yellow-300"}`}>
-                  {log.message}
-                </span>
-              </div>
-            ))}
+            <div className="space-y-2">
+              {logs.map((log) => (
+                <div
+                  key={log.id}
+                  className="grid grid-cols-[auto_auto_1fr] items-start gap-3 rounded-2xl border border-white/6 bg-white/[0.03] px-3 py-3 text-sm"
+                >
+                  <LogIcon type={log.icon} />
+                  <span className="pt-0.5 font-mono text-[11px] text-stone-400">[{log.timestamp}]</span>
+                  <span className={log.icon === "error" ? "text-red-100" : "text-stone-100"}>
+                    {log.message}
+                  </span>
+                </div>
+              ))}
+            </div>
+
             {isAnalyzing && (
-              <div className="flex items-center gap-2 text-yellow-300 text-sm ">
+              <div className="flex items-center gap-2 rounded-2xl border border-emerald-400/15 bg-emerald-400/8 px-3 py-3 text-sm text-emerald-50">
                 <Spinner className="size-4" />
-                <span>Verarbeitung...</span>
+                <span>Verarbeitung läuft...</span>
               </div>
             )}
+
             {!isAnalyzing && (
               <PredictionStatus status={status} errorMessage={errorMessage} hasImage={hasImage} />
             )}

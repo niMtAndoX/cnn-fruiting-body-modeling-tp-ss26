@@ -19,6 +19,10 @@ vi.mock("@/components/waldpilz/header", () => ({
 
 vi.mock("@/components/wald_background.jpg", () => ({ default: "background.jpg" }))
 
+vi.mock("@/features/benchmark/components/BenchmarkResultView", () => ({
+  BenchmarkResultView: () => null,
+}))
+
 import BenchmarkPage from "@/pages/BenchmarkPage"
 
 function renderBenchmarkPage() {
@@ -63,5 +67,22 @@ describe("BenchmarkPage", () => {
     })
 
     expect(screen.getByRole("button", { name: /benchmark starten/i })).not.toBeDisabled()
+  })
+
+  it("haelt die Textfarbe des Testdaten-Buttons auch im Hover-Zustand stabil", () => {
+    renderBenchmarkPage()
+
+    expect(screen.getByRole("button", { name: /testdaten runterladen/i })).toHaveClass(
+      "text-[#213126]",
+      "hover:text-[#213126]",
+      "hover:bg-[#f4efe6]",
+    )
+  })
+
+  it("zeigt den Hinweis zu passenden Bild- und Label-Dateinamen", () => {
+    renderBenchmarkPage()
+
+    expect(screen.getByText(/bild_001\.jpg ↔ bild_001\.txt/i)).toBeInTheDocument()
+    expect(screen.getByText(/Erwartete ZIP-Struktur/i)).toBeInTheDocument()
   })
 })

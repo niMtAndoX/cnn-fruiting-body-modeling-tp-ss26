@@ -10,26 +10,21 @@ interface BenchmarkMetricCardsProps {
 
 export function BenchmarkMetricCards({ metrics }: BenchmarkMetricCardsProps) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {metrics.map((metric) => (
         <div
           key={metric.label}
-          className="group relative flex flex-col items-center gap-1 p-4 rounded-lg border-2 border-border bg-card/50"
+          className="flex h-full min-h-[10.5rem] flex-col justify-between rounded-[24px] border border-[#314a37]/10 bg-white/78 p-5 shadow-[0_12px_35px_rgba(31,49,36,0.05)]"
         >
-          <span className="text-2xl font-bold text-foreground">
-            {metric.value}
-          </span>
-          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            {metric.label}
-          </span>
-
-          <div className="absolute bottom-full left-1/2 z-10 mb-2 w-48 -translate-x-1/2 rounded-md bg-popover p-2 text-center text-xs text-popover-foreground shadow-md border border-border pointer-events-none
-              opacity-0 scale-95 transition-all duration-150
-              group-hover:opacity-100 group-hover:scale-100"
-            >
-              {metric.description}
-              <div className="absolute top-full left-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1 bg-popover border-b border-r border-border rotate-45" />
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5e7364]">
+              {metric.label}
+            </p>
+            <p className="mt-3 text-4xl font-semibold tracking-tight text-[#213126]">
+              {metric.value}
+            </p>
           </div>
+          <p className="mt-4 text-sm leading-6 text-[#6b7b70]">{metric.description}</p>
         </div>
       ))}
     </div>
