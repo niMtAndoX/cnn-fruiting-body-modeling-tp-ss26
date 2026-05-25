@@ -53,6 +53,23 @@ for required_file in "$DATA_FILE" "$CFG_FILE" "$WEIGHTS_FILE"; do
   fi
 done
 
+NAMES_ENTRY="$(
+  sed -n 's/^[[:space:]]*names[[:space:]]*=[[:space:]]*//p' "$DATA_FILE" | head -n 1
+)"
+
+if [[ -n "$NAMES_ENTRY" ]]; then
+  if [[ "$NAMES_ENTRY" = /* ]]; then
+    NAMES_FILE="$NAMES_ENTRY"
+  else
+    NAMES_FILE="$MODEL_DIR/$NAMES_ENTRY"
+  fi
+
+  if [[ ! -f "$NAMES_FILE" ]]; then
+    echo "Names file referenced from data file not found: $NAMES_FILE" >&2
+    exit 1
+  fi
+fi
+
 cd "$MODEL_DIR"
 
 "$DARKNET_BIN" detector test \
