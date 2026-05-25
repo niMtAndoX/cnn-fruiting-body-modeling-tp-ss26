@@ -13,15 +13,15 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 MODEL_DIR="${MODEL_DIR:-$REPO_ROOT/models/darknet}"
 
-if [[ -n "${DARKNET_DIR:-}" ]]; then
-  RESOLVED_DARKNET_DIR="$DARKNET_DIR"
-elif [[ -d "$REPO_ROOT/vendor/darknet/build" ]]; then
-  RESOLVED_DARKNET_DIR="$REPO_ROOT/vendor/darknet/build"
-else
-  RESOLVED_DARKNET_DIR="$HOME/src/darknet/build"
+if [[ -n "${DARKNET_BIN:-}" ]]; then
+  : # DARKNET_BIN already set, use as-is
+elif [[ -n "${DARKNET_DIR:-}" ]]; then
+  DARKNET_BIN="$DARKNET_DIR/src-cli/darknet"
+elif [[ -x "$REPO_ROOT/vendor/darknet/build/src-cli/darknet" ]]; then
+  DARKNET_BIN="$REPO_ROOT/vendor/darknet/build/src-cli/darknet"
+elif [[ -x "$REPO_ROOT/vendor/darknet/build-linux/src-cli/darknet" ]]; then
+  DARKNET_BIN="$REPO_ROOT/vendor/darknet/build-linux/src-cli/darknet"
 fi
-
-DARKNET_BIN="$RESOLVED_DARKNET_DIR/src-cli/darknet"
 DATA_FILE="${DARKNET_DATA_FILE:-$MODEL_DIR/Bilderkennung-Pilzwachstum.data}"
 CFG_FILE="${DARKNET_CFG_FILE:-$MODEL_DIR/Bilderkennung-Pilzwachstum.cfg}"
 WEIGHTS_FILE="${DARKNET_WEIGHTS_FILE:-$MODEL_DIR/Bilderkennung-Pilzwachstum_best.weights}"
@@ -36,6 +36,11 @@ if [[ ! -d "$MODEL_DIR" ]]; then
   exit 1
 fi
 
+if [[ -z "${DARKNET_BIN:-}" ]]; then
+  echo "DARKNET_BIN is not configured and no repository-local Darknet build was found." >&2
+  exit 1
+fi
+
 if [[ ! -x "$DARKNET_BIN" ]]; then
   echo "Darknet binary not found or not executable: $DARKNET_BIN" >&2
   exit 1
@@ -47,6 +52,23 @@ for required_file in "$DATA_FILE" "$CFG_FILE" "$WEIGHTS_FILE"; do
     exit 1
   fi
 done
+
+NAMES_ENTRY="$(
+  sed -n 's/^[[:space:]]*names[[:space:]]*=[[:space:]]*//p' "$DATA_FILE" | head -n 1
+)"
+
+if [[ -n "$NAMES_ENTRY" ]]; then
+  if [[ "$NAMES_ENTRY" = /* ]]; then
+    NAMES_FILE="$NAMES_ENTRY"
+  else
+    NAMES_FILE="$MODEL_DIR/$NAMES_ENTRY"
+  fi
+
+  if [[ ! -f "$NAMES_FILE" ]]; then
+    echo "Names file referenced from data file not found: $NAMES_FILE" >&2
+    exit 1
+  fi
+fi
 
 cd "$MODEL_DIR"
 

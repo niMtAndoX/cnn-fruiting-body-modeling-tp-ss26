@@ -25,27 +25,27 @@ describe("HomePage", () => {
     renderHomePage();
 
     const title = screen.getByRole("heading", {
-      name: /KI-Erkennung/i,
+      name: /erkennen/i,
     });
     expect(title).toBeInTheDocument();
   });
 
-  it("zeigt den Button 'Lackporling analysieren'", () => {
+  it("zeigt den Button 'Bildanalyse starten'", () => {
     renderHomePage();
 
     const button = screen.getByRole("link", {
-      name: /Lackporling analysieren/i,
+      name: /Bildanalyse starten/i,
     });
     expect(button).toBeInTheDocument();
   });
 
-  it("zeigt den Button 'Analyse starten' im Header", () => {
+  it("zeigt den Link zur Benchmark-Seite", () => {
     renderHomePage();
 
-    const button = screen.getByRole("link", {
-      name: /Analyse starten/i,
+    const buttons = screen.getAllByRole("link", {
+      name: /Benchmark/i,
     });
-    expect(button).toBeInTheDocument();
+    expect(buttons.length).toBeGreaterThan(0);
   });
 
   it("zeigt die Akademische Kooperation Section", () => {

@@ -1,6 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/features/benchmark/components/BenchmarkResultView", () => ({
+  BenchmarkResultView: () => null,
+}))
 
 import { routes } from "../app/router";
 

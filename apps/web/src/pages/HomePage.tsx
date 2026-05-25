@@ -1,166 +1,165 @@
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
-import { Upload, Search, CheckCircle, GraduationCap } from "lucide-react"
+import { BarChart, CheckCircle, GraduationCap, Search, Upload } from "lucide-react"
 import backgroundWald from "@/components/wald_background.jpg"
-import waldpilzLogo from "@/components/WALDPILZ_Logo (1).png"
 import waldpilzLogoWhite from "@/components/WALDPILZ_Logo_weiß.png"
 import { getAssetSrc } from "@/lib/asset-src"
+import { Header } from "@/components/waldpilz/header"
+import { SiteFooter } from "@/components/waldpilz/site-footer"
+
+function ProcessLink({
+  to,
+  icon: Icon,
+  title,
+  description,
+}: {
+  to: string
+  icon: typeof Upload
+  title: string
+  description: string
+}) {
+  return (
+    <Link to={to} className="group flex flex-col items-center text-center">
+      <div className="mb-6 flex size-18 items-center justify-center rounded-[22px] border border-white/14 bg-[linear-gradient(180deg,rgba(244,239,231,0.18),rgba(255,255,255,0.06))] shadow-[0_18px_44px_rgba(0,0,0,0.18)] backdrop-blur-sm transition-all duration-200 group-hover:-translate-y-1 group-hover:border-[#8b6542]/34 group-hover:bg-[linear-gradient(180deg,rgba(121,86,58,0.28),rgba(47,74,54,0.24))]">
+        <Icon className="size-9 text-[#e4cfbf] transition-colors group-hover:text-white" />
+      </div>
+      <h3 className="mb-3 text-xl font-semibold text-[#e7d2bf]">{title}</h3>
+      <p className="max-w-xs text-sm leading-6 text-stone-200/78">{description}</p>
+    </Link>
+  )
+}
 
 export default function HomePage() {
   return (
-    <div
-      className="min-h-screen bg-background text-foreground bg-cover bg-center bg-fixed relative"
-      style={{ backgroundImage: `url(${backgroundWald})` }}
-    >
-      {/* Grünliches transparentes Overlay für bessere Lesbarkeit */}
-      <div 
-        className="absolute inset-0 pointer-events-none" 
+    <div className="relative min-h-screen overflow-hidden text-foreground">
+      <div
+        className="absolute inset-0 scale-105 bg-cover bg-center bg-fixed"
+        style={{ backgroundImage: `url(${backgroundWald})`, filter: "blur(3px) saturate(0.92)" }}
+      />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,17,13,0.28),rgba(10,17,13,0.46)_30%,rgba(12,18,14,0.64)_100%)]" />
+      <div
+        className="pointer-events-none absolute inset-0"
         style={{
-          background: "radial-gradient(ellipse 800px 100% at center, rgba(0, 0, 0, 0.35), transparent)"
+          background:
+            "radial-gradient(ellipse 900px 110% at center, rgba(0, 0, 0, 0.16), transparent), radial-gradient(circle at 18% 0%, rgba(214,230,214,0.14), transparent 34%), radial-gradient(circle at 82% 10%, rgba(112,84,58,0.14), transparent 30%)",
         }}
       />
+
       <div className="relative z-10">
-      {/* Header */}
-      <header className="border-b-4 border-border bg-card">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img
-              src={getAssetSrc(waldpilzLogo)}
-              alt="Waldpilz Logo"
-              className="h-10 w-auto"
-            />
-          </div>
-          <Link to="/prediction">
-            <Button variant="default">Analyse starten</Button>
-          </Link>
-        </div>
-      </header>
+        <Header />
 
-      {/* Kopfzeile */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto max-w-4xl text-center">
-          <div className="opacity-0">Startseite</div>
-          <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tighter text-balance text-white">
-            Spezialisierte <span className="text-yellow-300">KI-Erkennung</span>
-          </h1>
-          
-          <p className="text-xl md:text-2xl text-gray-200 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Identifikation des <strong>Glänzenden Lackporlings</strong> (Ganoderma lucidum). Nutzen Sie modernste Technik zur Bestimmung dieses besonderen Vitalpilzes.
-          </p>
-          <div className="flex items-center justify-center gap-3 -mt-4">
-            <img
-              src={getAssetSrc(waldpilzLogoWhite)}
-              alt="Waldpilz Logo"
-              className="h-16 w-auto"
-            />
-          </div>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/prediction">
-              <Button size="lg" className="text-lg px-10 py-7 h-auto">
-                Lackporling analysieren
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+        <section className="px-4 py-20 md:py-24">
+          <div className="container mx-auto max-w-4xl text-center">
+            <div className="opacity-0">Startseite</div>
+            <h1 className="text-balance text-5xl font-semibold tracking-tight text-white md:text-7xl">
+              Lackporlinge auf Fotos{" "}
+              <span className="text-[#dcc0a7]">erkennen</span>
+            </h1>
 
-      {/* Projekt Einführung */}
-      <section className="py-16 px-4">
-        <div className="container mx-auto max-w-4xl">
-          <div className="flex flex-col md:flex-row items-center gap-8">
-            <div className="size-20 shrink-0 rounded-2xl bg-primary flex items-center justify-center">
-              <GraduationCap className="size-12 text-primary-foreground" />
-            </div>
-            <div>
-              <h2 className="text-3xl font-bold mb-4 text-yellow-300">Akademische Kooperation</h2>
-              <p className="text-lg text-gray-200 leading-relaxed">
-                Dieses spezialisierte KI-Tool ist das Ergebnis eines Team-Projekts an der  <strong>Ostfalia Hochschule Wolfenbüttel</strong>. Im Rahmen des Projekts <strong>Waldpilz.eu</strong> haben wir eine Lösung entwickelt, die eine computergestützte Erkennung des Glänzenden Lackporlings ermöglicht.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Tutorial */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto max-w-5xl">
-          <h2 className="text-3xl font-bold text-center mb-16 text-yellow-300">Der Analyse-Prozess</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <div className="flex flex-col items-center text-center group">
-              <div className="size-20 rounded-2xl bg-card border-4 border-border flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
-                <Upload className="size-10 text-foreground group-hover:text-primary-foreground" />
-              </div>
-              <h3 className="text-xl font-bold mb-3 text-yellow-300">Foto hochladen</h3>
-              <p className="text-gray-200">
-                Laden Sie eine Nahaufnahme des vermeintlichen Lackporlings hoch.
-              </p>
-            </div>
-            <div className="flex flex-col items-center text-center group">
-              <div className="size-20 rounded-2xl bg-card border-4 border-border flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
-                <Search className="size-10 text-foreground group-hover:text-primary-foreground" />
-              </div>
-              <h3 className="text-xl font-bold mb-3 text-yellow-300">Spezifische Prüfung</h3>
-              <p className="text-gray-200">
-                Die KI gleicht die Merkmale (Farbe, Glanz, Wuchsform) mit Referenzdaten ab.
-              </p>
-            </div>
-            <div className="flex flex-col items-center text-center group">
-              <div className="size-20 rounded-2xl bg-card border-4 border-border flex items-center justify-center mb-6 group-hover:bg-primary transition-colors">
-                <CheckCircle className="size-10 text-foreground group-hover:text-primary-foreground" />
-              </div>
-              <h3 className="text-xl font-bold mb-3 text-yellow-300">Ergebnis</h3>
-              <p className="text-gray-200">
-                Sie erhalten eine Einschätzung, ob es sich um den Glänzenden Lackporling handelt.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Projekt Informationen*/}
-      <section className="py-16 px-4 bg-black/50 border-t-2 border-b-2 border-white/20">
-        <div className="container mx-auto max-w-3xl text-center">
-          <h2 className="text-3xl font-bold mb-8 text-yellow-300">Projekt Waldpilz</h2>
-          <div className="prose prose-lg mx-auto text-gray-200 space-y-6">
-            <p>
-              Waldpilz.eu widmet sich der digitalen Erfassung und dem Schutz unserer heimischen Pilzflora. Dieses studentische Modul nutzt die Kernidee von Waldpilz.eu – <strong>Wissen durch Technologie</strong> – und wendet sie gezielt auf die Erkennung einer einzelnen, markanten Art an.
+            <p className="mx-auto mb-10 mt-6 max-w-2xl text-lg leading-8 text-stone-200/82 md:text-2xl">
+              KI-gestützte Analyse für den{" "}
+              <strong className="text-[#dcc0a7]">Glänzenden Lackporling</strong> mit ruhiger
+              Auswertung und reproduzierbaren Benchmark-Ergebnissen.
             </p>
-            <div className="bg-destructive/20 border-l-4 border-destructive p-4 text-sm text-gray-200 font-medium text-left italic">
-              Wichtiger Hinweis: Dieses Tool dient Demonstrationszwecken im Rahmen eines Hochschulprojekts. Eine KI kann keine mykologische Begutachtung ersetzen. Pilze zu Heil- oder Speisezwecken müssen immer von Experten freigegeben werden.
+
+            <div className="mb-6 flex items-center justify-center gap-3 -mt-2">
+              <img
+                src={getAssetSrc(waldpilzLogoWhite)}
+                alt="Waldpilz Logo"
+                className="h-16 w-auto"
+              />
+            </div>
+
+            <div className="flex items-center justify-center">
+              <Link to="/prediction">
+                <Button
+                  size="lg"
+                  className="h-auto rounded-2xl bg-[linear-gradient(180deg,#345641,#274333)] px-10 py-6 text-lg text-white shadow-[0_18px_40px_rgba(22,38,28,0.28)] hover:bg-[linear-gradient(180deg,#2d4b39,#21362a)]"
+                >
+                  Bildanalyse starten
+                </Button>
+              </Link>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Weiterleitung Analyse */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl font-bold mb-6 text-gray-200">Haben Sie einen Fund gemacht?</h2>
-          <Link to="/prediction">
-            <Button size="lg" className="text-lg px-12 py-7 h-auto">
-              Lackporling-Check starten
-            </Button>
-          </Link>
-        </div>
-      </section>
+        <section className="px-4 py-12">
+          <div className="container mx-auto max-w-4xl">
+            <div className="rounded-[30px] border border-white/12 bg-[linear-gradient(180deg,rgba(18,28,22,0.42),rgba(18,28,22,0.3))] px-6 py-8 shadow-[0_24px_60px_rgba(0,0,0,0.18)] backdrop-blur-md md:px-8">
+              <div className="flex flex-col items-center gap-8 text-center md:flex-row md:items-start md:text-left">
+                <div className="flex size-18 shrink-0 items-center justify-center rounded-[24px] bg-[linear-gradient(180deg,rgba(121,86,58,0.94),rgba(71,100,75,0.9))] shadow-[0_16px_36px_rgba(17,31,21,0.28)]">
+                  <GraduationCap className="size-10 text-white" />
+                </div>
+                <div>
+                  <h2 className="mb-4 text-3xl font-semibold text-[#e7d2bf]">
+                    Akademische Kooperation
+                  </h2>
+                  <p className="text-base leading-8 text-stone-200/82 md:text-lg">
+                    Dieses spezialisierte KI-Tool ist das Ergebnis eines Team-Projekts an der{" "}
+                    <strong>Ostfalia Hochschule Wolfenbüttel</strong>. Im Rahmen des Projekts{" "}
+                    <strong>Waldpilz.eu</strong> wurde eine Anwendung entwickelt, die die
+                    computergestützte Erkennung des Glänzenden Lackporlings ermöglicht.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-      {/* Fußzeile */}
-      <footer className="py-10 px-4 border-t-4 border-border bg-card">
-        <div className="container mx-auto max-w-6xl flex flex-col md:flex-row justify-between items-center gap-6 text-muted-foreground text-sm">
-          <div className="flex items-center gap-2">
+        <section className="px-4 py-20">
+          <div className="container mx-auto max-w-5xl">
+            <h2 className="mb-16 text-center text-3xl font-semibold text-[#e7d2bf]">
+              Der Analyse-Prozess
+            </h2>
+            <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4">
+              <ProcessLink
+                to="/prediction"
+                icon={Upload}
+                title="Foto hochladen"
+                description="Laden Sie eine Nahaufnahme des vermeintlichen Lackporlings hoch."
+              />
+              <ProcessLink
+                to="/prediction"
+                icon={Search}
+                title="Spezifische Prüfung"
+                description="Die KI gleicht Merkmale wie Farbe, Glanz und Wuchsform mit Referenzdaten ab."
+              />
+              <ProcessLink
+                to="/prediction"
+                icon={CheckCircle}
+                title="Ergebnis"
+                description="Sie erhalten eine Einschätzung, ob es sich um den Glänzenden Lackporling handelt."
+              />
+              <ProcessLink
+                to="/benchmark"
+                icon={BarChart}
+                title="Benchmark"
+                description="Vergleichen Sie die Modellleistung anhand standardisierter Metriken."
+              />
+            </div>
           </div>
-          <img
-              src={getAssetSrc(waldpilzLogo)}
-              alt="Waldpilz Logo"
-              className="h-10 w-auto"
-            />
-          <p>&copy; 2026 – Entwicklungsteam der Ostfalia Hochschule Wolfenbüttel.</p>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-primary">Impressum</a>
-            <a href="#" className="hover:text-primary">Datenschutz</a>
+        </section>
+
+        <section className="border-y border-white/12 bg-[rgba(12,18,14,0.32)] px-4 py-16 backdrop-blur-sm">
+          <div className="container mx-auto max-w-3xl text-center">
+            <h2 className="mb-8 text-3xl font-semibold text-[#e7d2bf]">Projekt Waldpilz</h2>
+            <div className="space-y-6 text-base leading-8 text-stone-200/82 md:text-lg">
+              <p>
+                Waldpilz.eu widmet sich der digitalen Erfassung und dem Schutz unserer heimischen
+                Pilzflora. Dieses studentische Modul überträgt die Idee{" "}
+                <strong>Wissen durch Technologie</strong> auf die Erkennung einer einzelnen,
+                markanten Art.
+              </p>
+              <div className="rounded-[20px] border-l-4 border-[#b48a67] bg-[rgba(73,38,30,0.22)] p-4 text-left text-sm font-medium italic text-stone-100/88">
+                Wichtiger Hinweis: Dieses Tool dient Demonstrationszwecken im Rahmen eines
+                Hochschulprojekts. Eine KI kann keine mykologische Begutachtung ersetzen. Pilze zu
+                Heil- oder Speisezwecken müssen immer von Fachleuten freigegeben werden.
+              </div>
+            </div>
           </div>
-        </div>
-      </footer>
+        </section>
+
+        <SiteFooter />
       </div>
     </div>
   )

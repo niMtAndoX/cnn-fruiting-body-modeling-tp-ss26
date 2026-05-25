@@ -19,6 +19,7 @@ def make_settings(**overrides) -> Settings:
             "http://127.0.0.1:3000",
         ],
         "max_upload_size_mb": 20,
+        "max_benchmark_archive_size_mb": 200,
         "allowed_upload_content_types": ["image/jpeg", "image/png"],
         "model_version": "darknet-cnn-v1",
         "inference_timeout_seconds": 30,
@@ -48,6 +49,7 @@ def test_settings_defaults() -> None:
     assert settings.allowed_upload_content_types == ["image/jpeg", "image/png"]
 
     assert settings.max_upload_size_mb == 20
+    assert settings.max_benchmark_archive_size_mb == 200
     assert settings.model_version == "darknet-cnn-v1"
 
 
@@ -63,6 +65,13 @@ def test_validate_max_upload_size_mb_rejects_zero() -> None:
         make_settings(max_upload_size_mb=0)
 
     assert "max_upload_size_mb must be greater than 0" in str(exc_info.value)
+
+
+def test_validate_max_benchmark_archive_size_mb_rejects_zero() -> None:
+    with pytest.raises(ValidationError) as exc_info:
+        make_settings(max_benchmark_archive_size_mb=0)
+
+    assert "max_benchmark_archive_size_mb must be greater than 0" in str(exc_info.value)
 
 
 def test_parse_list_fields_from_comma_separated_strings() -> None:
@@ -111,6 +120,17 @@ def test_max_upload_size_bytes() -> None:
     settings = make_settings(max_upload_size_mb=20)
 
     assert settings.max_upload_size_bytes == 20 * 1024 * 1024
+
+
+def test_parse_legacy_benchmark_archive_size_env_var(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("MAX_BENCHMARK_ZIP_SIZE_MB", "512")
+
+    settings = Settings(_env_file=None)
+
+    assert settings.max_benchmark_archive_size_mb == 512
+    assert settings.max_benchmark_archive_size_bytes == 512 * 1024 * 1024
 
 
 def test_get_settings_is_cached(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -1,5 +1,6 @@
 services:
   api:
+    restart: unless-stopped
     build:
       context: ../..
       dockerfile: apps/api/Dockerfile
@@ -11,10 +12,11 @@ services:
       API_PREFIX: /api/v1
       LOG_LEVEL: ${API_LOG_LEVEL}
       CORS_ALLOW_ORIGINS: http://localhost:${WEB_PORT},http://127.0.0.1:${WEB_PORT}
-      MAX_UPLOAD_SIZE_MB: ${API_MAX_UPLOAD_SIZE_MB}
-      ALLOWED_UPLOAD_CONTENT_TYPES: ${API_ALLOWED_UPLOAD_CONTENT_TYPES}
-      MODEL_VERSION: ${API_MODEL_VERSION}
-      INFERENCE_TIMEOUT_SECONDS: ${API_INFERENCE_TIMEOUT_SECONDS}
+      MAX_UPLOAD_SIZE_MB: ${API_MAX_UPLOAD_SIZE_MB:-20}
+      MAX_BENCHMARK_ARCHIVE_SIZE_MB: ${API_MAX_BENCHMARK_ARCHIVE_SIZE_MB:-200}
+      ALLOWED_UPLOAD_CONTENT_TYPES: ${API_ALLOWED_UPLOAD_CONTENT_TYPES:-image/jpeg,image/png}
+      MODEL_VERSION: ${API_MODEL_VERSION:-darknet-cnn-v1}
+      INFERENCE_TIMEOUT_SECONDS: ${API_INFERENCE_TIMEOUT_SECONDS:-30}
     expose:
       - "8000"
     healthcheck:
@@ -29,11 +31,14 @@ services:
       start_period: 30s
 
   web:
+    restart: unless-stopped
     build:
       context: ../../apps/web
       dockerfile: Dockerfile
       args:
         VITE_API_BASE_URL: /api/v1
+    environment:
+      NGINX_CLIENT_MAX_BODY_SIZE: ${WEB_CLIENT_MAX_BODY_SIZE:-450M}
     depends_on:
       api:
         condition: service_healthy
