@@ -34,6 +34,39 @@ export function useBenchmark() {
     }
   }, [])
 
+  const getImages = useCallback(
+    async (testArchive: File) => {
+      const imgMap = new Map<string, string>();
+
+      const JSZip = ((await import("jszip")).default)
+      const zip = new JSZip();
+
+      try{
+        const loadedZip = await zip.loadAsync(testArchive);
+
+        for(const [filename, file] of Object.entries(loadedZip.files)){
+          if (!file.dir && /\.(png|jpe?g)$/i.test(filename)){
+            const blob = await file.async("blob");
+            const url = URL.createObjectURL(blob);
+
+            const nameNoType = filename
+            .split("/")
+            .pop()
+            ?.replace(/\.[^/.]+$/, "");
+
+            imgMap.set(nameNoType ? nameNoType : filename, url);
+          }
+        }
+      } catch (e) {
+        console.error("Die Bilder konnten nicht aus der ZIP extrahiert werden.", e);
+      }
+      
+      return imgMap;
+    }, []
+  );
+
+  const [imgMap, setImgMap] = useState<Map<string, string> | null> (new Map<string, string>)
+
   const startBenchmark = useCallback(
     async (testArchive: File, labelArchive: File) => {
       if (status === "loading") return
@@ -42,10 +75,19 @@ export function useBenchmark() {
       setResult(null)
       setError(null)
 
+      if (imgMap){
+        imgMap.forEach((url) => URL.revokeObjectURL(url))
+        setImgMap(null)
+      }
+
       try {
         const response = await runBenchmark(testArchive, labelArchive)
         setStatus("success")
         setResult(response)
+
+        const images = await getImages(testArchive);
+        setImgMap(images);
+
         try {
           sessionStorage.setItem(BENCHMARK_SESSION_KEY, JSON.stringify(response))
         } catch {
@@ -57,7 +99,7 @@ export function useBenchmark() {
         setError(message)
       }
     },
-    [status],
+    [status, getImages, imgMap],
   )
 
   return {
@@ -66,6 +108,7 @@ export function useBenchmark() {
     error,
     result,
     status,
+    imgMap,
     reset,
   }
 }

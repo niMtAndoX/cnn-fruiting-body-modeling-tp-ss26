@@ -12,7 +12,7 @@ export default function BenchmarkPage() {
   const [labelArchive, setLabelArchive] = useState<File | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
 
-  const { startBenchmark, isLoading, error, result, status, reset } = useBenchmark()
+  const { startBenchmark, isLoading, error, result, status, imgMap, reset } = useBenchmark()
 
   const handleTestArchiveSelected = useCallback((file: File) => {
     setTestArchive(file)
@@ -96,7 +96,7 @@ export default function BenchmarkPage() {
 
             <BenchmarkProgress status={status} error={displayedError} />
 
-            <BenchmarkResultView result={result} status={status} />
+            <BenchmarkResultView result={result} status={status} imgMap={imgMap ? imgMap : new Map<string, string>()}/>
           </div>
         </main>
 

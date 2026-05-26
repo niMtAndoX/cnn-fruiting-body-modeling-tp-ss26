@@ -8,6 +8,7 @@ import { BenchmarkReportExportButton } from "./BenchmarkReportExportButton"
 interface BenchmarkResultViewProps {
   result: BenchmarkResponse | null
   status: BenchmarkStatus
+  imgMap: Map<string, string>
 }
 
 function formatPercent(value: number | null): string {
@@ -40,7 +41,7 @@ function MetaRow({ label, value }: { label: string; value: string | null }) {
   )
 }
 
-export function BenchmarkResultView({ result, status }: BenchmarkResultViewProps) {
+export function BenchmarkResultView({ result, status, imgMap }: BenchmarkResultViewProps) {
   if (status !== "success" || !result) return null
 
   const truePositives = sumImageResultValues(result, "truePositives")
@@ -155,7 +156,7 @@ export function BenchmarkResultView({ result, status }: BenchmarkResultViewProps
         )}
       </div>
 
-      <BenchmarkImageResultList imageResults={result.imageResults} />
+      <BenchmarkImageResultList imageResults={result.imageResults} imgMap={imgMap} />
     </div>
   )
 }

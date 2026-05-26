@@ -2,6 +2,7 @@ import { type ImageBenchmarkResult } from "../model/benchmarkTypes"
 
 interface BenchmarkImageResultListProps {
   imageResults: ImageBenchmarkResult[]
+  imgMap: Map<string, string>
 }
 
 function formatNumber(value: number | null): string {
@@ -21,6 +22,7 @@ function StatCell({ label, value }: { label: string; value: string }) {
 
 export function BenchmarkImageResultList({
   imageResults,
+  imgMap
 }: BenchmarkImageResultListProps) {
   if (imageResults.length === 0) {
     return (
@@ -51,40 +53,53 @@ export function BenchmarkImageResultList({
             key={imageResult.imageId ?? imageResult.error}
             className="rounded-[22px] border border-[#314a37]/10 bg-white/74 p-4 shadow-sm"
           >
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-base font-semibold text-[#213126]">
-                  {imageResult.imageId ?? "Unbekanntes Bild"}
-                </p>
-                <p className="mt-1 text-xs uppercase tracking-[0.16em] text-[#6a7b6f]">
-                  {imageResult.error ? "Fehlerhaft" : "Ausgewertet"}
-                </p>
+            <div className="flex flex-row gap-10">
+              
+              <div style={{width: "20%", display: "flex", justifyContent: "center"}}>
+                <img src={imgMap.get(imageResult.imageId ? imageResult.imageId : "") ? imgMap.get(imageResult.imageId ? imageResult.imageId : "") : ""} 
+                  style={{
+                    maxHeight: "100.5px",
+                    width: "auto"
+                  }}/> 
               </div>
 
-              <span
-                className={`rounded-full px-3 py-1 text-xs font-medium ${
-                  imageResult.error
-                    ? "border border-red-300/25 bg-red-50 text-red-700"
-                    : "border border-emerald-800/10 bg-emerald-50 text-emerald-800"
-                }`}
-              >
-                {imageResult.error ? "Fehler" : "OK"}
-              </span>
-            </div>
+              <div className="flex flex-col" style={{width: "80%"}}>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-base font-semibold text-[#213126]">
+                      {imageResult.imageId ?? "Unbekanntes Bild"}
+                    </p>
+                    <p className="mt-1 text-xs uppercase tracking-[0.16em] text-[#6a7b6f]">
+                      {imageResult.error ? "Fehlerhaft" : "Ausgewertet"}
+                    </p>
+                  </div>
 
-            <div className="mt-4 grid gap-3 sm:grid-cols-5">
-              <StatCell label="Ground Truth" value={formatNumber(imageResult.groundTruthCount)} />
-              <StatCell label="Predictions" value={formatNumber(imageResult.predictedCount)} />
-              <StatCell label="TP" value={formatNumber(imageResult.truePositives)} />
-              <StatCell label="FP" value={formatNumber(imageResult.falsePositives)} />
-              <StatCell label="FN" value={formatNumber(imageResult.falseNegatives)} />
-            </div>
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-medium ${
+                      imageResult.error
+                        ? "border border-red-300/25 bg-red-50 text-red-700"
+                        : "border border-emerald-800/10 bg-emerald-50 text-emerald-800"
+                    }`}
+                  >
+                    {imageResult.error ? "Fehler" : "OK"}
+                  </span>
+                </div>
 
-            {imageResult.error && (
-              <p className="mt-4 break-words rounded-2xl border border-red-300/20 bg-red-50/70 px-3 py-3 text-sm text-[#6a5555]">
-                {imageResult.error}
-              </p>
-            )}
+                <div className="mt-4 grid gap-3 sm:grid-cols-5">
+                  <StatCell label="Ground Truth" value={formatNumber(imageResult.groundTruthCount)} />
+                  <StatCell label="Predictions" value={formatNumber(imageResult.predictedCount)} />
+                  <StatCell label="TP" value={formatNumber(imageResult.truePositives)} />
+                  <StatCell label="FP" value={formatNumber(imageResult.falsePositives)} />
+                  <StatCell label="FN" value={formatNumber(imageResult.falseNegatives)} />
+                </div>
+
+                {imageResult.error && (
+                  <p className="mt-4 break-words rounded-2xl border border-red-300/20 bg-red-50/70 px-3 py-3 text-sm text-[#6a5555]">
+                    {imageResult.error}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         ))}
       </div>
