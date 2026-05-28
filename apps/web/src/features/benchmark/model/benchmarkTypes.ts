@@ -50,7 +50,7 @@ export function normalizeBenchmarkResponse(value: unknown): BenchmarkResponse {
     imageResults: Array.isArray(record?.image_results)
     ? record.image_results.map((img) => {
       const image = asRecord(img)
-
+    
       return {
         imageId: asNullableString(image?.image_id),
         groundTruthCount: asNullableNumber(image?.ground_truth_count),

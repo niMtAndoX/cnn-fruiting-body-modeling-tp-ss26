@@ -6,6 +6,7 @@ import { BenchmarkMetricCards } from "./BenchmarkMetricCards"
 import { BenchmarkReportExportButton } from "./BenchmarkReportExportButton"
 import { BenchmarkImageExpander } from "./BenchmarkImageExpander"
 import { useState } from "react"
+import { BenchmarkOptionChooser } from "./BenchmarkOptionChooser"
 
 interface BenchmarkResultViewProps {
   result: BenchmarkResponse | null
@@ -164,6 +165,7 @@ export function BenchmarkResultView({ result, status, imgMap }: BenchmarkResultV
         setImgResult((prev) => ({...prev, imageResults: newResults}))
       }}/>
       <BenchmarkImageExpander/>
+      <BenchmarkOptionChooser />
     </div>
   )
 }

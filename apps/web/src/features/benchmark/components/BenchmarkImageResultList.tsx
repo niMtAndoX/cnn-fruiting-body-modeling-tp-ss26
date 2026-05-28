@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { type ImageBenchmarkResult } from "../model/benchmarkTypes"
 import { expand } from "./BenchmarkImageExpander";
+import { chooseOption } from "./BenchmarkOptionChooser";
 
 interface BenchmarkImageResultListProps {
   imageResults: ImageBenchmarkResult[]
   imgMap: Map<string, string>
   onSearchUpdate: (filteredData: ImageBenchmarkResult[]) => void
 }
+
+export let currentFilter: string = "";
+export let currentSorter: string = "";
 
 function formatNumber(value: number | null): string {
   return value === null ? "–" : String(value)
@@ -44,23 +48,89 @@ export function BenchmarkImageResultList({
     console.log(originalImageResults.current);
   }, []);
 
+
   const handleSearch = () => {
-    const newResults = originalImageResults.current.filter((value) => {
+    let newResults = originalImageResults.current.filter((value) => {
+      switch(currentFilter){
+        case "Nur False Positives":
+          if (value.falsePositives == 0) return false;
+          break;
+        case "Nur False Negatives":
+          if (value.falseNegatives == 0) return false;
+          break;
+        case "Nur fehlerhaft ausgewertete Bilder":
+          if (value.falseNegatives == 0 && value.falsePositives == 0) return false;
+          break;
+        case "Nur korrekt ausgewertete Bilder":
+          if ((value.falseNegatives && value.falseNegatives > 0) || (value.falsePositives && value.falsePositives > 0)) return false;
+          break;
+      }
+
       return value.imageId?.startsWith(searchQuery);
     }); 
 
-    if (newResults.length > 0){
-      onSearchUpdate(newResults);
+    switch (currentSorter){
+      case "Alphabetisch":
+        newResults.sort(
+          (a, b) => {
+            const idA = a.imageId ?? "";
+            const idB = b.imageId ?? "";
+
+            return idA.localeCompare(idB);
+          }
+        );
+        break;
+      case "Höchste Fehlerzahl":
+        newResults.sort(
+          (a, b) => {
+            const errA = (a.falseNegatives ?? 0) + (a.falsePositives ?? 0);
+            const errB = (b.falseNegatives ?? 0) + (b.falsePositives ?? 0);
+
+            return errA === errB ? 0 : ((errA > errB) ? -1 : 1);
+          }
+        );
+        break;
+      /*case "Confidence":
+        newResults.sort(
+          (a, b) => {
+            const confA = a.score ?? 0;
+            const confB = b.score ?? 0;
+
+            return confA === confB ? 0 : ((confA > confB) ? -1 : 1);
+          }
+        );
+        break;*/
+    }
+
+    onSearchUpdate(newResults);
+  }
+
+  const handleFilterClick = async () => {
+    const selected = await chooseOption({
+      type: "filter",
+      title: "Bitte Filter wählen",
+      options: ["Nur False Positives", "Nur False Negatives", "Nur fehlerhaft ausgewertete Bilder", "Nur korrekt ausgewertete Bilder"],
+      selected: currentFilter
+    });
+
+    if(selected != "cancel"){
+      currentFilter = selected ? selected : "";
+      handleSearch();
     }
   }
 
-  if (imageResults.length === 0) {
-    return (
-      <div className="rounded-[28px] border border-[#314a37]/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(244,239,231,0.88))] p-5 shadow-[0_18px_50px_rgba(31,49,36,0.06)]">
-        <h4 className="text-lg font-semibold tracking-tight text-[#213126]">Detailansicht pro Bild</h4>
-        <p className="mt-2 text-sm text-[#687a6d]">Keine Bilddetails vorhanden.</p>
-      </div>
-    )
+  const handleSortClick = async () => {
+    const selected = await chooseOption({
+      type: "sort",
+      title: "Bitte Sortierkriterium wählen",
+      options: ["Alphabetisch", "Höchste Fehlerzahl"],
+      selected: currentSorter
+    });
+
+    if(selected != "cancel"){
+      currentSorter = selected ? selected : "";
+      handleSearch();
+    }  
   }
 
   return (
@@ -111,11 +181,11 @@ export function BenchmarkImageResultList({
             position: "absolute",
             right: 0
           }}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width={"50px"} height={"50px"}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width={"50px"} height={"50px"} onClick={handleFilterClick}>
               <path fill="currentColor" d="M96 128C83.1 128 71.4 135.8 66.4 147.8C61.4 159.8 64.2 173.5 73.4 182.6L256 365.3L256 480C256 488.5 259.4 496.6 265.4 502.6L329.4 566.6C338.6 575.8 352.3 578.5 364.3 573.5C376.3 568.5 384 556.9 384 544L384 365.3L566.6 182.7C575.8 173.5 578.5 159.8 573.5 147.8C568.5 135.8 556.9 128 544 128L96 128z"/>
             </svg>
 
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width={"50px"} height={"50px"}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width={"50px"} height={"50px"} onClick={handleSortClick}>
               <path fill="currentColor" d="M130.4 268.2C135.4 280.2 147 288 160 288L480 288C492.9 288 504.6 280.2 509.6 268.2C514.6 256.2 511.8 242.5 502.7 233.3L342.7 73.3C330.2 60.8 309.9 60.8 297.4 73.3L137.4 233.3C128.2 242.5 125.5 256.2 130.5 268.2zM130.4 371.7C125.4 383.7 128.2 397.4 137.3 406.6L297.3 566.6C309.8 579.1 330.1 579.1 342.6 566.6L502.6 406.6C511.8 397.4 514.5 383.7 509.5 371.7C504.5 359.7 492.9 352 480 352L160 352C147.1 352 135.4 359.8 130.4 371.8z"/>
             </svg>
           </div>
@@ -123,6 +193,11 @@ export function BenchmarkImageResultList({
       </div>
 
       <div className="mt-4 max-h-[28rem] space-y-3 overflow-y-auto pr-1">
+        {imageResults.length === 0 && (
+          <div className="flex flex-row justify-center items-center">
+            <p className="mt-2 text-sm text-[#ad0000]">Es wurden keine Bilder mit den gegebenen Parametern gefunden.</p>
+          </div>
+        )}
         {imageResults.map((imageResult) => (
           <div
             key={imageResult.imageId ?? imageResult.error}
