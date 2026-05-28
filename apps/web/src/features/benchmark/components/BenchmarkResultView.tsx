@@ -1,9 +1,11 @@
-import { type BenchmarkResponse, type BenchmarkStatus } from "../model/benchmarkTypes"
+import { ImageBenchmarkResult, type BenchmarkResponse, type BenchmarkStatus } from "../model/benchmarkTypes"
 import { BenchmarkHeroGauge } from "./BenchmarkHeroGauge"
 import { BenchmarkConfusionBars } from "./BenchmarkConfusionBars"
 import { BenchmarkImageResultList } from "./BenchmarkImageResultList"
 import { BenchmarkMetricCards } from "./BenchmarkMetricCards"
 import { BenchmarkReportExportButton } from "./BenchmarkReportExportButton"
+import { BenchmarkImageExpander } from "./BenchmarkImageExpander"
+import { useState } from "react"
 
 interface BenchmarkResultViewProps {
   result: BenchmarkResponse | null
@@ -42,6 +44,8 @@ function MetaRow({ label, value }: { label: string; value: string | null }) {
 }
 
 export function BenchmarkResultView({ result, status, imgMap }: BenchmarkResultViewProps) {
+  const [imgResult, setImgResult] = useState<{imageResults: ImageBenchmarkResult[]}>({imageResults: result ? result.imageResults : []})
+  
   if (status !== "success" || !result) return null
 
   const truePositives = sumImageResultValues(result, "truePositives")
@@ -156,7 +160,10 @@ export function BenchmarkResultView({ result, status, imgMap }: BenchmarkResultV
         )}
       </div>
 
-      <BenchmarkImageResultList imageResults={result.imageResults} imgMap={imgMap} />
+      <BenchmarkImageResultList imageResults={imgResult.imageResults} imgMap={imgMap} onSearchUpdate={(newResults) => {
+        setImgResult((prev) => ({...prev, imageResults: newResults}))
+      }}/>
+      <BenchmarkImageExpander/>
     </div>
   )
 }
