@@ -14,6 +14,7 @@ class ImageBenchmarkResultSchema(BaseModel):
 	false_negatives: int
 	inference_time_ms: int | None = None
 	error: str | None = None
+	score: float
 
 
 class LabelBenchmarkMetricsSchema(BaseModel):

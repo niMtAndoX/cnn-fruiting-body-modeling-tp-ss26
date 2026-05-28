@@ -112,6 +112,8 @@ class BenchmarkService:
 
 				prediction_objects: list[BenchmarkObject] = []
 
+				score_sum = 0
+
 				for detection in prediction_result.detections:
 					if detection.bbox is None:
 						continue
@@ -128,6 +130,8 @@ class BenchmarkService:
 						bounding_box=normalized_bounding_box,
 					)
 
+					score_sum = score_sum + detection.score
+
 					prediction_objects.append(prediction_object)
 					all_predictions.append(
 						(image_id, detection.score, prediction_object)
@@ -138,6 +142,13 @@ class BenchmarkService:
 					ground_truth_objects=ground_truth_objects,
 					iou_threshold=_IOU_THRESHOLD,
 				)
+
+				avg = 0
+
+				if(len(prediction_result.detections) > 0):
+					avg = score_sum/len(prediction_result.detections)
+
+				print(avg)
 
 				image_results.append(
 					ImageBenchmarkResult(
@@ -150,6 +161,7 @@ class BenchmarkService:
 						inference_time_ms=prediction_result.inference_time_ms,
 						matched_ious=list(matching_result.matched_ious),
 						label_results=list(matching_result.label_results),
+						score=avg
 					)
 				)
 

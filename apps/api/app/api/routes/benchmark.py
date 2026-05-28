@@ -66,6 +66,7 @@ def to_benchmark_response(
 				false_negatives=img.false_negatives,
 				inference_time_ms=img.inference_time_ms,
 				error=img.error,
+				score=img.score
 			)
 			for img in result.image_results
 		],

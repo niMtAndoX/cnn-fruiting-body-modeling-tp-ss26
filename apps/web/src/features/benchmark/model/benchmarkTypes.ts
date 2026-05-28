@@ -8,6 +8,7 @@ export interface ImageBenchmarkResult {
   falsePositives: number | null
   falseNegatives: number | null
   error: string | null
+  score: number | null
 }
 export interface BenchmarkResponse {
   requestId: string | null
@@ -59,6 +60,7 @@ export function normalizeBenchmarkResponse(value: unknown): BenchmarkResponse {
         falsePositives: asNullableNumber(image?.false_positives),
         falseNegatives: asNullableNumber(image?.false_negatives),
         error: asNullableString(image?.error),
+        score: asNullableNumber(image?.score)
       }
     })
   : [],

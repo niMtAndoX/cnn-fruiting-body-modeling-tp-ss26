@@ -90,6 +90,7 @@ class ImageBenchmarkResult:
 	true_positives: int
 	false_positives: int
 	false_negatives: int
+	score: float
 	error: str | None = None
 	inference_time_ms: int | None = None
 	matched_ious: list[float] = field(default_factory=list)

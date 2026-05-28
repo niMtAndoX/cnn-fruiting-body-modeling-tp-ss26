@@ -90,16 +90,18 @@ export function BenchmarkImageResultList({
           }
         );
         break;
-      /*case "Confidence":
+      case "Confidence":
         newResults.sort(
           (a, b) => {
             const confA = a.score ?? 0;
             const confB = b.score ?? 0;
 
+            console.log(confA);
+
             return confA === confB ? 0 : ((confA > confB) ? -1 : 1);
           }
         );
-        break;*/
+        break;
     }
 
     onSearchUpdate(newResults);
@@ -123,7 +125,7 @@ export function BenchmarkImageResultList({
     const selected = await chooseOption({
       type: "sort",
       title: "Bitte Sortierkriterium wählen",
-      options: ["Alphabetisch", "Höchste Fehlerzahl"],
+      options: ["Alphabetisch", "Höchste Fehlerzahl", "Confidence"],
       selected: currentSorter
     });
 
