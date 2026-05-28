@@ -1,9 +1,12 @@
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 import { runBenchmark } from "../api/benchmarkApi"
 import { type BenchmarkResponse, type BenchmarkStatus } from "../model/benchmarkTypes"
 
+import {get as idbGet, set as idbSet, del as idbDel} from 'idb-keyval'
+
 const BENCHMARK_SESSION_KEY = "benchmark-result"
+const ZIP_STORAGE_KEY = "benchmark-test-zip" 
 
 export function useBenchmark() {
   const [status, setStatus] = useState<BenchmarkStatus>(() => {
@@ -22,20 +25,10 @@ export function useBenchmark() {
     }
   })
   const [error, setError] = useState<string | null>(null)
-
-  const reset = useCallback(() => {
-    setStatus("idle")
-    setResult(null)
-    setError(null)
-    try {
-      sessionStorage.removeItem(BENCHMARK_SESSION_KEY)
-    } catch {
-      // ignore
-    }
-  }, [])
+  const [imgMap, setImgMap] = useState<Map<string, string> | null>(new Map())
 
   const getImages = useCallback(
-    async (testArchive: File) => {
+    async (testArchive: File | Blob) => {
       const imgMap = new Map<string, string>();
 
       const JSZip = ((await import("jszip")).default)
@@ -65,7 +58,42 @@ export function useBenchmark() {
     }, []
   );
 
-  const [imgMap, setImgMap] = useState<Map<string, string> | null> (new Map<string, string>)
+  useEffect(() => {
+    async function restoreImagesOnReload() {
+      if(result && (!imgMap || imgMap.size === 0)){
+        try{
+          const savedZip = await idbGet<Blob>(ZIP_STORAGE_KEY)
+
+          if(savedZip){
+            const restoredImages = await getImages(savedZip);
+            setImgMap(restoredImages);
+          }
+        }catch (e){
+          console.error("Fehler beim wiederherstellen der Bilder nach dem Reload.", e);
+        }
+      }
+    }
+
+    restoreImagesOnReload();
+  }, [result, getImages])
+
+  const reset = useCallback(() => {
+    setStatus("idle")
+    setResult(null)
+    setError(null)
+
+    if(imgMap){
+      imgMap.forEach((url) => URL.revokeObjectURL(url));
+    }
+    setImgMap(new Map())
+
+    try {
+      sessionStorage.removeItem(BENCHMARK_SESSION_KEY)
+      idbDel(ZIP_STORAGE_KEY)
+    } catch {
+      // ignore
+    }
+  }, [imgMap])
 
   const startBenchmark = useCallback(
     async (testArchive: File, labelArchive: File) => {
@@ -82,10 +110,17 @@ export function useBenchmark() {
 
       try {
         const response = await runBenchmark(testArchive, labelArchive)
-        setStatus("success")
-        setResult(response)
+
+        try {
+          await idbSet(ZIP_STORAGE_KEY, testArchive);
+        }catch (e){
+          console.error("Zip konnte nicht in IndexDB gesichert werden.", e)
+        }
 
         const images = await getImages(testArchive);
+
+        setStatus("success")
+        setResult(response)
         setImgMap(images);
 
         try {
@@ -99,7 +134,7 @@ export function useBenchmark() {
         setError(message)
       }
     },
-    [status, getImages, imgMap],
+    [status, getImages],
   )
 
   return {
