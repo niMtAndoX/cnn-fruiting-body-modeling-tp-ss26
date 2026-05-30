@@ -32,6 +32,7 @@ const benchmarkResult: BenchmarkResponse = {
       score: 1
     },
   ],
+  zipFile: ""
 }
 
 describe("BenchmarkReportExportButton", () => {

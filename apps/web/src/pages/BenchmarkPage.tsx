@@ -96,7 +96,8 @@ export default function BenchmarkPage() {
 
             <BenchmarkProgress status={status} error={displayedError} />
 
-            <BenchmarkResultView result={result} status={status} imgMap={imgMap ? imgMap : new Map<string, string>()}/>
+            {result?.imageResults &&
+            <BenchmarkResultView result={result} status={status} imgMap={imgMap ? imgMap : new Map<string, string>()}/>}
           </div>
         </main>
 

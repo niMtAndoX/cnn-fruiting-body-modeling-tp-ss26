@@ -28,6 +28,7 @@ FAKE_RESULT = BenchmarkResult(
 	failed_images=0,
 	processing_time_ms=3200,
 	image_results=[],
+	zip_file=""
 )
 
 TEST_ZIP = make_zip({"img1.jpg": b"fake-image", "img2.jpg": b"fake-image-2"})

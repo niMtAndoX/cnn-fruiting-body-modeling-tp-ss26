@@ -39,15 +39,15 @@ export function BenchmarkImageResultList({
   const [searchQuery, setSearchQuery] = useState("");
 
   const originalImageResults = useRef<ImageBenchmarkResult[]>([]);
-
   useEffect(() => {
+    if (!imageResults || imageResults.length === 0) return;
+
     if (originalImageResults.current.length === 0){
       imageResults.forEach(v => originalImageResults.current.push(Object.assign({}, v)))
     }
 
     console.log(originalImageResults.current);
-  }, []);
-
+  }, [imageResults]);
 
   const handleSearch = () => {
     let newResults = originalImageResults.current.filter((value) => {
@@ -95,8 +95,6 @@ export function BenchmarkImageResultList({
           (a, b) => {
             const confA = a.score ?? 0;
             const confB = b.score ?? 0;
-
-            console.log(confA);
 
             return confA === confB ? 0 : ((confA > confB) ? -1 : 1);
           }

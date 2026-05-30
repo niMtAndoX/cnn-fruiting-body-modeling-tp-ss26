@@ -75,6 +75,7 @@ def test_benchmark_response_schema_keeps_frontend_relevant_top_level_fields_stab
 		"failed_images",
 		"per_label",
 		"image_results",
+		"zip_file"
 	}
 
 
@@ -106,6 +107,8 @@ def test_benchmark_response_schema_preserves_expected_field_types() -> None:
 
 	assert isinstance(body["per_label"], list)
 	assert isinstance(body["image_results"], list)
+	assert isinstance(body["zip_file"], str)
+
 
 
 def test_benchmark_response_schema_preserves_nested_frontend_fields() -> None:

@@ -2,6 +2,9 @@
 
 import io
 import zipfile
+import base64
+import logging
+import os
 from pathlib import Path
 from time import perf_counter
 
@@ -34,12 +37,23 @@ _IOU_THRESHOLD = 0.5
 # sollte hier eine explizite Mapping-Strategie von Klassen-ID -> Label ergänzt werden.
 _DEFAULT_GROUND_TRUTH_LABEL = "fungus"
 
-
 class BenchmarkService:
 	"""Verarbeitet Benchmark-Eingaben und liefert aggregierte sowie bildgenaue Metriken."""
 
 	def __init__(self, prediction_port: PredictionPort) -> None:
 		self.prediction_port = prediction_port
+
+	def addImageToZip(self, zip_path, image_path, image_id):
+		try:
+			if not os.path.exists(image_path):
+				raise FileNotFoundError(f"Darknet image not found at {image_path}")
+
+			with zipfile.ZipFile(zip_path, 'a', compression=zipfile.ZIP_DEFLATED) as zipf:
+				zipf.write(image_path, arcname=f"{image_id}.jpg")
+
+		except Exception as e:
+			logging.error(f"Unexpected error while zipping image {image_id}: {e}")
+			raise RuntimeError(f"Internal zipping error: {e}")
 
 	def benchmark(self, benchmark_input: BenchmarkInput) -> BenchmarkResult:
 		started_at = perf_counter()
@@ -165,6 +179,10 @@ class BenchmarkService:
 					)
 				)
 
+				self.addImageToZip('labeledImages.zip','/app/models/darknet/predictions.jpg', image_id)
+
+				
+
 			except Exception as exc:
 				matching_result = match_predictions_to_ground_truth(
 					predictions=[],
@@ -190,6 +208,11 @@ class BenchmarkService:
 		processing_time_ms = int((perf_counter() - started_at) * 1000)
 		map_score = _compute_map_score(all_predictions, ground_truth_by_image)
 
+		with open('/app/labeledImages.zip', 'rb') as f:
+			zip_binary = f.read()
+
+		zip_base64 = base64.b64encode(zip_binary).decode('utf-8')
+
 		return calculate_benchmark_result(
 			model_version=model_version,
 			image_results=image_results,
@@ -197,6 +220,7 @@ class BenchmarkService:
 			failed_images=failed_images,
 			processing_time_ms=processing_time_ms,
 			map_score=map_score,
+			zip_file=zip_base64
 		)
 
 

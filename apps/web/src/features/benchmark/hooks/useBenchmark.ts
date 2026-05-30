@@ -8,6 +8,20 @@ import {get as idbGet, set as idbSet, del as idbDel} from 'idb-keyval'
 const BENCHMARK_SESSION_KEY = "benchmark-result"
 const ZIP_STORAGE_KEY = "benchmark-test-zip" 
 
+function base64ToBlob(base64String: string): Blob{
+  const pureBase64 = base64String.replace(/^data:.*;base64,/, "")
+
+  const byteCharacters = atob(pureBase64)
+
+  const byteNumbers = new Array(byteCharacters.length);
+  for(let i = 0; i < byteCharacters.length; i++){
+    byteNumbers[i] = byteCharacters.charCodeAt(i)
+  }
+  const byteArray = new Uint8Array(byteNumbers)
+
+  return new Blob([byteArray], {type: 'application/zip'})
+}
+
 export function useBenchmark() {
   const [status, setStatus] = useState<BenchmarkStatus>(() => {
     try {
@@ -110,24 +124,30 @@ export function useBenchmark() {
 
       try {
         const response = await runBenchmark(testArchive, labelArchive)
+        
+        if(response.zipFile){
+          const zipBlob = base64ToBlob(response.zipFile);
 
-        try {
-          await idbSet(ZIP_STORAGE_KEY, testArchive);
-        }catch (e){
-          console.error("Zip konnte nicht in IndexDB gesichert werden.", e)
+          try {
+            await idbSet(ZIP_STORAGE_KEY, zipBlob);
+          }catch (e){
+            console.error("Zip konnte nicht in IndexDB gesichert werden.", e)
+          }
+
+          const images = await getImages(zipBlob);
+
+          setImgMap(images);
         }
-
-        const images = await getImages(testArchive);
 
         setStatus("success")
         setResult(response)
-        setImgMap(images);
 
         try {
           sessionStorage.setItem(BENCHMARK_SESSION_KEY, JSON.stringify(response))
         } catch {
           // ignore quota errors
         }
+
       } catch (err) {
         const message = err instanceof Error ? err.message : "Der Benchmark ist fehlgeschlagen."
         setStatus("error")

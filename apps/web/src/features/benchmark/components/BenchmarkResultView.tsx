@@ -160,7 +160,6 @@ export function BenchmarkResultView({ result, status, imgMap }: BenchmarkResultV
           <p className="mt-3 text-sm text-[#687a6d]">Keine nicht auswertbaren Bilder vorhanden.</p>
         )}
       </div>
-
       <BenchmarkImageResultList imageResults={imgResult.imageResults} imgMap={imgMap} onSearchUpdate={(newResults) => {
         setImgResult((prev) => ({...prev, imageResults: newResults}))
       }}/>

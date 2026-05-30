@@ -109,6 +109,7 @@ class BenchmarkResult:
 	total_images: int
 	failed_images: int
 	processing_time_ms: int
+	zip_file: str
 	true_positives: int = 0
 	false_positives: int = 0
 	false_negatives: int = 0

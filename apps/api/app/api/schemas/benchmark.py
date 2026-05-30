@@ -38,6 +38,7 @@ class BenchmarkResponse(BaseModel):
 	model_version: str
 	processing_time_ms: int
 	average_inference_time_ms: float
+	zip_file: str
 
 	true_positives: int
 	false_positives: int

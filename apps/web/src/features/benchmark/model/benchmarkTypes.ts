@@ -21,6 +21,7 @@ export interface BenchmarkResponse {
   totalImages: number | null
   failedImages: number | null
   imageResults: ImageBenchmarkResult[]
+  zipFile: string | null
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -64,6 +65,7 @@ export function normalizeBenchmarkResponse(value: unknown): BenchmarkResponse {
       }
     })
   : [],
+  zipFile: asNullableString(record?.zip_file)
   }
 }
 

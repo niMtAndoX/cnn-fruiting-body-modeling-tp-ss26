@@ -31,6 +31,7 @@ def to_benchmark_response(
 		model_version=result.model_version,
 		processing_time_ms=result.processing_time_ms,
 		average_inference_time_ms=result.average_inference_time_ms,
+		zip_file=result.zip_file,
 		true_positives=result.true_positives,
 		false_positives=result.false_positives,
 		false_negatives=result.false_negatives,
