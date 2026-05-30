@@ -25,6 +25,7 @@ const successResponse: BenchmarkResponse = {
   totalImages: 50,
   failedImages: 0,
   imageResults: [],
+  zipFile: ""
 }
 
 describe("useBenchmark", () => {
