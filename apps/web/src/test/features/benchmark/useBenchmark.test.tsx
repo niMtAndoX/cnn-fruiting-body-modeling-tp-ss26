@@ -25,6 +25,7 @@ const successResponse: BenchmarkResponse = {
   totalImages: 50,
   failedImages: 0,
   imageResults: [],
+  zipFile: ""
 }
 
 describe("useBenchmark", () => {
@@ -69,10 +70,14 @@ describe("useBenchmark", () => {
     const { result } = renderHook(() => useBenchmark())
 
     await act(async () => {
-      await result.current.startBenchmark(testArchive, labelArchive)
+      await result.current.startBenchmark(testArchive, labelArchive, "darknet-cnn-v1.2")
     })
 
-    expect(mockedRunBenchmark).toHaveBeenCalledWith(testArchive, labelArchive)
+    expect(mockedRunBenchmark).toHaveBeenCalledWith(
+      testArchive,
+      labelArchive,
+      "darknet-cnn-v1.2",
+    )
     expect(result.current.status).toBe("success")
     expect(result.current.isLoading).toBe(false)
     expect(result.current.result?.requestId).toBe("req-bench-1")

@@ -174,6 +174,7 @@ def calculate_benchmark_result(
 	failed_images: int,
 	processing_time_ms: int,
 	map_score: float = 0.0,
+	zip_file: str = "",
 ) -> BenchmarkResult:
 	"""Aggregiert Einzelbildergebnisse zu einem Benchmark-Gesamtergebnis."""
 	true_positives = sum(result.true_positives for result in image_results)
@@ -236,6 +237,7 @@ def calculate_benchmark_result(
 		average_inference_time_ms=average_inference_time_ms,
 		label_metrics=label_metrics,
 		image_results=list(image_results),
+		zip_file=zip_file
 	)
 
 

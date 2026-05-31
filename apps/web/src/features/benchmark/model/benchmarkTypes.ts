@@ -8,6 +8,7 @@ export interface ImageBenchmarkResult {
   falsePositives: number | null
   falseNegatives: number | null
   error: string | null
+  score: number | null
 }
 export interface BenchmarkResponse {
   requestId: string | null
@@ -20,6 +21,7 @@ export interface BenchmarkResponse {
   totalImages: number | null
   failedImages: number | null
   imageResults: ImageBenchmarkResult[]
+  zipFile: string | null
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -50,7 +52,7 @@ export function normalizeBenchmarkResponse(value: unknown): BenchmarkResponse {
     imageResults: Array.isArray(record?.image_results)
     ? record.image_results.map((img) => {
       const image = asRecord(img)
-
+    
       return {
         imageId: asNullableString(image?.image_id),
         groundTruthCount: asNullableNumber(image?.ground_truth_count),
@@ -59,9 +61,11 @@ export function normalizeBenchmarkResponse(value: unknown): BenchmarkResponse {
         falsePositives: asNullableNumber(image?.false_positives),
         falseNegatives: asNullableNumber(image?.false_negatives),
         error: asNullableString(image?.error),
+        score: asNullableNumber(image?.score)
       }
     })
   : [],
+  zipFile: asNullableString(record?.zip_file)
   }
 }
 

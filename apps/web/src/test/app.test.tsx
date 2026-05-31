@@ -6,6 +6,16 @@ vi.mock("@/features/benchmark/components/BenchmarkResultView", () => ({
   BenchmarkResultView: () => null,
 }))
 
+vi.mock("@/features/model-selection/hooks/useModelSelection", () => ({
+  useModelSelection: () => ({
+    availableModels: ["darknet-cnn-v1"],
+    errorMessage: null,
+    isLoading: false,
+    selectedModelVersion: "darknet-cnn-v1",
+    setSelectedModelVersion: vi.fn(),
+  }),
+}))
+
 import { routes } from "../app/router";
 
 function renderAtRoute(path: string) {

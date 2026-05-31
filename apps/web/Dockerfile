@@ -11,6 +11,9 @@ WORKDIR /app
 RUN corepack enable
 
 COPY package.json pnpm-lock.yaml ./
+
+ENV PNPM_CONFIG_FETCH_TIMEOUT=300000
+
 RUN pnpm install --frozen-lockfile
 
 COPY . .

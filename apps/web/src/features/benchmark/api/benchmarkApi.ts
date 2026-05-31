@@ -9,7 +9,11 @@ export class BenchmarkRequestError extends Error {
   }
 }
 
-export async function runBenchmark(testArchive: File, labelArchive: File): Promise<BenchmarkResponse> {
+export async function runBenchmark(
+  testArchive: File,
+  labelArchive: File,
+  modelVersion?: string | null,
+): Promise<BenchmarkResponse> {
   if (!isZipFile(testArchive)) {
     throw new BenchmarkRequestError("Bitte wähle eine gültige ZIP-Datei für die Testbilder aus.")
   }
@@ -21,6 +25,9 @@ export async function runBenchmark(testArchive: File, labelArchive: File): Promi
   const formData = new FormData()
   formData.append("test_archive", testArchive)
   formData.append("label_archive", labelArchive)
+  if (modelVersion) {
+    formData.append("model_version", modelVersion)
+  }
 
   try {
     const response = await request<unknown>("benchmark", {

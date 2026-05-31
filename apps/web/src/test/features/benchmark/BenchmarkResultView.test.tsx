@@ -27,13 +27,15 @@ const benchmarkResult: BenchmarkResponse = {
       falsePositives: 0,
       falseNegatives: 0,
       error: null,
+      score: 1
     },
   ],
+  zipFile: ""
 }
 
 describe("BenchmarkResultView", () => {
   it("zeigt die Metrik als mAP und nicht als MAP", () => {
-    render(<BenchmarkResultView result={benchmarkResult} status="success" />)
+    render(<BenchmarkResultView result={benchmarkResult} status="success" imgMap={new Map<string, string>()} />)
 
     expect(screen.getByText("mAP")).toBeInTheDocument()
     expect(screen.queryByText("MAP")).not.toBeInTheDocument()

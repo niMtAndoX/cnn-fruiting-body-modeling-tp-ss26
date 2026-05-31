@@ -38,7 +38,11 @@ def make_png_image() -> bytes:
 class FakePredictionPort:
 	"""Fake der Modellvorhersage für den Integrationstest."""
 
-	def predict(self, prediction_input):
+	def __init__(self) -> None:
+		self.received_model_versions: list[str | None] = []
+
+	def predict(self, prediction_input, model_version=None):
+		self.received_model_versions.append(model_version)
 		return SimpleNamespace(
 			model_version="test-model-v1",
 			inference_time_ms=42,
@@ -143,6 +147,7 @@ def test_benchmark_route_returns_metrics_and_image_results_for_valid_archives() 
 			"false_negatives": 0,
 			"inference_time_ms": 42,
 			"error": None,
+			"score": pytest.approx(0.99),
 		}
 	finally:
 		app.dependency_overrides.clear()

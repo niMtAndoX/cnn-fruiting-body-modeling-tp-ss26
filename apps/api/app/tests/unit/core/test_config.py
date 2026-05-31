@@ -22,6 +22,7 @@ def make_settings(**overrides) -> Settings:
         "max_benchmark_archive_size_mb": 200,
         "allowed_upload_content_types": ["image/jpeg", "image/png"],
         "model_version": "darknet-cnn-v1",
+        "model_root_dir": "/tmp/models/darknet",
         "inference_timeout_seconds": 30,
         "inference_temp_dir": None,
     }

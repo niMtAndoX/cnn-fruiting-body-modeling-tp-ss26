@@ -1,13 +1,17 @@
-import { type BenchmarkResponse, type BenchmarkStatus } from "../model/benchmarkTypes"
+import { ImageBenchmarkResult, type BenchmarkResponse, type BenchmarkStatus } from "../model/benchmarkTypes"
 import { BenchmarkHeroGauge } from "./BenchmarkHeroGauge"
 import { BenchmarkConfusionBars } from "./BenchmarkConfusionBars"
 import { BenchmarkImageResultList } from "./BenchmarkImageResultList"
 import { BenchmarkMetricCards } from "./BenchmarkMetricCards"
 import { BenchmarkReportExportButton } from "./BenchmarkReportExportButton"
+import { BenchmarkImageExpander } from "./BenchmarkImageExpander"
+import { useState } from "react"
+import { BenchmarkOptionChooser } from "./BenchmarkOptionChooser"
 
 interface BenchmarkResultViewProps {
   result: BenchmarkResponse | null
   status: BenchmarkStatus
+  imgMap: Map<string, string>
 }
 
 function formatPercent(value: number | null): string {
@@ -40,7 +44,9 @@ function MetaRow({ label, value }: { label: string; value: string | null }) {
   )
 }
 
-export function BenchmarkResultView({ result, status }: BenchmarkResultViewProps) {
+export function BenchmarkResultView({ result, status, imgMap }: BenchmarkResultViewProps) {
+  const [imgResult, setImgResult] = useState<{imageResults: ImageBenchmarkResult[]}>({imageResults: result ? result.imageResults : []})
+  
   if (status !== "success" || !result) return null
 
   const truePositives = sumImageResultValues(result, "truePositives")
@@ -154,8 +160,11 @@ export function BenchmarkResultView({ result, status }: BenchmarkResultViewProps
           <p className="mt-3 text-sm text-[#687a6d]">Keine nicht auswertbaren Bilder vorhanden.</p>
         )}
       </div>
-
-      <BenchmarkImageResultList imageResults={result.imageResults} />
+      <BenchmarkImageResultList imageResults={imgResult.imageResults} imgMap={imgMap} onSearchUpdate={(newResults) => {
+        setImgResult((prev) => ({...prev, imageResults: newResults}))
+      }}/>
+      <BenchmarkImageExpander/>
+      <BenchmarkOptionChooser />
     </div>
   )
 }

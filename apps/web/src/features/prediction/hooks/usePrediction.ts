@@ -43,7 +43,10 @@ export function usePrediction() {
     setLogs([createLogEntry("Bild erfolgreich hochgeladen", "camera")])
   }, [])
 
-  const analyzeImage = useCallback(async (selectedImage: SelectedImage | null): Promise<CompletedPrediction | null> => {
+  const analyzeImage = useCallback(async (
+    selectedImage: SelectedImage | null,
+    modelVersion?: string | null,
+  ): Promise<CompletedPrediction | null> => {
     if (!selectedImage) {
       const message = "Bitte wähle zuerst ein Bild aus."
       const nextLogs = [...getUploadLogs(logs), createLogEntry(message, "error")]
@@ -66,7 +69,7 @@ export function usePrediction() {
     setLogs(loadingLogs)
 
     try {
-      const response = await predict(selectedImage.file)
+      const response = await predict(selectedImage.file, modelVersion)
       const nextResult = createPredictionDisplayResult(response, selectedImage.dimensions)
       const nextStatus = getPredictionFlowStatus(nextResult)
       const nextLogs = [

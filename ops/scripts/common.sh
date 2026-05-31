@@ -37,9 +37,9 @@ COMPOSE_FILE="$REPO_ROOT/ops/docker/docker-compose.yaml"
 COMPOSE_ENV="$REPO_ROOT/ops/docker/.env"
 COMPOSE_ENV_EXAMPLE="$REPO_ROOT/ops/docker/.env.example"
 MODEL_DIR_PATH="$REPO_ROOT/models/darknet"
-MODEL_DATA_FILE="$MODEL_DIR_PATH/Bilderkennung-Pilzwachstum.data"
-MODEL_CFG_FILE="$MODEL_DIR_PATH/Bilderkennung-Pilzwachstum.cfg"
-MODEL_WEIGHTS_FILE="$MODEL_DIR_PATH/Bilderkennung-Pilzwachstum_best.weights"
+MODEL_DATA_FILENAME="Bilderkennung-Pilzwachstum.data"
+MODEL_CFG_FILENAME="Bilderkennung-Pilzwachstum.cfg"
+MODEL_WEIGHTS_FILENAME="Bilderkennung-Pilzwachstum_best.weights"
 
 info() {
   printf '==> %s\n' "$*"
@@ -62,6 +62,36 @@ require_cmd() {
 require_file() {
   file_path=$1
   [ -f "$file_path" ] || die "Benötigte Datei fehlt: $file_path"
+}
+
+model_data_file() {
+  model_dir=$1
+  printf '%s/%s\n' "$model_dir" "$MODEL_DATA_FILENAME"
+}
+
+model_cfg_file() {
+  model_dir=$1
+  printf '%s/%s\n' "$model_dir" "$MODEL_CFG_FILENAME"
+}
+
+model_weights_file() {
+  model_dir=$1
+  printf '%s/%s\n' "$model_dir" "$MODEL_WEIGHTS_FILENAME"
+}
+
+model_has_required_artifacts() {
+  model_dir=$1
+  [ -f "$(model_data_file "$model_dir")" ] &&
+    [ -f "$(model_cfg_file "$model_dir")" ] &&
+    [ -f "$(model_weights_file "$model_dir")" ]
+}
+
+ensure_model_dir_artifacts() {
+  model_dir=$1
+  [ -d "$model_dir" ] || die "Modellordner fehlt: $(relative_path "$model_dir")"
+  require_file "$(model_data_file "$model_dir")"
+  require_file "$(model_cfg_file "$model_dir")"
+  require_file "$(model_weights_file "$model_dir")"
 }
 
 ensure_env_from_example() {
@@ -94,9 +124,27 @@ ensure_compose_env() {
 
 ensure_model_artifacts() {
   [ -d "$MODEL_DIR_PATH" ] || die "Modellordner fehlt: $(relative_path "$MODEL_DIR_PATH")"
-  require_file "$MODEL_DATA_FILE"
-  require_file "$MODEL_CFG_FILE"
-  require_file "$MODEL_WEIGHTS_FILE"
+
+  selected_model_version=$(read_env_value "$COMPOSE_ENV" "API_MODEL_VERSION" "")
+  if [ -z "$selected_model_version" ]; then
+    selected_model_version=$(read_env_value "$API_DIR/.env" "MODEL_VERSION" "")
+  fi
+
+  found_valid_model=false
+  for model_dir in "$MODEL_DIR_PATH"/darknet-cnn-v*; do
+    [ -d "$model_dir" ] || continue
+    if model_has_required_artifacts "$model_dir"; then
+      found_valid_model=true
+      break
+    fi
+  done
+
+  [ "$found_valid_model" = true ] || die \
+    "Kein lauffähiges Modell unter $(relative_path "$MODEL_DIR_PATH") gefunden."
+
+  if [ -n "$selected_model_version" ]; then
+    ensure_model_dir_artifacts "$MODEL_DIR_PATH/$selected_model_version"
+  fi
 }
 
 relative_path() {

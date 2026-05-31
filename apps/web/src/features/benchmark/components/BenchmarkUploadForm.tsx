@@ -7,6 +7,7 @@ interface BenchmarkUploadFormProps {
   testArchive: File | null
   labelArchive: File | null
   isLoading: boolean
+  modelSelector?: React.ReactNode
   onTestArchiveSelected: (file: File) => void
   onLabelArchiveSelected: (file: File) => void
   onTestArchiveError: (message: string) => void
@@ -114,6 +115,7 @@ export function BenchmarkUploadForm({
   testArchive,
   labelArchive,
   isLoading,
+  modelSelector,
   onTestArchiveSelected,
   onLabelArchiveSelected,
   onTestArchiveError,
@@ -141,6 +143,7 @@ export function BenchmarkUploadForm({
             Modellleistung reproduzierbar zu vergleichen.
           </p>
         </div>
+        {modelSelector}
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
