@@ -15,14 +15,37 @@ class FakeRunner:
     def __init__(self, stdout: str = "fake-stdout") -> None:
         self.stdout = stdout
         self.called_with: Path | None = None
+        self.received_model_dir: Path | None = None
 
-    def run(self, image_path: Path) -> InferenceRunResult:
+    def run(
+        self,
+        image_path: Path,
+        model_dir: Path | None = None,
+    ) -> InferenceRunResult:
         self.called_with = image_path
+        self.received_model_dir = model_dir
         return InferenceRunResult(
             stdout=self.stdout,
             stderr="",
             returncode=0,
         )
+
+
+class FakeModelRegistry:
+    def __init__(self, model_directory: Path, resolved_version: str = "test-model-v1") -> None:
+        self.model_directory = model_directory
+        self.resolved_version = resolved_version
+        self.received_model_version: str | None = None
+        self.received_preferred_default_version: str | None = None
+
+    def resolve_model_directory(
+        self,
+        model_version: str | None,
+        preferred_default_version: str | None = None,
+    ) -> tuple[str, Path]:
+        self.received_model_version = model_version
+        self.received_preferred_default_version = preferred_default_version
+        return self.resolved_version, self.model_directory
 
 
 @contextmanager
@@ -59,10 +82,11 @@ def test_to_domain_bounding_box_maps_values() -> None:
     )
 
 
-def test_to_domain_detections_maps_parsed_detections() -> None:
+def test_to_domain_detections_maps_parsed_detections(tmp_path: Path) -> None:
     adapter = DarknetPredictionAdapter(
         runner=FakeRunner(),
-        model_version="test-model-v1",
+        model_registry=FakeModelRegistry(tmp_path),
+        default_model_version="test-model-v1",
     )
 
     parsed_detections = [
@@ -94,11 +118,23 @@ def test_to_domain_detections_maps_parsed_detections() -> None:
     ]
 
 
-def test_predict_returns_prediction_result_with_mapped_detections(monkeypatch) -> None:
+def test_predict_returns_prediction_result_with_mapped_detections(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
     runner = FakeRunner(stdout="fungus: 98%")
+    model_directory = tmp_path / "darknet-cnn-v1.2"
+    model_directory.mkdir()
+    expected_image_bytes = b"annotated-image"
+    (model_directory / "predictions.jpg").write_bytes(expected_image_bytes)
+    model_registry = FakeModelRegistry(
+        model_directory=model_directory,
+        resolved_version="darknet-cnn-v1.2",
+    )
     adapter = DarknetPredictionAdapter(
         runner=runner,
-        model_version="test-model-v1",
+        model_registry=model_registry,
+        default_model_version="darknet-cnn-v1",
         temp_dir="/tmp",
     )
 
@@ -131,10 +167,14 @@ def test_predict_returns_prediction_result_with_mapped_detections(monkeypatch) -
         image_bytes=b"fake-image-bytes",
     )
 
-    result = adapter.predict(prediction_input)
+    result = adapter.predict(prediction_input, model_version="darknet-cnn-v1.2")
 
+    assert model_registry.received_model_version == "darknet-cnn-v1.2"
+    assert model_registry.received_preferred_default_version == "darknet-cnn-v1"
     assert runner.called_with == Path("/tmp/test-upload.jpg")
-    assert result.model_version == "test-model-v1"
+    assert runner.received_model_dir == model_directory
+    assert result.model_version == "darknet-cnn-v1.2"
+    assert result.annotated_image_bytes == expected_image_bytes
     assert result.detections == [
         Detection(
             label="fungus",
@@ -151,11 +191,15 @@ def test_predict_returns_prediction_result_with_mapped_detections(monkeypatch) -
     assert result.inference_time_ms >= 0
 
 
-def test_predict_returns_empty_detections_when_parser_returns_no_hits(monkeypatch) -> None:
+def test_predict_returns_empty_detections_when_parser_returns_no_hits(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
     runner = FakeRunner(stdout="(no detections)")
     adapter = DarknetPredictionAdapter(
         runner=runner,
-        model_version="test-model-v1",
+        model_registry=FakeModelRegistry(tmp_path),
+        default_model_version="test-model-v1",
     )
 
     monkeypatch.setattr(

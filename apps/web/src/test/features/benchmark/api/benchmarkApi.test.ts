@@ -75,7 +75,7 @@ describe("runBenchmark", () => {
     const testArchive = zipFile("images.zip")
     const labelArchive = zipFile("labels.zip")
 
-    await runBenchmark(testArchive, labelArchive)
+    await runBenchmark(testArchive, labelArchive, "darknet-cnn-v1.2")
 
     expect(mockedRequest).toHaveBeenCalledWith(
       "benchmark",
@@ -86,6 +86,7 @@ describe("runBenchmark", () => {
     const formData = callArgs.body as FormData
     expect(formData.get("test_archive")).toBe(testArchive)
     expect(formData.get("label_archive")).toBe(labelArchive)
+    expect(formData.get("model_version")).toBe("darknet-cnn-v1.2")
   })
 
   it("akzeptiert ZIP-Dateien anhand der Dateiendung", async () => {

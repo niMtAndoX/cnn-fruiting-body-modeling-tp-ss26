@@ -7,9 +7,15 @@ class FakePredictionPort(PredictionPort):
     def __init__(self, result: PredictionResult) -> None:
         self.result = result
         self.received_input: PredictionInput | None = None
+        self.received_model_version: str | None = None
 
-    def predict(self, prediction_input: PredictionInput) -> PredictionResult:
+    def predict(
+        self,
+        prediction_input: PredictionInput,
+        model_version: str | None = None,
+    ) -> PredictionResult:
         self.received_input = prediction_input
+        self.received_model_version = model_version
         return self.result
 
 
@@ -27,7 +33,8 @@ def test_prediction_service_delegates_to_prediction_port() -> None:
     fake_port = FakePredictionPort(result=expected_result)
     service = PredictionService(prediction_port=fake_port)
 
-    result = service.predict(prediction_input)
+    result = service.predict(prediction_input, model_version="darknet-cnn-v1.2")
 
     assert fake_port.received_input == prediction_input
+    assert fake_port.received_model_version == "darknet-cnn-v1.2"
     assert result == expected_result

@@ -5,6 +5,8 @@ import { AnalysisPanel } from "@/components/waldpilz/analysis-panel"
 import { LogPanel } from "@/components/waldpilz/log-panel"
 import { HistorySection } from "@/components/waldpilz/history-section"
 import backgroundWald from "@/components/wald_background.jpg"
+import { ModelSelector } from "@/features/model-selection/components/ModelSelector"
+import { useModelSelection } from "@/features/model-selection/hooks/useModelSelection"
 import { PredictionResult } from "@/features/prediction/components/PredictionResult"
 import { UploadForm } from "@/features/prediction/components/UploadForm"
 import { usePrediction } from "@/features/prediction/hooks/usePrediction"
@@ -55,6 +57,13 @@ export default function PredictionPage() {
     }
   })
   const [selectedHistoryIndex, setSelectedHistoryIndex] = useState<number | null>(null)
+  const {
+    availableModels,
+    errorMessage: modelSelectionError,
+    isLoading: isModelSelectionLoading,
+    selectedModelVersion,
+    setSelectedModelVersion,
+  } = useModelSelection()
 
   const {
     analyzeImage,
@@ -89,14 +98,14 @@ export default function PredictionPage() {
       selectedImage ?? (selectedHistoryEntry ? await createSelectedImageFromHistoryEntry(selectedHistoryEntry) : null)
 
     if (!imageToAnalyze) {
-      await analyzeImage(null)
+      await analyzeImage(null, selectedModelVersion)
       return
     }
 
     setSelectedImage(imageToAnalyze)
     setSelectedHistoryIndex(null)
 
-    const completedPrediction = await analyzeImage(imageToAnalyze)
+    const completedPrediction = await analyzeImage(imageToAnalyze, selectedModelVersion)
 
     if (!completedPrediction) {
       return
@@ -120,7 +129,15 @@ export default function PredictionPage() {
       }
       return newHistory
     })
-  }, [analyzeImage, selectedHistoryEntry, selectedImage])
+  }, [analyzeImage, selectedHistoryEntry, selectedImage, selectedModelVersion])
+
+  const handleModelVersionChange = useCallback((nextModelVersion: string) => {
+    setSelectedModelVersion(nextModelVersion)
+
+    if (selectedHistoryIndex === null) {
+      reset()
+    }
+  }, [reset, selectedHistoryIndex, setSelectedModelVersion])
 
   const handleHistorySelect = useCallback((index: number) => {
     if (history[index]) {
@@ -176,13 +193,23 @@ export default function PredictionPage() {
 
             <section className="rounded-[32px] border border-[#314a37]/12 bg-[linear-gradient(180deg,rgba(250,248,243,0.92),rgba(242,238,229,0.88))] p-5 shadow-[0_26px_80px_rgba(28,34,28,0.10)] backdrop-blur-xl sm:p-6">
               <div className="mb-5 border-b border-[#314a37]/10 pb-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#627966]">
-                    Workflow
-                  </p>
-                  <h2 className="mt-1 text-xl font-semibold tracking-tight text-[#213126]">
-                    Bild laden, prüfen und analysieren
-                  </h2>
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#627966]">
+                      Workflow
+                    </p>
+                    <h2 className="mt-1 text-xl font-semibold tracking-tight text-[#213126]">
+                      Bild laden, prüfen und analysieren
+                    </h2>
+                  </div>
+                  <ModelSelector
+                    availableModels={availableModels}
+                    errorMessage={modelSelectionError}
+                    isLoading={isModelSelectionLoading}
+                    onModelChange={handleModelVersionChange}
+                    selectedModelVersion={selectedModelVersion}
+                    className="self-start lg:self-end"
+                  />
                 </div>
               </div>
 

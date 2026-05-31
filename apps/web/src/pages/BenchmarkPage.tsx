@@ -6,11 +6,20 @@ import { BenchmarkProgress } from "@/features/benchmark/components/BenchmarkProg
 import { BenchmarkResultView } from "@/features/benchmark/components/BenchmarkResultView"
 import { BenchmarkUploadForm } from "@/features/benchmark/components/BenchmarkUploadForm"
 import { useBenchmark } from "@/features/benchmark/hooks/useBenchmark"
+import { ModelSelector } from "@/features/model-selection/components/ModelSelector"
+import { useModelSelection } from "@/features/model-selection/hooks/useModelSelection"
 
 export default function BenchmarkPage() {
   const [testArchive, setTestArchive] = useState<File | null>(null)
   const [labelArchive, setLabelArchive] = useState<File | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
+  const {
+    availableModels,
+    errorMessage: modelSelectionError,
+    isLoading: isModelSelectionLoading,
+    selectedModelVersion,
+    setSelectedModelVersion,
+  } = useModelSelection()
 
   const { startBenchmark, isLoading, error, result, status, imgMap, reset } = useBenchmark()
 
@@ -28,8 +37,14 @@ export default function BenchmarkPage() {
 
   const handleStart = useCallback(async () => {
     if (!testArchive || !labelArchive) return
-    await startBenchmark(testArchive, labelArchive)
-  }, [labelArchive, startBenchmark, testArchive])
+    await startBenchmark(testArchive, labelArchive, selectedModelVersion)
+  }, [labelArchive, selectedModelVersion, startBenchmark, testArchive])
+
+  const handleModelVersionChange = useCallback((nextModelVersion: string) => {
+    setSelectedModelVersion(nextModelVersion)
+    setFormError(null)
+    reset()
+  }, [reset, setSelectedModelVersion])
 
   const displayedError = formError ?? error
 
@@ -85,6 +100,16 @@ export default function BenchmarkPage() {
                 testArchive={testArchive}
                 labelArchive={labelArchive}
                 isLoading={isLoading}
+                modelSelector={
+                  <ModelSelector
+                    availableModels={availableModels}
+                    errorMessage={modelSelectionError}
+                    isLoading={isModelSelectionLoading}
+                    onModelChange={handleModelVersionChange}
+                    selectedModelVersion={selectedModelVersion}
+                    className="self-start lg:self-end"
+                  />
+                }
                 onTestArchiveSelected={handleTestArchiveSelected}
                 onLabelArchiveSelected={handleLabelArchiveSelected}
                 onTestArchiveError={setFormError}

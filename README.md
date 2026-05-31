@@ -10,7 +10,7 @@ Die Anwendung besteht aus drei zentralen Bausteinen:
 
 - einem React-Frontend unter `apps/web/`
 - einer FastAPI unter `apps/api/`
-- den benötigten Modellartefakten unter `models/darknet/`
+- den benötigten Modellartefakten in versionierten Unterordnern unter `models/darknet/`
 
 Die Anwendung kann sowohl lokal für die Entwicklung als auch gemeinsam per
 Docker Compose betrieben werden.
@@ -46,6 +46,7 @@ Die aktuelle Anwendung umfasst:
 Die API stellt aktuell diese Endpunkte bereit:
 
 - `GET /api/v1/health`
+- `GET /api/v1/models`
 - `POST /api/v1/predict`
 - `POST /api/v1/benchmark`
 
@@ -79,10 +80,10 @@ flowchart LR
 
 ### Was passiert bei einer Prediction?
 
-1. Das Frontend lädt ein einzelnes Bild hoch.
+1. Das Frontend lädt ein einzelnes Bild hoch und kann optional eine Modellversion auswählen.
 2. Die API validiert Dateityp und Größe.
 3. Das Backend ruft `scripts/inference.sh` auf.
-4. Das Skript startet Darknet mit den Dateien aus `models/darknet/`.
+4. Das Skript startet Darknet mit den Dateien aus dem ausgewählten Modellordner unter `models/darknet/darknet-cnn-v*/`.
 5. Die Modellantwort wird geparst und als JSON an das Frontend zurückgegeben.
 6. Das Frontend zeigt Bounding Boxes, Kennzahlen und Laufzeitinformationen an.
 
@@ -250,7 +251,8 @@ cd cnn-fruiting-body-modeling-tp-ss26
 Vor Prediction oder Benchmark müssen die Darknet-Dateien vorhanden sein.
 Details stehen in [`models/README.md`](models/README.md).
 
-Mindestens diese Dateien müssen unter `models/darknet/` liegen:
+Mindestens ein Unterordner nach dem Schema `models/darknet/darknet-cnn-v*` muss vorhanden sein.
+Jeder verwendbare Modellordner muss diese Dateien enthalten:
 
 - `Bilderkennung-Pilzwachstum.cfg`
 - `Bilderkennung-Pilzwachstum.data`
@@ -370,10 +372,17 @@ Die Docker-Konfiguration verwendet aktuell standardmäßig:
 API_MODEL_VERSION=darknet-cnn-v1.1
 ```
 
-Wenn im Frontend oder in der API eine unerwartete Modellversion angezeigt wird,
-sollte zuerst diese Datei geprüft werden:
+Dieser Wert legt den Standard fest, der von der API ohne explizite
+Request-Auswahl beziehungsweise im Frontend initial verwendet wird.
+Alle Unterordner unter `models/darknet/` werden in den Container kopiert und
+können zur Laufzeit ausgewählt werden.
 
+Wenn im Frontend oder in der API eine unerwartete Modellversion angezeigt wird,
+sollten zuerst diese Stellen geprüft werden:
+
+- `models/darknet/`
 - `ops/docker/.env`
+- `apps/api/.env`
 
 ---
 
@@ -406,9 +415,8 @@ Dort findest du:
 
 Dort findest du:
 
-- aktive Modellversion
-- benötigte Darknet-Dateien
-- Hinweise zu `old_model/`
+- verfügbare Modellordner und Modell-Defaults
+- benötigte Darknet-Dateien pro Modellordner
 - Details zur `.data`- und `.names`-Datei
 
 ### Für Release und Deployment

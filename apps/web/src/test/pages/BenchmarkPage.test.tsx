@@ -9,7 +9,18 @@ vi.mock("@/features/benchmark/hooks/useBenchmark", () => ({
     error: null,
     result: null,
     status: "idle",
+    imgMap: new Map(),
     reset: vi.fn(),
+  }),
+}))
+
+vi.mock("@/features/model-selection/hooks/useModelSelection", () => ({
+  useModelSelection: () => ({
+    availableModels: ["darknet-cnn-v1", "darknet-cnn-v1.2"],
+    errorMessage: null,
+    isLoading: false,
+    selectedModelVersion: "darknet-cnn-v1",
+    setSelectedModelVersion: vi.fn(),
   }),
 }))
 
@@ -84,5 +95,11 @@ describe("BenchmarkPage", () => {
 
     expect(screen.getByText(/bild_001\.jpg ↔ bild_001\.txt/i)).toBeInTheDocument()
     expect(screen.getByText(/Erwartete ZIP-Struktur/i)).toBeInTheDocument()
+  })
+
+  it("zeigt die Modellauswahl im Kopfbereich", () => {
+    renderBenchmarkPage()
+
+    expect(screen.getByText("Modell")).toBeInTheDocument()
   })
 })

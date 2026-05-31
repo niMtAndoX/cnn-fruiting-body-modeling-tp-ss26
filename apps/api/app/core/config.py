@@ -17,6 +17,13 @@ def default_inference_script_path() -> str:
         return str(API_ROOT_DIR / "scripts" / "inference.sh")
 
 
+def default_model_root_dir() -> str:
+    try:
+        return str(API_ROOT_DIR.parents[1] / "models" / "darknet")
+    except IndexError:
+        return str(API_ROOT_DIR / "models" / "darknet")
+
+
 class Settings(BaseSettings):
     # Anzeigename der Anwendung
     app_name: str = "waldpilz-api"
@@ -79,6 +86,16 @@ class Settings(BaseSettings):
 
     # Versionsbezeichnung des aktuell verwendeten Modells
     model_version: str = "darknet-cnn-v1"
+
+    # Wurzelverzeichnis, das alle auswählbaren Darknet-Modelle enthält
+    model_root_dir: str = Field(
+        default_factory=default_model_root_dir,
+        validation_alias=AliasChoices(
+            "model_root_dir",
+            "MODEL_ROOT_DIR",
+            "MODEL_DIR",
+        ),
+    )
 
     # Pfad zum Shell-Skript, das die Inferenz startet
     inference_script_path: str = default_inference_script_path()
@@ -187,6 +204,18 @@ class Settings(BaseSettings):
             raise ValueError("inference_timeout_seconds must be greater than 0") from err
         return value
 
+    @field_validator("model_root_dir", mode="before")
+    @classmethod
+    def validate_model_root_dir(cls, value: Any) -> Any:
+        """Validiert, dass das Modellwurzelverzeichnis nicht leer ist."""
+        if value is None:
+            raise ValueError("model_root_dir must not be empty")
+
+        if isinstance(value, str) and value.strip():
+            return value
+
+        raise ValueError("model_root_dir must not be empty")
+
     @field_validator("cors_allow_origins", mode="before")
     @classmethod
     def parse_cors_allow_origins(cls, value: str | list[str]) -> list[str]:
@@ -240,4 +269,3 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Gibt eine gecachte Instanz der Anwendungseinstellungen zurück."""
     return Settings()
-

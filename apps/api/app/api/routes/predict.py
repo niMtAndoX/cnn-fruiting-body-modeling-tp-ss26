@@ -3,7 +3,7 @@
 from typing import Annotated
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, Form, UploadFile
 
 from app.api.schemas.prediction import (
     BoundingBoxResponse,
@@ -18,6 +18,10 @@ from app.domain.prediction.exceptions import (
     PredictionExecutionError,
 )
 from app.domain.prediction.service import PredictionService
+from app.infrastructure.darknet.model_registry import (
+    ModelVersionNotFoundError,
+    NoModelsAvailableError,
+)
 from app.infrastructure.darknet.parser import DarknetOutputParseError
 from app.infrastructure.darknet.runner import InferenceRunnerError
 
@@ -65,6 +69,10 @@ async def predict(
             )
         ),
     ],
+    model_version: Annotated[
+        str | None,
+        Form(description="Optionaler Name des zu verwendenden Modellordners."),
+    ] = None,
 ) -> PredictionResponse:
     content_type = file.content_type or ""
     if content_type not in settings.allowed_upload_content_types:
@@ -87,14 +95,17 @@ async def predict(
     )
 
     try:
-        result = service.predict(prediction_input)
+        result = service.predict(prediction_input, model_version=model_version)
     except PredictionBadRequestError:
         raise
+    except ModelVersionNotFoundError as exc:
+        raise PredictionBadRequestError(str(exc)) from exc
+    except NoModelsAvailableError as exc:
+        raise PredictionExecutionError(str(exc)) from exc
     except (InferenceRunnerError, DarknetOutputParseError) as exc:
         raise PredictionExecutionError(
-        "Die Bilderkennung konnte nicht erfolgreich ausgeführt werden."
-    ) from exc
+            "Die Bilderkennung konnte nicht erfolgreich ausgeführt werden."
+        ) from exc
 
     request_id = str(uuid4())
     return to_prediction_response(result, request_id=request_id)
-
