@@ -121,7 +121,13 @@ async def benchmark(
     )
 
     try:
-        result = service.benchmark(benchmark_input, model_version=model_version)
+        if model_version is None:
+            result = service.benchmark(benchmark_input)
+        else:
+            result = service.benchmark(
+                benchmark_input,
+                model_version=model_version,
+            )
     except BenchmarkBadRequestError:
         raise
     except ModelVersionNotFoundError as exc:

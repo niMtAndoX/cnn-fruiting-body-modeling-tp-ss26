@@ -89,7 +89,7 @@ export function useBenchmark() {
     }
 
     restoreImagesOnReload();
-  }, [result, getImages])
+  }, [result, getImages, imgMap])
 
   const reset = useCallback(() => {
     setStatus("idle")
@@ -158,7 +158,7 @@ export function useBenchmark() {
         setError(message)
       }
     },
-    [status, getImages],
+    [status, getImages, imgMap],
   )
 
   return {

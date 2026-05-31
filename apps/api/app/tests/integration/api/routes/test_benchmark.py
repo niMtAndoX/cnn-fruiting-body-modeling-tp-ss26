@@ -72,6 +72,7 @@ def test_benchmark_returns_benchmark_response() -> None:
 			"model_version": "test-model-v1",
 			"processing_time_ms": 3200,
 			"average_inference_time_ms": 0.0,
+			"zip_file": "",
 			"true_positives": 0,
 			"false_positives": 0,
 			"false_negatives": 0,

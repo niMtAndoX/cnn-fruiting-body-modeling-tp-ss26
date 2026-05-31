@@ -95,7 +95,10 @@ async def predict(
     )
 
     try:
-        result = service.predict(prediction_input, model_version=model_version)
+        if model_version is None:
+            result = service.predict(prediction_input)
+        else:
+            result = service.predict(prediction_input, model_version=model_version)
     except PredictionBadRequestError:
         raise
     except ModelVersionNotFoundError as exc:
