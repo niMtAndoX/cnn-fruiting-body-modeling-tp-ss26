@@ -143,7 +143,7 @@ def test_benchmark_route_returns_metrics_and_image_results_for_valid_archives() 
 			"false_negatives": 0,
 			"inference_time_ms": 42,
 			"error": None,
-			"score": 0
+			"score": 0.0
 		}
 	finally:
 		app.dependency_overrides.clear()

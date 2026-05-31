@@ -12,6 +12,7 @@ def make_valid_benchmark_response_payload() -> dict[str, object]:
 		"model_version": "darknet-cnn-v1",
 		"processing_time_ms": 1250,
 		"average_inference_time_ms": 87.5,
+		"zip_file": "UEsFBgAAAAAAAAAAAAAAAAAAAAAAAA==",
 		"true_positives": 8,
 		"false_positives": 2,
 		"false_negatives": 1,
@@ -46,7 +47,7 @@ def make_valid_benchmark_response_payload() -> dict[str, object]:
 				"false_negatives": 0,
 				"inference_time_ms": 91,
 				"error": None,
-				"score": 0
+				"score": 0.0,
 			}
 		],
 	}
@@ -111,7 +112,6 @@ def test_benchmark_response_schema_preserves_expected_field_types() -> None:
 	assert isinstance(body["zip_file"], str)
 
 
-
 def test_benchmark_response_schema_preserves_nested_frontend_fields() -> None:
 	response = BenchmarkResponse.model_validate(
 		make_valid_benchmark_response_payload()
@@ -143,6 +143,7 @@ def test_benchmark_response_schema_preserves_nested_frontend_fields() -> None:
 		"error",
 		"score"
 	}
+	assert isinstance(image_result["score"], float)
 
 
 def test_benchmark_response_schema_allows_empty_result_lists() -> None:
