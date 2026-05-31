@@ -1,10 +1,10 @@
 """Koordiniert ZIP-Verarbeitung, Modellaufrufe, Ground-Truth-Vergleich und Metrikberechnung."""
 
-import io
-import zipfile
 import base64
+import io
 import logging
 import os
+import zipfile
 from pathlib import Path
 from time import perf_counter
 
@@ -53,7 +53,7 @@ class BenchmarkService:
 
 		except Exception as e:
 			logging.error(f"Unexpected error while zipping image {image_id}: {e}")
-			raise RuntimeError(f"Internal zipping error: {e}")
+			raise RuntimeError(f"Internal zipping error: {e}") from RuntimeError
 
 	def benchmark(self, benchmark_input: BenchmarkInput) -> BenchmarkResult:
 		started_at = perf_counter()
