@@ -22,6 +22,14 @@ function base64ToBlob(base64String: string): Blob{
   return new Blob([byteArray], {type: 'application/zip'})
 }
 
+function toStoredBenchmarkResult(response: BenchmarkResponse): BenchmarkResponse {
+  return {
+    ...response,
+    // The ZIP payload is stored separately in IndexedDB to avoid sessionStorage quota issues.
+    zipFile: "",
+  }
+}
+
 export function useBenchmark() {
   const [status, setStatus] = useState<BenchmarkStatus>(() => {
     try {
@@ -147,7 +155,10 @@ export function useBenchmark() {
         setResult(response)
 
         try {
-          sessionStorage.setItem(BENCHMARK_SESSION_KEY, JSON.stringify(response))
+          sessionStorage.setItem(
+            BENCHMARK_SESSION_KEY,
+            JSON.stringify(toStoredBenchmarkResult(response)),
+          )
         } catch {
           // ignore quota errors
         }

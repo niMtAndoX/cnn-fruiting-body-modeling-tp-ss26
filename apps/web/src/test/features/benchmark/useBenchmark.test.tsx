@@ -31,6 +31,7 @@ const successResponse: BenchmarkResponse = {
 describe("useBenchmark", () => {
   beforeEach(() => {
     mockedRunBenchmark.mockReset()
+    sessionStorage.clear()
   })
 
   it("startet im Ruhezustand", () => {
@@ -146,5 +147,38 @@ describe("useBenchmark", () => {
     expect(result.current.status).toBe("idle")
     expect(result.current.result).toBeNull()
     expect(result.current.error).toBeNull()
+  })
+
+  it("speichert das Session-Ergebnis ohne ZIP-Payload", async () => {
+    mockedRunBenchmark.mockResolvedValue({
+      ...successResponse,
+      zipFile: btoa("zip-data"),
+    })
+
+    const { result } = renderHook(() => useBenchmark())
+
+    await act(async () => {
+      await result.current.startBenchmark(testArchive, labelArchive)
+    })
+
+    const stored = sessionStorage.getItem("benchmark-result")
+    expect(stored).not.toBeNull()
+    expect(JSON.parse(stored as string)).toMatchObject({
+      requestId: "req-bench-1",
+      zipFile: "",
+    })
+  })
+
+  it("stellt ein gespeichertes Benchmark-Ergebnis nach Reload wieder her", () => {
+    sessionStorage.setItem("benchmark-result", JSON.stringify({
+      ...successResponse,
+      zipFile: "",
+    }))
+
+    const { result } = renderHook(() => useBenchmark())
+
+    expect(result.current.status).toBe("success")
+    expect(result.current.result?.requestId).toBe("req-bench-1")
+    expect(result.current.result?.zipFile).toBe("")
   })
 })
