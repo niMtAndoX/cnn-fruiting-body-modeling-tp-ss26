@@ -46,6 +46,7 @@ def make_valid_benchmark_response_payload() -> dict[str, object]:
 				"false_negatives": 0,
 				"inference_time_ms": 91,
 				"error": None,
+				"score": 0
 			}
 		],
 	}
@@ -140,6 +141,7 @@ def test_benchmark_response_schema_preserves_nested_frontend_fields() -> None:
 		"false_negatives",
 		"inference_time_ms",
 		"error",
+		"score"
 	}
 
 
@@ -168,6 +170,7 @@ def test_benchmark_response_schema_allows_empty_result_lists() -> None:
 		"total_images",
 		"failed_images",
 		"image_results",
+		"zip_file"
 	],
 )
 def test_benchmark_response_schema_rejects_missing_required_fields(

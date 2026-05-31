@@ -85,6 +85,7 @@ def test_benchmark_returns_benchmark_response() -> None:
 			"failed_images": 0,
 			"per_label": [],
 			"image_results": [],
+			"zip_file": ""
 		}
 	finally:
 		app.dependency_overrides.clear()
