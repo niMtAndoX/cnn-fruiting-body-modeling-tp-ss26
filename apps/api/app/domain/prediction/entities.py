@@ -36,3 +36,4 @@ class PredictionResult:
     model_version: str
     detections: list[Detection]
     inference_time_ms: int
+    annotated_image_bytes: bytes | None = None

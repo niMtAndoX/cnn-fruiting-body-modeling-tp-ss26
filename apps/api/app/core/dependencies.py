@@ -7,6 +7,7 @@ from fastapi import Depends
 from app.core.config import Settings, get_settings
 from app.domain.benchmark.service import BenchmarkService
 from app.domain.prediction.service import PredictionService
+from app.infrastructure.darknet.model_registry import DarknetModelRegistry
 from app.infrastructure.darknet.prediction_adapter import DarknetPredictionAdapter
 from app.infrastructure.darknet.runner import DarknetRunner
 
@@ -28,14 +29,23 @@ def get_darknet_runner(
     )
 
 
+def get_darknet_model_registry(
+    settings: Annotated[Settings, Depends(get_settings_dependency)],
+) -> DarknetModelRegistry:
+    """Liefert die Registry der verfügbaren Darknet-Modelle."""
+    return DarknetModelRegistry(model_root_dir=settings.model_root_dir)
+
+
 def get_prediction_adapter(
     settings: Annotated[Settings, Depends(get_settings_dependency)],
     runner: Annotated[DarknetRunner, Depends(get_darknet_runner)],
+    model_registry: Annotated[DarknetModelRegistry, Depends(get_darknet_model_registry)],
 ) -> DarknetPredictionAdapter:
     """Erzeugt den gemeinsamen Darknet-Prediction-Adapter."""
     return DarknetPredictionAdapter(
         runner=runner,
-        model_version=settings.model_version,
+        model_registry=model_registry,
+        default_model_version=settings.model_version,
         temp_dir=settings.inference_temp_dir,
     )
 

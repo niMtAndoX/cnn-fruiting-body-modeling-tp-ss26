@@ -9,13 +9,19 @@ export class PredictionRequestError extends Error {
   }
 }
 
-export async function predict(file: File): Promise<PredictionResponse> {
+export async function predict(
+  file: File,
+  modelVersion?: string | null,
+): Promise<PredictionResponse> {
   if (!isValidImageFile(file)) {
     throw new PredictionRequestError("Bitte wähle ein gültiges Bild aus.")
   }
 
   const formData = new FormData()
   formData.append("file", file)
+  if (modelVersion) {
+    formData.append("model_version", modelVersion)
+  }
 
   try {
     const response = await request<unknown>("predict", {

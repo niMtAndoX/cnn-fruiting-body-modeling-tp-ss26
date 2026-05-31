@@ -4,13 +4,14 @@ from fastapi.testclient import TestClient
 
 from app.core.dependencies import get_prediction_service
 from app.domain.prediction.entities import BoundingBox, Detection, PredictionResult
+from app.infrastructure.darknet.model_registry import ModelVersionNotFoundError
 from app.infrastructure.darknet.parser import DarknetOutputParseError
 from app.infrastructure.darknet.runner import InferenceScriptExecutionError
 from app.main import app
 
 
 class FakePredictionService:
-    def predict(self, prediction_input):
+    def predict(self, prediction_input, model_version=None):
         return PredictionResult(
             model_version="test-model-v1",
             detections=[
@@ -30,7 +31,7 @@ class FakePredictionService:
 
 
 class EmptyPredictionService:
-    def predict(self, prediction_input):
+    def predict(self, prediction_input, model_version=None):
         return PredictionResult(
             model_version="test-model-v1",
             detections=[],
@@ -39,13 +40,18 @@ class EmptyPredictionService:
 
 
 class FailingPredictionService:
-    def predict(self, prediction_input):
+    def predict(self, prediction_input, model_version=None):
         raise InferenceScriptExecutionError("script failed")
 
 
 class ParseFailingPredictionService:
-    def predict(self, prediction_input):
+    def predict(self, prediction_input, model_version=None):
         raise DarknetOutputParseError("unreadable darknet output")
+
+
+class UnknownModelPredictionService:
+    def predict(self, prediction_input, model_version=None):
+        raise ModelVersionNotFoundError("Das Modell 'darknet-cnn-v9' ist nicht verfügbar.")
 
 
 def test_predict_returns_prediction_response() -> None:
@@ -158,6 +164,28 @@ def test_predict_returns_500_when_darknet_output_cannot_be_parsed() -> None:
         assert response.json() == {
             "error": "internal_error",
             "message": "Die Bilderkennung konnte nicht erfolgreich ausgeführt werden.",
+        }
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_predict_returns_400_for_unknown_model_version() -> None:
+    app.dependency_overrides[get_prediction_service] = (
+        lambda: UnknownModelPredictionService()
+    )
+
+    try:
+        client = TestClient(app)
+        response = client.post(
+            "/api/v1/predict",
+            data={"model_version": "darknet-cnn-v9"},
+            files={"file": ("test.jpg", b"fake-image-bytes", "image/jpeg")},
+        )
+
+        assert response.status_code == 400
+        assert response.json() == {
+            "error": "bad_request",
+            "message": "Das Modell 'darknet-cnn-v9' ist nicht verfügbar.",
         }
     finally:
         app.dependency_overrides.clear()

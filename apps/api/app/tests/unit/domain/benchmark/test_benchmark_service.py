@@ -31,14 +31,24 @@ class FakePredictionPort(PredictionPort):
 	def __init__(self, result: PredictionResult) -> None:
 		self.result = result
 		self.received_inputs: list[PredictionInput] = []
+		self.received_model_versions: list[str | None] = []
 
-	def predict(self, prediction_input: PredictionInput) -> PredictionResult:
+	def predict(
+		self,
+		prediction_input: PredictionInput,
+		model_version: str | None = None,
+	) -> PredictionResult:
 		self.received_inputs.append(prediction_input)
+		self.received_model_versions.append(model_version)
 		return self.result
 
 
 class FailingPredictionPort(PredictionPort):
-	def predict(self, prediction_input: PredictionInput) -> PredictionResult:
+	def predict(
+		self,
+		prediction_input: PredictionInput,
+		model_version: str | None = None,
+	) -> PredictionResult:
 		raise RuntimeError("Darknet nicht verfügbar")
 
 
@@ -63,10 +73,11 @@ def test_benchmark_delegates_to_prediction_port() -> None:
 		label_archive_bytes=_make_zip({"img.txt": b"0 0.2 0.2 0.2 0.2"}),
 		label_archive_filename="labels.zip",
 	)
-	service.benchmark(benchmark_input)
+	service.benchmark(benchmark_input, model_version="darknet-cnn-v1.2")
 
 	assert len(port.received_inputs) == 1
 	assert port.received_inputs[0].filename == "img.jpg"
+	assert port.received_model_versions == ["darknet-cnn-v1.2"]
 
 
 def test_benchmark_result_uses_model_version_from_prediction() -> None:

@@ -35,7 +35,7 @@ Das Backend basiert auf:
 
 Die Modellinferenz selbst läuft nicht nativ in Python, sondern über das
 Shell-Skript `scripts/inference.sh`, das Darknet mit den Modellartefakten aus
-`models/darknet/` startet.
+dem pro Request ausgewählten Unterordner unter `models/darknet/` startet.
 
 ---
 
@@ -71,6 +71,7 @@ app/
 │  ├─ router.py                    # bindet alle Router zusammen
 │  ├─ routes/
 │  │  ├─ health.py                 # GET /api/v1/health
+│  │  ├─ models.py                 # GET /api/v1/models
 │  │  ├─ predict.py                # POST /api/v1/predict
 │  │  └─ benchmark.py              # POST /api/v1/benchmark
 │  ├─ schemas/                     # Request-/Response-Schemas
@@ -192,7 +193,9 @@ Das ist wichtig, weil damit:
 
 ### Erwartete Modellartefakte
 
-Unter `models/darknet/` müssen mindestens diese Dateien vorliegen:
+Unter `models/darknet/` müssen ein oder mehrere Unterordner nach dem Schema
+`darknet-cnn-v*` vorliegen. Jeder verwendbare Modellordner muss mindestens
+diese Dateien enthalten:
 
 - `Bilderkennung-Pilzwachstum.cfg`
 - `Bilderkennung-Pilzwachstum.data`
@@ -210,20 +213,26 @@ names = ./Bilderkennung-Pilzwachstum.names
 Dieser Pfad muss korrekt bleiben. Ein falscher `names`-Pfad kann dazu führen,
 dass Darknet beim Start abbricht.
 
-### Aktive Modellversion
+### Verfügbare und standardmäßige Modellversion
 
-Die aktuelle Modellversionsbezeichnung lautet:
+Die Unterordner unter `models/darknet/` definieren die verfügbaren
+Modellversionen, zum Beispiel:
 
 ```text
+darknet-cnn-v1
 darknet-cnn-v1.1
+darknet-cnn-v1.2
 ```
 
-Die Modellversion wird über `MODEL_VERSION` gesteuert. Im Docker-Deployment wird
-dieser Wert üblicherweise über `ops/docker/.env` gesetzt.
+Wichtig:
 
-Ältere Artefakte liegen weiterhin unter:
-
-- `models/darknet/old_model/`
+- `MODEL_VERSION` definiert den bevorzugten Default der API.
+- Im Docker-Deployment wird dieser Default üblicherweise über
+  `ops/docker/.env` als `API_MODEL_VERSION` gesetzt.
+- Das Frontend kann über die Prediction- und Benchmark-Seite zur Laufzeit eine
+  andere verfügbare Modellversion auswählen.
+- Wenn ein Request `model_version` mitsendet, verwendet die API den gleichnamigen
+  Unterordner unter `models/darknet/`.
 
 ---
 
@@ -269,7 +278,7 @@ BENCHMARK_IOU_THRESHOLD=0.5
 - `ALLOWED_UPLOAD_CONTENT_TYPES`
   - erlaubte MIME-Types für Prediction-Uploads
 - `MODEL_VERSION`
-  - Versionsbezeichnung, die in API-Responses zurückgegeben wird
+  - bevorzugte Default-Modellversion, wenn kein Request eine `model_version` vorgibt
 - `INFERENCE_TIMEOUT_SECONDS`
   - Zeitlimit für `scripts/inference.sh`
 - `MAX_BENCHMARK_ARCHIVE_SIZE_MB`
@@ -347,6 +356,26 @@ Keine Parameter erforderlich.
 
 ---
 
+### `GET /api/v1/models`
+
+Liefert die verfügbaren Modellversionen aus `models/darknet/darknet-cnn-v*`
+sowie die aktuell konfigurierte Default-Version zurück.
+
+#### Erfolgreiche Response
+
+```json
+{
+  "available_models": [
+    "darknet-cnn-v1",
+    "darknet-cnn-v1.1",
+    "darknet-cnn-v1.2"
+  ],
+  "default_model_version": "darknet-cnn-v1.1"
+}
+```
+
+---
+
 ### `POST /api/v1/predict`
 
 Führt eine Modellvorhersage auf einem einzelnen Bild aus.
@@ -355,6 +384,7 @@ Führt eine Modellvorhersage auf einem einzelnen Bild aus.
 
 - `Content-Type: multipart/form-data`
 - Pflichtfeld: `file`
+- optional: `model_version`
 
 #### Erlaubte Dateitypen
 
@@ -371,7 +401,8 @@ Führt eine Modellvorhersage auf einem einzelnen Bild aus.
 curl -X POST \
   "http://127.0.0.1:8000/api/v1/predict" \
   -H "accept: application/json" \
-  -F "file=@testimage.png;type=image/png"
+  -F "file=@testimage.png;type=image/png" \
+  -F "model_version=darknet-cnn-v1.2"
 ```
 
 #### Erfolgreiche Response mit Erkennungen
@@ -457,6 +488,7 @@ Vorhersagen mit den Labels und berechnet zusammenfassende Kennzahlen.
 - `Content-Type: multipart/form-data`
 - Pflichtfeld `test_archive`
 - Pflichtfeld `label_archive`
+- optional `model_version`
 
 #### Beispiel-Request mit `curl`
 
@@ -465,7 +497,8 @@ curl -X POST \
   "http://127.0.0.1:8000/api/v1/benchmark" \
   -H "accept: application/json" \
   -F "test_archive=@testbilder.zip;type=application/zip" \
-  -F "label_archive=@labels.zip;type=application/zip"
+  -F "label_archive=@labels.zip;type=application/zip" \
+  -F "model_version=darknet-cnn-v1.2"
 ```
 
 #### Erwartete Struktur der ZIP-Dateien
@@ -721,7 +754,8 @@ Das API-Image wird aus dem Repository-Root gebaut, weil der Docker-Build neben
 
 ### 1. Modellartefakte prüfen
 
-Vor dem Build müssen die Dateien unter `models/darknet/` vorhanden sein.
+Vor dem Build müssen die gewünschten Modellordner unter `models/darknet/`
+vorhanden sein.
 Details dazu stehen in:
 
 - [`../../models/README.md`](../../models/README.md)

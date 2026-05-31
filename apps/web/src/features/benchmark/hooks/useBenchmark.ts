@@ -89,7 +89,7 @@ export function useBenchmark() {
     }
 
     restoreImagesOnReload();
-  }, [result, getImages])
+  }, [result, getImages, imgMap])
 
   const reset = useCallback(() => {
     setStatus("idle")
@@ -110,7 +110,11 @@ export function useBenchmark() {
   }, [imgMap])
 
   const startBenchmark = useCallback(
-    async (testArchive: File, labelArchive: File) => {
+    async (
+      testArchive: File,
+      labelArchive: File,
+      modelVersion?: string | null,
+    ) => {
       if (status === "loading") return
 
       setStatus("loading")
@@ -123,7 +127,7 @@ export function useBenchmark() {
       }
 
       try {
-        const response = await runBenchmark(testArchive, labelArchive)
+        const response = await runBenchmark(testArchive, labelArchive, modelVersion)
         
         if(response.zipFile){
           const zipBlob = base64ToBlob(response.zipFile);
@@ -154,7 +158,7 @@ export function useBenchmark() {
         setError(message)
       }
     },
-    [status, getImages],
+    [status, getImages, imgMap],
   )
 
   return {

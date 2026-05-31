@@ -51,10 +51,10 @@ describe("usePrediction", () => {
     })
 
     await act(async () => {
-      await result.current.analyzeImage(selectedImage)
+      await result.current.analyzeImage(selectedImage, "darknet-cnn-v1.2")
     })
 
-    expect(mockedPredict).toHaveBeenCalledWith(selectedImage.file)
+    expect(mockedPredict).toHaveBeenCalledWith(selectedImage.file, "darknet-cnn-v1.2")
     expect(result.current.status).toBe("empty")
     expect(result.current.result?.requestId).toBe("req-empty-1")
     expect(result.current.result?.modelVersion).toBe("detector-2026-04")

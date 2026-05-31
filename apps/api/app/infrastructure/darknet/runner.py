@@ -1,5 +1,6 @@
 """Startet das Inferenz-Skript und erkennt technische Fehler beim Aufruf."""
 
+import os
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -56,7 +57,11 @@ class DarknetRunner:
         self.darknet_bin_path = darknet_bin_path
         self.bash_executable = bash_executable or r"C:\Program Files\Git\bin\bash.exe"
 
-    def run(self, image_path: Path) -> InferenceRunResult:
+    def run(
+        self,
+        image_path: Path,
+        model_dir: Path | None = None,
+    ) -> InferenceRunResult:
         """
         Startet das Inferenz-Skript mit dem Bildpfad als Argument.
 
@@ -66,6 +71,8 @@ class DarknetRunner:
 
         Args:
             image_path: Pfad zur Bilddatei, die verarbeitet werden soll.
+            model_dir: Optionales Modellverzeichnis; wird als MODEL_DIR an das Skript
+                weitergegeben und überschreibt dort den Standardpfad.
 
         Returns:
             Das rohe Ergebnis des Prozessaufrufs mit stdout, stderr und returncode.
@@ -89,10 +96,12 @@ class DarknetRunner:
             command = [str(self.inference_script_path), str(image_path)]
 
         env: dict[str, str] | None = None
-        if self.darknet_bin_path:
-            import os
+        if self.darknet_bin_path or model_dir is not None:
             env = os.environ.copy()
+        if self.darknet_bin_path:
             env["DARKNET_BIN"] = self.darknet_bin_path
+        if model_dir is not None:
+            env["MODEL_DIR"] = str(model_dir)
 
         try:
             completed_process = subprocess.run(

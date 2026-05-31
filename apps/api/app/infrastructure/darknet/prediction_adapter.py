@@ -1,3 +1,4 @@
+from pathlib import Path
 from time import perf_counter
 
 from app.domain.prediction.entities import (
@@ -7,6 +8,7 @@ from app.domain.prediction.entities import (
     PredictionResult,
 )
 from app.domain.prediction.ports import PredictionPort
+from app.infrastructure.darknet.model_registry import DarknetModelRegistry
 from app.infrastructure.darknet.models import ParsedBoundingBox, ParsedDetection
 from app.infrastructure.darknet.parser import parse_darknet_output
 from app.infrastructure.darknet.runner import DarknetRunner
@@ -19,7 +21,8 @@ class DarknetPredictionAdapter(PredictionPort):
     def __init__(
         self,
         runner: DarknetRunner,
-        model_version: str,
+        model_registry: DarknetModelRegistry,
+        default_model_version: str,
         temp_dir: str | None = None,
     ) -> None:
         """
@@ -27,14 +30,20 @@ class DarknetPredictionAdapter(PredictionPort):
 
         Args:
             runner: Runner für den Aufruf des Inferenz-Skripts.
-            model_version: Versionsbezeichnung des verwendeten Modells.
+            model_registry: Registry zum Auflösen verfügbarer Modellverzeichnisse.
+            default_model_version: Bevorzugte Modellversion für Requests ohne Auswahl.
             temp_dir: Optionales Verzeichnis für temporäre Bilddateien.
         """
         self.runner = runner
-        self.model_version = model_version
+        self.model_registry = model_registry
+        self.default_model_version = default_model_version
         self.temp_dir = temp_dir
 
-    def predict(self, prediction_input: PredictionInput) -> PredictionResult:
+    def predict(
+        self,
+        prediction_input: PredictionInput,
+        model_version: str | None = None,
+    ) -> PredictionResult:
         """
         Führt eine Vorhersage für die übergebenen Bilddaten aus.
 
@@ -48,6 +57,10 @@ class DarknetPredictionAdapter(PredictionPort):
             Ein strukturiertes PredictionResult.
         """
         suffix = self._get_file_suffix(prediction_input.content_type)
+        resolved_model_version, model_directory = self.model_registry.resolve_model_directory(
+            model_version=model_version,
+            preferred_default_version=self.default_model_version,
+        )
 
         started_at = perf_counter()
 
@@ -56,15 +69,19 @@ class DarknetPredictionAdapter(PredictionPort):
             suffix=suffix,
             temp_dir=self.temp_dir,
         ) as image_path:
-            runner_result = self.runner.run(image_path=image_path)
+            runner_result = self.runner.run(
+                image_path=image_path,
+                model_dir=model_directory,
+            )
 
         parsed_output = parse_darknet_output(runner_result.stdout)
         inference_time_ms = int((perf_counter() - started_at) * 1000)
 
         return PredictionResult(
-            model_version=self.model_version,
+            model_version=resolved_model_version,
             detections=self._to_domain_detections(parsed_output.detections),
             inference_time_ms=inference_time_ms,
+            annotated_image_bytes=self._read_annotated_image_bytes(model_directory),
         )
 
     @staticmethod
@@ -84,6 +101,17 @@ class DarknetPredictionAdapter(PredictionPort):
             "image/png": ".png",
         }
         return mapping.get(content_type, ".jpg")
+
+    @staticmethod
+    def _read_annotated_image_bytes(model_directory: Path) -> bytes | None:
+        output_path = model_directory / "predictions.jpg"
+        if not output_path.is_file():
+            return None
+
+        try:
+            return output_path.read_bytes()
+        except OSError:
+            return None
 
     def _to_domain_detections(
         self,
